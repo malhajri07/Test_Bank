@@ -18,7 +18,7 @@ class TestBankJSONUploadForm(forms.Form):
             "category": "category-slug",
             "subcategory": "subcategory-slug",  # optional
             "certification": "certification-slug",  # optional
-            "difficulty_level": "beginner|intermediate|advanced",
+            "difficulty_level": "easy|medium|advanced",
             "price": 0.00,
             "is_active": true
         },

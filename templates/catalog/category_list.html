@@ -4,51 +4,60 @@
 {% block title %}{% trans "Categories - Exam Stellar" %}{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %} mb-4">
-            <a href="{% url 'catalog:index' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">
+<!-- Page Header - Apple Style -->
+<div class="bg-white/80 backdrop-blur-xl border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+        <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %} mb-6">
+            <a href="{% url 'catalog:index' %}" class="text-[#6184b7] hover:text-[#4A70A9] font-medium">
                 {% trans "Home" %}
             </a>
             <span class="text-[#666666]">/</span>
-            <span class="text-[#000000]">{% trans "Categories" %}</span>
+            <span class="text-[#000000] font-medium">{% trans "Categories" %}</span>
         </nav>
-        <h1 class="text-4xl font-bold text-[#000000]">
+        <h1 class="text-5xl font-semibold text-[#000000] tracking-tight">
             {% trans "All Categories" %}
         </h1>
     </div>
 </div>
 
-<!-- Categories Grid -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<!-- Categories Grid - Apple Style -->
+<div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for category in categories %}
         <a href="{% if category.subcategory_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block">
-            <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-[#8FABD4] hover:shadow-lg transition-all card-hover h-full">
-                <div class="flex items-start space-x-4 {% if IS_RTL %}space-x-reverse{% endif %} mb-4">
-                    <div class="w-16 h-16 bg-[#8FABD4] bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span class="text-3xl font-bold text-[#8FABD4]">{{ category.name|first }}</span>
-                    </div>
-                    <div class="flex-1">
-                        <h2 class="text-xl font-semibold text-[#000000] mb-2">{{ category.name }}</h2>
-                        <p class="text-sm text-[#666666] line-clamp-3">{{ category.description|truncatewords:25 }}</p>
+            <div class="bg-white border-2 border-gray-200 rounded-3xl overflow-hidden hover:border-[#8FABD4] hover:shadow-xl transition-all card-hover h-full">
+                <!-- Category Image -->
+                {% if category.image %}
+                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
+                </div>
+                {% else %}
+                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-6xl font-bold text-white/30">{{ category.name|first }}</span>
                     </div>
                 </div>
-                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div class="flex flex-col">
-                        {% if category.subcategory_count > 0 %}
-                        <span class="text-sm text-[#666666]">
-                            {% blocktrans count count=category.subcategory_count %}{{ count }} subcategory{% plural %}{{ count }} subcategories{% endblocktrans %}
-                        </span>
-                        {% endif %}
-                        <span class="text-sm text-[#666666]">
-                            {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
+                {% endif %}
+                
+                <!-- Category Content -->
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold text-[#000000] mb-2">{{ category.name }}</h2>
+                    <p class="text-sm text-[#666666] line-clamp-3 mb-4">{{ category.description|truncatewords:25 }}</p>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div class="flex flex-col">
+                            {% if category.subcategory_count > 0 %}
+                            <span class="text-sm text-[#666666] font-medium">
+                                {% blocktrans count count=category.subcategory_count %}{{ count }} subcategory{% plural %}{{ count }} subcategories{% endblocktrans %}
+                            </span>
+                            {% endif %}
+                            <span class="text-sm text-[#666666] font-medium">
+                                {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
+                            </span>
+                        </div>
+                        <span class="text-[#6184b7] font-semibold text-sm flex items-center">
+                            {% trans "Explore" %} <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </span>
                     </div>
-                    <span class="text-[#8FABD4] font-semibold text-sm flex items-center">
-                        {% trans "Explore" %} <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </span>
                 </div>
             </div>
         </a>

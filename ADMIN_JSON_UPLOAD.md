@@ -38,7 +38,7 @@ Your JSON file should follow this structure:
     "category": "category-slug",
     "subcategory": "subcategory-slug",
     "certification": "certification-slug",
-    "difficulty_level": "beginner",
+    "difficulty_level": "easy",
     "price": 0.00,
     "is_active": true
   },
@@ -71,12 +71,14 @@ Your JSON file should follow this structure:
 #### Test Bank Section:
 - **title** (required): The title of the test bank
 - **description** (required): Description of the test bank
-- **category**: Slug of an existing category (at least one hierarchy level required)
-- **subcategory**: Slug of an existing subcategory (optional)
-- **certification**: Slug of an existing certification (optional)
-- **difficulty_level**: "beginner", "intermediate", or "advanced" (default: "beginner")
+- **category**: Name or slug of category (will be created if doesn't exist)
+- **subcategory**: Name or slug of subcategory (optional, requires category, will be created if doesn't exist)
+- **certification**: Name or slug of certification (optional, requires subcategory, will be created if doesn't exist)
+- **difficulty_level**: "easy", "medium", or "advanced" (default: "easy"). Also accepts "beginner" (maps to "easy"), "intermediate" (maps to "medium"), or "hard" (maps to "advanced")
 - **price**: Price in decimal format (default: 0.00)
 - **is_active**: true or false (default: true)
+
+**Note:** Categories, subcategories, and certifications are automatically created if they don't exist. You can use either the name (e.g., "Vocational") or slug (e.g., "vocational").
 
 #### Question Section:
 - **question_text** (required): The question content
@@ -153,20 +155,22 @@ Example:
 
 ## Important Notes
 
-1. **Hierarchy Requirements**: At least one of `category`, `subcategory`, or `certification` must be specified and must exist in the database.
+1. **Hierarchy Requirements**: At least one of `category`, `subcategory`, or `certification` must be specified. They will be automatically created if they don't exist.
 
-2. **Slug References**: Use the slug (URL-friendly name) for category, subcategory, and certification references, not the display name.
+2. **Name or Slug**: You can use either the name (e.g., "Vocational") or slug (e.g., "vocational") for category, subcategory, and certification. The system will find existing ones or create new ones automatically.
 
-3. **Updating Existing Test Banks**: If you select an existing test bank to update, all existing questions will be deleted and replaced with the new ones from the JSON file.
+3. **Auto-Creation**: Categories, subcategories, and certifications are automatically created if they don't exist. This makes it easy to import test banks without pre-creating the hierarchy.
 
-4. **File Size**: Maximum file size is 10MB.
+4. **Updating Existing Test Banks**: If you select an existing test bank to update, all existing questions will be deleted and replaced with the new ones from the JSON file.
 
-5. **Encoding**: JSON files must be UTF-8 encoded.
+5. **File Size**: Maximum file size is 10MB.
 
-6. **Validation**: The system validates:
+6. **Encoding**: JSON files must be UTF-8 encoded.
+
+7. **Validation**: The system validates:
    - JSON structure
    - Required fields
-   - Existing category/subcategory/certification references
+   - Hierarchy relationships (subcategory requires category, certification requires subcategory)
    - Question and option data integrity
 
 ## Example JSON File
@@ -176,9 +180,9 @@ See `test_bank_template.json` in the project root for a complete example.
 ## Troubleshooting
 
 ### Error: "Category with slug 'xxx' not found"
-- Make sure the category/subcategory/certification exists in the database
-- Check that you're using the slug, not the display name
-- Verify the slug in the admin panel
+- This error should no longer occur as categories are auto-created
+- If you see this, check your JSON syntax
+- Make sure the category field is a string, not null or empty
 
 ### Error: "Invalid JSON format"
 - Validate your JSON using a JSON validator

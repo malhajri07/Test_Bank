@@ -18,7 +18,11 @@ def import_test_bank_from_json(json_data, update_existing=None):
         update_existing: Optional TestBank instance to update instead of creating new
         
     Returns:
-        Tuple of (test_bank, created_questions_count, errors)
+        Tuple of (test_bank, created_questions_count, errors, created_items)
+        - test_bank: The created or updated TestBank instance
+        - created_questions_count: Number of questions successfully imported
+        - errors: List of warning/error messages
+        - created_items: List of categories/subcategories/certifications that were created
         
     Raises:
         ValidationError: If JSON structure is invalid
@@ -56,67 +60,150 @@ def import_test_bank_from_json(json_data, update_existing=None):
             
             # Check if at least one hierarchy field was provided
             if not has_category_field and not has_subcategory_field and not has_certification_field:
-                # Get available options for better error message
-                available_categories = Category.objects.values_list('slug', 'name')[:10]
-                available_subcategories = SubCategory.objects.values_list('slug', 'name')[:10]
-                available_certifications = Certification.objects.values_list('slug', 'name')[:10]
+                raise ValidationError('At least one of category, subcategory, or certification must be specified in the JSON file.')
+            
+            # Helper function to get or create category by name or slug
+            def get_or_create_category(name_or_slug):
+                """Get existing category by slug or name, or create new one."""
+                name_or_slug = name_or_slug.strip() if name_or_slug else None
+                if not name_or_slug:
+                    return None, False
                 
-                error_msg = 'At least one of category, subcategory, or certification must be specified in the JSON file.\n\n'
-                if available_categories:
-                    error_msg += 'Available categories: ' + ', '.join([f'{name} (slug: {slug})' for slug, name in available_categories]) + '\n'
-                if available_subcategories:
-                    error_msg += 'Available subcategories: ' + ', '.join([f'{name} (slug: {slug})' for slug, name in available_subcategories]) + '\n'
-                if available_certifications:
-                    error_msg += 'Available certifications: ' + ', '.join([f'{name} (slug: {slug})' for slug, name in available_certifications]) + '\n'
-                raise ValidationError(error_msg)
+                # Try to find by slug first
+                category = Category.objects.filter(slug=slugify(name_or_slug)).first()
+                if category:
+                    return category, False
+                
+                # Try to find by name (case-insensitive)
+                category = Category.objects.filter(name__iexact=name_or_slug).first()
+                if category:
+                    return category, False
+                
+                # Create new category
+                category = Category.objects.create(
+                    name=name_or_slug,
+                    slug=slugify(name_or_slug)
+                )
+                return category, True
             
-            # Try to get category
+            # Helper function to get or create subcategory by name or slug
+            def get_or_create_subcategory(name_or_slug, parent_category):
+                """Get existing subcategory by slug or name, or create new one."""
+                name_or_slug = name_or_slug.strip() if name_or_slug else None
+                if not name_or_slug:
+                    return None, False
+                
+                if not parent_category:
+                    raise ValidationError(f'SubCategory "{name_or_slug}" requires a parent category.')
+                
+                # Try to find by slug first
+                subcategory = SubCategory.objects.filter(
+                    slug=slugify(name_or_slug),
+                    category=parent_category
+                ).first()
+                if subcategory:
+                    return subcategory, False
+                
+                # Try to find by name (case-insensitive)
+                subcategory = SubCategory.objects.filter(
+                    name__iexact=name_or_slug,
+                    category=parent_category
+                ).first()
+                if subcategory:
+                    return subcategory, False
+                
+                # Check if exists in different category
+                existing = SubCategory.objects.filter(name__iexact=name_or_slug).first()
+                if existing:
+                    raise ValidationError(f'SubCategory "{name_or_slug}" already exists under category "{existing.category.name}". Please use the correct category.')
+                
+                # Create new subcategory
+                subcategory = SubCategory.objects.create(
+                    name=name_or_slug,
+                    slug=slugify(name_or_slug),
+                    category=parent_category
+                )
+                return subcategory, True
+            
+            # Helper function to get or create certification by name or slug
+            def get_or_create_certification(name_or_slug, parent_subcategory):
+                """Get existing certification by slug or name, or create new one."""
+                name_or_slug = name_or_slug.strip() if name_or_slug else None
+                if not name_or_slug:
+                    return None, False
+                
+                if not parent_subcategory:
+                    raise ValidationError(f'Certification "{name_or_slug}" requires a parent subcategory.')
+                
+                # Try to find by slug first
+                certification = Certification.objects.filter(
+                    slug=slugify(name_or_slug),
+                    subcategory=parent_subcategory
+                ).first()
+                if certification:
+                    return certification, False
+                
+                # Try to find by name (case-insensitive)
+                certification = Certification.objects.filter(
+                    name__iexact=name_or_slug,
+                    subcategory=parent_subcategory
+                ).first()
+                if certification:
+                    return certification, False
+                
+                # Check if exists in different subcategory
+                existing = Certification.objects.filter(name__iexact=name_or_slug).first()
+                if existing:
+                    raise ValidationError(f'Certification "{name_or_slug}" already exists under subcategory "{existing.subcategory.name}". Please use the correct subcategory.')
+                
+                # Create new certification
+                certification = Certification.objects.create(
+                    name=name_or_slug,
+                    slug=slugify(name_or_slug),
+                    subcategory=parent_subcategory
+                )
+                return certification, True
+            
+            # Track what was created for feedback
+            created_items = []
+            
+            # Process category first (required for subcategory/certification)
             if has_category_field:
-                category_slug = test_bank_data['category'].strip() if test_bank_data['category'] else None
-                if category_slug:
-                    try:
-                        category = Category.objects.get(slug=category_slug)
-                    except Category.DoesNotExist:
-                        available = Category.objects.values_list('slug', flat=True)[:10]
-                        error_msg = f'Category with slug "{category_slug}" not found.'
-                        if available:
-                            error_msg += f' Available category slugs: {", ".join(available)}'
-                        errors.append(error_msg)
+                category_value = test_bank_data['category']
+                category, was_created = get_or_create_category(category_value)
+                if category:
+                    if was_created:
+                        created_items.append(f'Category: "{category.name}" (created)')
+                    else:
+                        created_items.append(f'Category: "{category.name}" (existing)')
             
-            # Try to get subcategory
+            # Process subcategory (requires category)
             if has_subcategory_field:
-                subcategory_slug = test_bank_data['subcategory'].strip() if test_bank_data['subcategory'] else None
-                if subcategory_slug:
-                    try:
-                        subcategory = SubCategory.objects.get(slug=subcategory_slug)
-                    except SubCategory.DoesNotExist:
-                        available = SubCategory.objects.values_list('slug', flat=True)[:10]
-                        error_msg = f'SubCategory with slug "{subcategory_slug}" not found.'
-                        if available:
-                            error_msg += f' Available subcategory slugs: {", ".join(available)}'
-                        errors.append(error_msg)
+                if not category:
+                    raise ValidationError('SubCategory requires a category. Please specify "category" in your JSON file.')
+                subcategory_value = test_bank_data['subcategory']
+                subcategory, was_created = get_or_create_subcategory(subcategory_value, category)
+                if subcategory:
+                    if was_created:
+                        created_items.append(f'SubCategory: "{subcategory.name}" (created under {category.name})')
+                    else:
+                        created_items.append(f'SubCategory: "{subcategory.name}" (existing under {category.name})')
             
-            # Try to get certification
+            # Process certification (requires subcategory)
             if has_certification_field:
-                certification_slug = test_bank_data['certification'].strip() if test_bank_data['certification'] else None
-                if certification_slug:
-                    try:
-                        certification = Certification.objects.get(slug=certification_slug)
-                    except Certification.DoesNotExist:
-                        available = Certification.objects.values_list('slug', flat=True)[:10]
-                        error_msg = f'Certification with slug "{certification_slug}" not found.'
-                        if available:
-                            error_msg += f' Available certification slugs: {", ".join(available)}'
-                        errors.append(error_msg)
+                if not subcategory:
+                    raise ValidationError('Certification requires a subcategory. Please specify "subcategory" in your JSON file.')
+                certification_value = test_bank_data['certification']
+                certification, was_created = get_or_create_certification(certification_value, subcategory)
+                if certification:
+                    if was_created:
+                        created_items.append(f'Certification: "{certification.name}" (created under {subcategory.name})')
+                    else:
+                        created_items.append(f'Certification: "{certification.name}" (existing under {subcategory.name})')
             
-            # Validate at least one hierarchy level was successfully found
+            # Validate at least one hierarchy level was successfully created/found
             if not category and not subcategory and not certification:
-                # If we have errors, they were already added above
-                if not errors:
-                    raise ValidationError('At least one of category, subcategory, or certification must be specified and must exist in the database.')
-                else:
-                    # Combine all errors into one message
-                    raise ValidationError('\n'.join(errors))
+                raise ValidationError('Failed to create or find category, subcategory, or certification.')
             
             # Create or update test bank
             if update_existing:
@@ -147,7 +234,17 @@ def import_test_bank_from_json(json_data, update_existing=None):
             
             # Set optional fields
             if 'difficulty_level' in test_bank_data:
-                test_bank.difficulty_level = test_bank_data['difficulty_level']
+                difficulty = test_bank_data['difficulty_level'].lower()
+                # Map common variations to valid choices
+                difficulty_map = {
+                    'easy': 'easy',
+                    'beginner': 'easy',
+                    'medium': 'medium',
+                    'intermediate': 'medium',
+                    'hard': 'advanced',
+                    'advanced': 'advanced'
+                }
+                test_bank.difficulty_level = difficulty_map.get(difficulty, 'easy')
             
             if 'price' in test_bank_data:
                 test_bank.price = float(test_bank_data['price'])
@@ -204,7 +301,7 @@ def import_test_bank_from_json(json_data, update_existing=None):
                     errors.append(f'Question {idx}: {str(e)}')
                     continue
             
-            return test_bank, created_questions_count, errors
+            return test_bank, created_questions_count, errors, created_items
             
     except Exception as e:
         raise ValidationError(f'Error importing test bank: {str(e)}')

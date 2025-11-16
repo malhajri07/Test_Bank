@@ -194,6 +194,14 @@ class UserTestSession(models.Model):
         help_text='Total duration of the session in seconds'
     )
     
+    # Store randomized question order as JSON list of question IDs
+    question_order = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name='Question Order',
+        help_text='Randomized order of question IDs for this session'
+    )
+    
     class Meta:
         """Meta options for UserTestSession model."""
         verbose_name = 'User Test Session'

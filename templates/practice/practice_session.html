@@ -4,24 +4,24 @@
 {% block title %}{% trans "Practice Session" %} - {{ session.test_bank.title }}{% endblock %}
 
 {% block content %}
-<!-- Practice Session Header -->
-<div class="bg-white border-b border-gray-200 sticky top-16 z-40">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+<!-- Practice Session Header - Apple Style -->
+<div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
         <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-bold text-[#000000]">{{ session.test_bank.title }}</h1>
-                <p class="text-sm text-[#666666] mt-1">
+            <div class="flex-1">
+                <h1 class="text-2xl font-semibold text-[#000000] tracking-tight">{{ session.test_bank.title }}</h1>
+                <p class="text-sm text-[#666666] mt-1.5 font-medium">
                     {% blocktrans with current=current_index|add:1 total=total_questions %}Question {{ current }} of {{ total }}{% endblocktrans %}
                 </p>
             </div>
-            <!-- Progress Bar -->
-            <div class="hidden md:block w-64">
+            <!-- Progress Bar - Apple Style -->
+            <div class="flex flex-col items-end ml-8">
                 {% widthratio current_index|add:1 total_questions 100 as progress_percent %}
-                <div class="bg-gray-200 rounded-full h-2">
-                    <div class="bg-[#8FABD4] h-2 rounded-full transition-all duration-300" 
-                         style="--progress-width: {{ progress_percent }}%; width: var(--progress-width);"></div>
+                <div class="w-48 md:w-64 lg:w-72 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                    <div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] h-full rounded-full transition-all duration-500 ease-out" 
+                         style="width: {{ progress_percent }}%;"></div>
                 </div>
-                <p class="text-xs text-[#666666] mt-1 text-right {% if IS_RTL %}text-left{% endif %}">
+                <p class="text-xs text-[#666666] mt-2 font-medium hidden sm:block">
                     {{ progress_percent }}% {% trans "complete" %}
                 </p>
             </div>
@@ -29,91 +29,149 @@
     </div>
 </div>
 
-<!-- Practice Session Content -->
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-6">
-        <!-- Question -->
-        <div class="mb-8">
-            <div class="flex items-start space-x-4 {% if IS_RTL %}space-x-reverse{% endif %} mb-6">
-                <div class="flex-shrink-0 w-10 h-10 bg-[#8FABD4] rounded-full flex items-center justify-center text-white font-bold">
+<!-- Practice Session Content - Apple Style Wide Layout -->
+<div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 practice-content">
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <!-- Question Section -->
+        <div class="p-12 lg:p-16">
+            <div class="mb-10">
+                <!-- Question Number Badge -->
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#e28f64] to-[#df804f] text-white font-semibold text-lg mb-6 shadow-lg">
                     {{ current_index|add:1 }}
                 </div>
-                <div class="flex-1">
-                    <h2 class="text-2xl font-bold text-[#000000] mb-4">{{ current_question.question_text }}</h2>
+                
+                <!-- Question Text -->
+                <h2 class="text-3xl lg:text-4xl font-semibold text-[#000000] leading-relaxed mb-10 tracking-tight">
+                    {{ current_question.question_text }}
+                </h2>
+                
+                <!-- Answer Options - Apple Style -->
+                <form id="answerForm" method="post" action="{% url 'practice:save_answer' session_id=session.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="question_id" value="{{ current_question.id }}">
                     
-                    <!-- Answer Options -->
-                    <form id="answerForm" method="post" action="{% url 'practice:save_answer' session_id=session.pk %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="question_id" value="{{ current_question.id }}">
-                        
-                        <div class="space-y-3">
-                            {% for option in answer_options %}
-                            <label class="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all duration-200
-                                          {% if option.id in selected_option_ids %}border-[#8FABD4] bg-[#8FABD4] bg-opacity-5{% else %}border-gray-200 hover:border-[#8FABD4] hover:bg-gray-50{% endif %}">
-                                {% if current_question.question_type == 'mcq_single' or current_question.question_type == 'true_false' %}
-                                <input type="radio" name="selected_options[]" value="{{ option.id }}" 
-                                       class="mt-1 mr-4 {% if IS_RTL %}ml-4 mr-0{% endif %} w-5 h-5 text-[#8FABD4] focus:ring-[#8FABD4]"
-                                       {% if option.id in selected_option_ids %}checked{% endif %}
-                                       onchange="saveAnswer()">
-                                {% else %}
-                                <input type="checkbox" name="selected_options[]" value="{{ option.id }}" 
-                                       class="mt-1 mr-4 {% if IS_RTL %}ml-4 mr-0{% endif %} w-5 h-5 text-[#8FABD4] focus:ring-[#8FABD4] rounded"
-                                       {% if option.id in selected_option_ids %}checked{% endif %}
-                                       onchange="saveAnswer()">
-                                {% endif %}
-                                <span class="flex-1 text-[#000000] font-medium">{{ option.option_text }}</span>
-                            </label>
-                            {% endfor %}
-                        </div>
-                    </form>
-                </div>
+                    <div class="space-y-4">
+                        {% for option in answer_options %}
+                        <label class="group flex items-start p-6 rounded-2xl cursor-pointer transition-all duration-300 ease-out
+                                      {% if option.id in selected_option_ids %}
+                                      bg-gradient-to-r from-[#e28f64]/10 to-[#df804f]/10 border-2 border-[#e28f64] shadow-md
+                                      {% else %}
+                                      bg-gray-50/50 border-2 border-gray-200 hover:border-[#e28f64]/50 hover:bg-gray-50 hover:shadow-md
+                                      {% endif %}">
+                            {% if current_question.question_type == 'mcq_single' or current_question.question_type == 'true_false' %}
+                            <input type="radio" name="selected_options[]" value="{{ option.id }}" 
+                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 cursor-pointer"
+                                   {% if option.id in selected_option_ids %}checked{% endif %}
+                                   onchange="saveAnswer()">
+                            {% else %}
+                            <input type="checkbox" name="selected_options[]" value="{{ option.id }}" 
+                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 rounded-md cursor-pointer"
+                                   {% if option.id in selected_option_ids %}checked{% endif %}
+                                   onchange="saveAnswer()">
+                            {% endif %}
+                            <span class="flex-1 text-lg text-[#000000] font-medium leading-relaxed pt-0.5">
+                                {{ option.option_text }}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </form>
             </div>
         </div>
         
-        <!-- Navigation Buttons -->
-        <div class="flex justify-between items-center pt-6 border-t border-gray-200">
-            <div>
-                {% if current_index > 0 %}
-                <a href="?q={{ current_index|add:-1 }}" 
-                   class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-[#000000] font-semibold rounded-md transition">
-                    <svg class="w-5 h-5 mr-2 {% if IS_RTL %}ml-2 mr-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                    {% trans "Previous" %}
-                </a>
-                {% endif %}
-            </div>
-            
-            <div>
-                {% if current_index < total_questions|add:-1 %}
-                <a href="?q={{ current_index|add:1 }}" 
-                   class="inline-flex items-center px-6 py-3 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold rounded-md transition shadow-lg">
-                    {% trans "Next" %}
-                    <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
-                {% else %}
-                <form method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="inline">
-                    {% csrf_token %}
-                        <button type="submit" 
-                                class="inline-flex items-center px-8 py-3 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-bold rounded-md transition shadow-lg">
-                            {% trans "Submit" %}
-                        <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        <!-- Navigation Section - Apple Style -->
+        <div class="px-12 lg:px-16 py-8 bg-gray-50/50 border-t border-gray-100">
+            <div class="flex justify-between items-center">
+                <div>
+                    {% if current_index > 0 %}
+                    <a href="?q={{ current_index|add:-1 }}" 
+                       class="inline-flex items-center px-8 py-3.5 bg-white hover:bg-gray-50 text-[#000000] font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200">
+                        <svg class="w-5 h-5 mr-2.5 {% if IS_RTL %}ml-2.5 mr-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                         </svg>
-                    </button>
-                </form>
-                {% endif %}
+                        {% trans "Previous" %}
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    {% if current_index < total_questions|add:-1 %}
+                    <a href="?q={{ current_index|add:1 }}" 
+                       class="inline-flex items-center px-10 py-3.5 bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] hover:from-[#4A70A9] hover:to-[#3a5a8a] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        {% trans "Next" %}
+                        <svg class="w-5 h-5 ml-2.5 {% if IS_RTL %}mr-2.5 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                    {% else %}
+                    <form method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="inline-flex items-center px-12 py-3.5 bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] hover:from-[#4A70A9] hover:to-[#3a5a8a] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            {% trans "Submit Exam" %}
+                            <svg class="w-5 h-5 ml-2.5 {% if IS_RTL %}mr-2.5 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+/* Apple-style smooth animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.practice-content {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Smooth radio/checkbox styling */
+input[type="radio"],
+input[type="checkbox"] {
+    accent-color: #8FABD4;
+    cursor: pointer;
+}
+
+/* Enhanced focus states */
+input[type="radio"]:focus,
+input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(143, 171, 212, 0.5);
+}
+
+/* Option hover effect */
+label.group:hover {
+    transform: translateX(4px);
+}
+
+label.group:has(input:checked) {
+    transform: scale(1.01);
+}
+</style>
+
 <script>
 function saveAnswer() {
     const form = document.getElementById('answerForm');
     const formData = new FormData(form);
+    
+    // Add subtle save indicator
+    const submitButton = form.querySelector('button[type="submit"]') || form.closest('.bg-white').querySelector('a, button');
+    if (submitButton) {
+        submitButton.style.opacity = '0.7';
+    }
     
     fetch(form.action, {
         method: 'POST',
@@ -125,14 +183,37 @@ function saveAnswer() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Apple-style success animation
             const form = document.getElementById('answerForm');
-            form.classList.add('ring-2', 'ring-green-500');
+            form.style.transition = 'all 0.3s ease';
+            form.style.boxShadow = '0 0 0 4px rgba(143, 171, 212, 0.2)';
+            
             setTimeout(() => {
-                form.classList.remove('ring-2', 'ring-green-500');
-            }, 500);
+                form.style.boxShadow = '';
+                if (submitButton) {
+                    submitButton.style.opacity = '1';
+                }
+            }, 600);
         }
     })
-    .catch(error => console.error('Error saving answer:', error));
+    .catch(error => {
+        console.error('Error saving answer:', error);
+        if (submitButton) {
+            submitButton.style.opacity = '1';
+        }
+    });
 }
+
+// Add smooth page transitions
+document.addEventListener('DOMContentLoaded', function() {
+    const content = document.querySelector('.practice-content');
+    if (content) {
+        content.style.opacity = '0';
+        setTimeout(() => {
+            content.style.transition = 'opacity 0.4s ease-out';
+            content.style.opacity = '1';
+        }, 10);
+    }
+});
 </script>
 {% endblock %}

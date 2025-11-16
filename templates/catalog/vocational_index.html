@@ -4,21 +4,35 @@
 {% block title %}{% trans "Vocational - Exam Stellar" %}{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
-        <h1 class="text-4xl font-bold text-[#000000] mt-4">
-            {{ category.name }}
-        </h1>
-        {% if category.description %}
-        <p class="text-xl text-[#666666] mt-2">{{ category.description }}</p>
-        {% endif %}
+<!-- Category Header - Apple Style with Image -->
+<div class="bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] text-white py-16 relative overflow-hidden">
+    {% if category.image %}
+    <div class="absolute inset-0 opacity-20">
+        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
+    </div>
+    {% endif %}
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
+        <div class="mb-6">
+            {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
+        </div>
+        <div class="flex items-center space-x-6 {% if IS_RTL %}space-x-reverse{% endif %}">
+            {% if category.image %}
+            <div class="flex-shrink-0">
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-32 h-32 rounded-3xl object-cover shadow-2xl border-4 border-white/30">
+            </div>
+            {% endif %}
+            <div class="flex-1">
+                <h1 class="text-5xl md:text-6xl font-semibold mb-4 tracking-tight">{{ category.name }}</h1>
+                <p class="text-xl md:text-2xl text-white/90 font-medium">
+                    {% if category.description %}{{ category.description }}{% else %}Test banks and certifications for {{ category.name }}{% endif %}
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Subcategories Grid -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<!-- Subcategories Grid - Apple Style -->
+<div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
     <div class="mb-6">
         <p class="text-[#666666]">
             {% blocktrans count count=subcategories|length %}{{ count }} subcategory available{% plural %}{{ count }} subcategories available{% endblocktrans %}

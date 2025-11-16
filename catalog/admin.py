@@ -33,6 +33,19 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}  # Auto-generate slug from name
     readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'description', 'image')
+        }),
+        ('Metadata', {
+            'fields': ('level_details',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 # Inline admin for Certifications (shown within SubCategory admin page)
@@ -117,7 +130,7 @@ class TestBankAdmin(admin.ModelAdmin):
             'description': 'Test bank can belong to category, subcategory, or certification. At least one must be selected.'
         }),
         ('Basic Information', {
-            'fields': ('title', 'slug', 'description')
+            'fields': ('title', 'slug', 'description', 'image')
         }),
         ('Details', {
             'fields': ('difficulty_level', 'price', 'is_active')
@@ -159,10 +172,15 @@ class TestBankAdmin(admin.ModelAdmin):
                     json_data = parse_json_file(json_file)
                     
                     # Import test bank
-                    test_bank, questions_count, errors = import_test_bank_from_json(
+                    test_bank, questions_count, errors, created_items = import_test_bank_from_json(
                         json_data, 
                         update_existing=update_existing
                     )
+                    
+                    # Show what was created
+                    if created_items:
+                        items_msg = 'Created: ' + ', '.join(created_items)
+                        messages.info(request, items_msg)
                     
                     if errors:
                         for error in errors:

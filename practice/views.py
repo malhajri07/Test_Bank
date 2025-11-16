@@ -54,13 +54,18 @@ def start_practice(request, testbank_slug):
         messages.error(request, 'This test bank has no questions available.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
     
-    # Create new practice session
+    # Randomize question order
+    question_ids = [q.id for q in questions]
+    random.shuffle(question_ids)
+    
+    # Create new practice session with randomized question order
     with transaction.atomic():
         session = UserTestSession.objects.create(
             user=user,
             test_bank=test_bank,
             status='in_progress',
-            total_questions=len(questions)
+            total_questions=len(questions),
+            question_order=question_ids
         )
     
     # Redirect to practice session page
@@ -92,8 +97,21 @@ def practice_session(request, session_id):
     if session.status == 'completed':
         return redirect('practice:results', session_id=session_id)
     
-    # Get all questions for this test bank
-    questions = list(session.test_bank.questions.filter(is_active=True).order_by('order'))
+    # Get questions in randomized order (stored in session)
+    if session.question_order:
+        # Use stored randomized order
+        question_ids = session.question_order
+        # Create a dict for quick lookup
+        all_questions = {q.id: q for q in session.test_bank.questions.filter(is_active=True)}
+        # Build questions list in randomized order
+        questions = [all_questions[qid] for qid in question_ids if qid in all_questions]
+    else:
+        # Fallback: if no order stored, get questions and randomize (for old sessions)
+        questions = list(session.test_bank.questions.filter(is_active=True).order_by('order'))
+        random.shuffle(questions)
+        # Save the order for future reference
+        session.question_order = [q.id for q in questions]
+        session.save(update_fields=['question_order'])
     
     if not questions:
         messages.error(request, 'No questions available.')
@@ -117,8 +135,9 @@ def practice_session(request, session_id):
     if existing_answer:
         selected_option_ids = [opt.id for opt in existing_answer.selected_options.all()]
     
-    # Get answer options for current question
-    answer_options = current_question.answer_options.all().order_by('order')
+    # Get answer options for current question and randomize them
+    answer_options = list(current_question.answer_options.all().order_by('order'))
+    random.shuffle(answer_options)
     
     return render(request, 'practice/practice_session.html', {
         'session': session,
@@ -276,17 +295,35 @@ def practice_results(request, session_id):
         session=session
     ).select_related('question').prefetch_related('selected_options', 'question__answer_options')
     
-    # Prepare review data
+    # Create a dict of answers by question ID for quick lookup
+    answers_dict = {answer.question.id: answer for answer in answers}
+    
+    # Prepare review data in randomized order (if stored) or original order
     review_data = []
-    for answer in answers:
-        correct_options = answer.question.get_correct_answers()
-        review_data.append({
-            'question': answer.question,
-            'user_answer': answer,
-            'selected_options': answer.selected_options.all(),
-            'correct_options': correct_options,
-            'is_correct': answer.is_correct,
-        })
+    if session.question_order:
+        # Use stored randomized order
+        for question_id in session.question_order:
+            if question_id in answers_dict:
+                answer = answers_dict[question_id]
+                correct_options = answer.question.get_correct_answers()
+                review_data.append({
+                    'question': answer.question,
+                    'user_answer': answer,
+                    'selected_options': answer.selected_options.all(),
+                    'correct_options': correct_options,
+                    'is_correct': answer.is_correct,
+                })
+    else:
+        # Fallback: use answers in their natural order
+        for answer in answers:
+            correct_options = answer.question.get_correct_answers()
+            review_data.append({
+                'question': answer.question,
+                'user_answer': answer,
+                'selected_options': answer.selected_options.all(),
+                'correct_options': correct_options,
+                'is_correct': answer.is_correct,
+            })
     
     return render(request, 'practice/practice_results.html', {
         'session': session,

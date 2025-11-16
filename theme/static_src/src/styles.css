@@ -10,7 +10,7 @@
 
 .swiper-button-next,
 .swiper-button-prev {
-    color: #8FABD4;
+    color: #e28f64;
     background: white;
     width: 40px;
     height: 40px;
@@ -25,7 +25,7 @@
 }
 
 .swiper-pagination-bullet {
-    background: #8FABD4;
+    background: #e28f64;
     opacity: 0.3;
 }
 
@@ -43,17 +43,22 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Primary Button */
+/* Apple-style Primary Button */
 .btn-coursera {
-    background-color: #8FABD4;
+    background: linear-gradient(to right, #e28f64, #df804f);
     color: white;
-    padding: 12px 24px;
-    border-radius: 4px;
+    padding: 14px 28px;
+    border-radius: 16px;
     font-weight: 600;
-    transition: background-color 0.2s;
+    font-size: 15px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(226, 143, 100, 0.3);
+    letter-spacing: -0.01em;
 }
 
 .btn-coursera:hover {
-    background-color: #4A70A9;
+    background: linear-gradient(to right, #df804f, #c87850);
+    box-shadow: 0 6px 16px rgba(226, 143, 100, 0.4);
+    transform: translateY(-1px);
 }
 

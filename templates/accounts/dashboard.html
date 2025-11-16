@@ -16,17 +16,17 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+<div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+    <!-- Statistics Cards - Apple Style -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-300">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-[#666666] mb-1">{% trans "Total Sessions" %}</p>
-                    <p class="text-3xl font-bold text-[#000000]">{{ total_sessions }}</p>
+                    <p class="text-sm text-[#666666] mb-2 font-medium">{% trans "Total Sessions" %}</p>
+                    <p class="text-4xl font-semibold text-[#000000] tracking-tight">{{ total_sessions }}</p>
                 </div>
-                <div class="w-12 h-12 bg-[#8FABD4] bg-opacity-10 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-[#8FABD4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-12 h-12 bg-[#e28f64] bg-opacity-10 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-[#e28f64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                 </div>
@@ -64,34 +64,46 @@
         </div>
     </div>
     
-    <!-- My Learning Section -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-2xl font-bold text-[#000000]">
+    <!-- My Learning Section - Apple Style -->
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 mb-8 overflow-hidden">
+        <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
+            <h2 class="text-3xl font-semibold text-[#000000] tracking-tight">
                 {% trans "My Test Banks" %}
             </h2>
         </div>
-        <div class="p-6">
+        <div class="p-8">
             {% if purchased_test_banks %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for test_bank in purchased_test_banks %}
-                <div class="border border-gray-200 rounded-lg overflow-hidden card-hover">
-                    <div class="h-32 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
-                        <div class="absolute bottom-2 left-2 right-2">
-                            <span class="px-2 py-1 bg-white bg-opacity-90 text-[#8FABD4] text-xs font-semibold rounded">
+                <div class="border border-gray-100 rounded-3xl overflow-hidden card-hover bg-white shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <!-- Test Bank Image -->
+                    {% if test_bank.image %}
+                    <div class="h-40 bg-gradient-to-br from-[#e28f64] to-[#df804f] relative overflow-hidden">
+                        <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
+                        <div class="absolute bottom-3 left-3 right-3">
+                            <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#e28f64] text-xs font-semibold rounded-xl shadow-sm">
                                 {{ test_bank.get_difficulty_level_display }}
                             </span>
                         </div>
                     </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-[#000000] mb-2 line-clamp-2">{{ test_bank.title }}</h3>
-                        <div class="flex space-x-2 {% if IS_RTL %}space-x-reverse{% endif %} mt-4">
+                    {% else %}
+                    <div class="h-40 bg-gradient-to-br from-[#e28f64] to-[#EFECE3] relative">
+                        <div class="absolute bottom-3 left-3 right-3">
+                            <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#e28f64] text-xs font-semibold rounded-xl shadow-sm">
+                                {{ test_bank.get_difficulty_level_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="p-6">
+                        <h3 class="font-semibold text-lg text-[#000000] mb-3 line-clamp-2 leading-snug">{{ test_bank.title }}</h3>
+                        <div class="flex space-x-3 {% if IS_RTL %}space-x-reverse{% endif %} mt-5">
                             <a href="{% url 'practice:start_practice' testbank_slug=test_bank.slug %}" 
-                               class="flex-1 text-center px-4 py-2 bg-[#8FABD4] hover:bg-[#4A70A9] text-white text-sm font-semibold rounded-md transition">
+                               class="flex-1 text-center px-5 py-3 bg-gradient-to-r from-[#e28f64] to-[#df804f] hover:from-[#df804f] hover:to-[#c87850] text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg">
                                 {% trans "Start" %}
                             </a>
                             <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                               class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#000000] text-sm font-semibold rounded-md transition">
+                               class="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-[#000000] text-sm font-semibold rounded-xl transition-all">
                                 {% trans "View" %}
                             </a>
                         </div>
@@ -110,7 +122,7 @@
                     {% trans "You haven't purchased any test banks yet" %}
                 </p>
                 <a href="{% url 'catalog:category_list' %}" 
-                   class="inline-block px-6 py-3 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold rounded-md transition">
+                   class="inline-block px-6 py-3 bg-[#e28f64] hover:bg-[#df804f] text-white font-semibold rounded-md transition">
                     {% trans "Browse Test Banks" %}
                 </a>
             </div>
@@ -118,10 +130,10 @@
         </div>
     </div>
     
-    <!-- Recent Activity -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-2xl font-bold text-[#000000]">
+    <!-- Recent Activity - Apple Style -->
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
+            <h2 class="text-3xl font-semibold text-[#000000] tracking-tight">
                 {% trans "Recent Practice Sessions" %}
             </h2>
         </div>
@@ -173,12 +185,12 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 {% if session.status == 'completed' %}
                                 <a href="{% url 'practice:results' session_id=session.pk %}" 
-                                   class="text-[#8FABD4] hover:text-[#4A70A9]">
+                                   class="text-[#e28f64] hover:text-[#df804f]">
                                     {% trans "View" %}
                                 </a>
                                 {% else %}
                                 <a href="{% url 'practice:practice_session' session_id=session.pk %}" 
-                                   class="text-[#8FABD4] hover:text-[#4A70A9]">
+                                   class="text-[#e28f64] hover:text-[#df804f]">
                                     {% trans "Continue" %}
                                 </a>
                                 {% endif %}

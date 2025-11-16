@@ -11,11 +11,11 @@
             {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
         {% else %}
             <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %}">
-                <a href="{% url 'catalog:index' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">
+                <a href="{% url 'catalog:index' %}" class="text-[#e28f64] hover:text-[#df804f]">
                     {% trans "Home" %}
                 </a>
                 <span class="text-[#666666]">/</span>
-                <a href="{% url 'catalog:category_list' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">
+                <a href="{% url 'catalog:category_list' %}" class="text-[#e28f64] hover:text-[#df804f]">
                     {% trans "Categories" %}
                 </a>
                 <span class="text-[#666666]">/</span>
@@ -25,11 +25,27 @@
     </div>
 </div>
 
-<!-- Category Header -->
-<div class="bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] text-white py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold mb-4">{{ category.name }}</h1>
-        <p class="text-xl text-white opacity-90">{{ category.description }}</p>
+<!-- Category Header - Apple Style with Image -->
+<div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white py-16 relative overflow-hidden">
+    {% if category.image %}
+    <div class="absolute inset-0 opacity-20">
+        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
+    </div>
+    {% endif %}
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
+        <div class="flex items-center space-x-6 {% if IS_RTL %}space-x-reverse{% endif %}">
+            {% if category.image %}
+            <div class="flex-shrink-0">
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-32 h-32 rounded-3xl object-cover shadow-2xl border-4 border-white/30">
+            </div>
+            {% endif %}
+            <div class="flex-1">
+                <h1 class="text-5xl md:text-6xl font-semibold mb-4 tracking-tight">{{ category.name }}</h1>
+                <p class="text-xl md:text-2xl text-white/90 font-medium">
+                    {% if category.description %}{{ category.description }}{% else %}Test banks and certifications for {{ category.name }}{% endif %}
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -43,24 +59,37 @@
     
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for test_bank in test_banks %}
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 card-hover">
-            <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
+        <div class="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 card-hover hover:shadow-xl transition-all">
+            <!-- Test Bank Image -->
+            {% if test_bank.image %}
+            <div class="h-48 bg-gradient-to-br from-[#e28f64] to-[#df804f] relative overflow-hidden">
+                <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
                 <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                    <span class="px-2 py-1 bg-white bg-opacity-90 text-[#8FABD4] text-xs font-semibold rounded">
+                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#e28f64] text-xs font-semibold rounded-xl shadow-sm">
                         {{ test_bank.get_difficulty_level_display }}
                     </span>
-                    <span class="text-white text-xl font-bold">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#000000] text-lg font-bold rounded-xl shadow-sm">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
                 </div>
             </div>
-            <div class="p-5">
-                <h2 class="text-lg font-semibold text-[#000000] mb-2 line-clamp-2 min-h-[3.5rem]">
+            {% else %}
+            <div class="h-48 bg-gradient-to-br from-[#e28f64] to-[#EFECE3] relative">
+                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#e28f64] text-xs font-semibold rounded-xl shadow-sm">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#000000] text-lg font-bold rounded-xl shadow-sm">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+                </div>
+            </div>
+            {% endif %}
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-[#000000] mb-3 line-clamp-2 min-h-[3.5rem]">
                     {{ test_bank.title }}
                 </h2>
-                <p class="text-sm text-[#666666] mb-4 line-clamp-3 min-h-[3.75rem]">
+                <p class="text-sm text-[#666666] mb-5 line-clamp-3 min-h-[3.75rem]">
                     {{ test_bank.description|truncatewords:20 }}
                 </p>
                 <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                   class="block w-full text-center px-4 py-2 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold rounded-md transition">
+                   class="block w-full text-center px-5 py-3 bg-gradient-to-r from-[#e28f64] to-[#df804f] hover:from-[#df804f] hover:to-[#c87850] text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg">
                     {% trans "View Details" %}
                 </a>
             </div>

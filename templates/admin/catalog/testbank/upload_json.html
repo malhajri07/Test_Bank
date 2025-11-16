@@ -16,18 +16,24 @@
 <div class="content" style="max-width: 900px; margin: 0 auto;">
     <h1 style="color: #4A70A9; margin-bottom: 20px;">Upload Test Bank from JSON</h1>
     
-    <!-- Available Categories/Subcategories Info -->
-    <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #2196F3;">
-        <h2 style="color: #1976D2; margin-top: 0; font-size: 18px; margin-bottom: 15px;">📋 Available Categories & Subcategories</h2>
+    <!-- Auto-Create Categories Info -->
+    <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #4caf50;">
+        <h2 style="color: #2e7d32; margin-top: 0; font-size: 18px; margin-bottom: 15px;">✨ Auto-Create Categories & Subcategories</h2>
         <p style="margin-bottom: 15px; color: #424242;">
-            <strong>Important:</strong> You must use the <strong>slug</strong> (not the name) for category, subcategory, or certification in your JSON file.
-            You can find the slugs in the admin panel under Categories, SubCategories, or Certifications.
+            <strong>Great news!</strong> You can use <strong>names</strong> or <strong>slugs</strong> for category, subcategory, and certification in your JSON file.
+            The system will automatically create them if they don't exist!
         </p>
         <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 10px;">
             <p style="margin: 0; font-size: 14px; color: #666;">
-                <strong>Tip:</strong> Visit the admin pages for Categories, SubCategories, or Certifications to see the exact slugs you can use.
-                The slug is usually the lowercase, hyphenated version of the name (e.g., "School Level" → "school-level").
+                <strong>How it works:</strong>
             </p>
+            <ul style="margin: 10px 0 0 20px; font-size: 14px; color: #666;">
+                <li>Use category <strong>name</strong> (e.g., "Vocational") or <strong>slug</strong> (e.g., "vocational")</li>
+                <li>If category doesn't exist, it will be created automatically</li>
+                <li>Subcategories require a category (will be created if missing)</li>
+                <li>Certifications require a subcategory (will be created if missing)</li>
+                <li>Existing categories/subcategories/certifications will be reused if found</li>
+            </ul>
         </div>
     </div>
     
@@ -41,7 +47,7 @@
     "category": "category-slug",
     "subcategory": "subcategory-slug",
     "certification": "certification-slug",
-    "difficulty_level": "beginner",
+    "difficulty_level": "easy",
     "price": 0.00,
     "is_active": true
   },
@@ -73,10 +79,16 @@
 }</pre>
         <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
             <p style="margin: 0; font-size: 14px;">
-                <strong>⚠️ Required:</strong> At least one of <code>category</code>, <code>subcategory</code>, or <code>certification</code> must be specified and must exist in the database.
+                <strong>⚠️ Required:</strong> At least one of <code>category</code>, <code>subcategory</code>, or <code>certification</code> must be specified. They will be created automatically if they don't exist.
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 14px;">
+                <strong>Hierarchy:</strong> If you specify <code>subcategory</code>, you must also specify <code>category</code>. If you specify <code>certification</code>, you must also specify <code>subcategory</code>.
             </p>
             <p style="margin: 10px 0 0 0; font-size: 14px;">
                 <strong>Question types:</strong> <code>mcq_single</code>, <code>mcq_multi</code>, or <code>true_false</code>.
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 14px;">
+                <strong>Difficulty levels:</strong> <code>easy</code>/<code>beginner</code>, <code>medium</code>/<code>intermediate</code>, or <code>hard</code>/<code>advanced</code>.
             </p>
         </div>
     </div>

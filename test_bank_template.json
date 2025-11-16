@@ -2,10 +2,10 @@
   "test_bank": {
     "title": "Sample Test Bank",
     "description": "This is a sample test bank with questions and answers. Replace this with your actual test bank data.",
-    "category": "category-slug",
-    "subcategory": "subcategory-slug",
-    "certification": "certification-slug",
-    "difficulty_level": "beginner",
+    "category": "Vocational",
+    "subcategory": "Information Technology",
+    "certification": "CompTIA Security+",
+    "difficulty_level": "easy",
     "price": 0.00,
     "is_active": true
   },

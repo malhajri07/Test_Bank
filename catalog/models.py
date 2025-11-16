@@ -46,6 +46,15 @@ class Category(models.Model):
         help_text='Detailed description of the category'
     )
     
+    # Category image/icon
+    image = models.ImageField(
+        upload_to='categories/',
+        blank=True,
+        null=True,
+        verbose_name='Category Image',
+        help_text='Image/icon for the category card'
+    )
+    
     # Optional JSON field for additional metadata (level details, tags, etc.)
     level_details = models.JSONField(
         default=dict,
@@ -334,17 +343,26 @@ class TestBank(models.Model):
         help_text='Detailed description of the test bank content'
     )
     
+    # Test bank image/thumbnail
+    image = models.ImageField(
+        upload_to='testbanks/',
+        blank=True,
+        null=True,
+        verbose_name='Test Bank Image',
+        help_text='Image/thumbnail for the test bank card'
+    )
+    
     # Difficulty level choices
     DIFFICULTY_CHOICES = [
-        ('beginner', 'Beginner'),
-        ('intermediate', 'Intermediate'),
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
         ('advanced', 'Advanced'),
     ]
     
     difficulty_level = models.CharField(
         max_length=20,
         choices=DIFFICULTY_CHOICES,
-        default='beginner',
+        default='easy',
         verbose_name='Difficulty Level',
         help_text='Difficulty level of the test bank'
     )

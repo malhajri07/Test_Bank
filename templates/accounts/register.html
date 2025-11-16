@@ -6,21 +6,21 @@
 {% block content %}
 <div class="min-h-screen bg-[rgb(245, 245, 247)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-[#8FABD4] rounded-lg mb-4">
-                <span class="text-white font-bold text-2xl">ES</span>
+        <!-- Logo - Apple Style -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-3xl mb-6 shadow-xl">
+                <span class="font-semibold text-2xl"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
             </div>
-            <h2 class="text-3xl font-bold text-[#000000]">
+            <h2 class="text-4xl font-semibold text-[#000000] tracking-tight mb-2">
                 {% trans "Create your account" %}
             </h2>
-            <p class="mt-2 text-sm text-[#666666]">
+            <p class="mt-2 text-base text-[#666666] font-medium">
                 {% trans "Start your learning journey" %}
             </p>
         </div>
         
-        <!-- Registration Form -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <!-- Registration Form - Apple Style -->
+        <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 p-10">
             <form method="post" class="space-y-5">
                 {% csrf_token %}
                 
@@ -78,7 +78,7 @@
                     {{ form.preferred_language }}
                 </div>
                 
-                <button type="submit" class="w-full bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold py-3 px-4 rounded-md transition shadow-lg">
+                <button type="submit" class="w-full bg-gradient-to-r from-[#e28f64] to-[#d17a4f] hover:from-[#d17a4f] hover:to-[#c86a3f] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
                     {% trans "Create Account" %}
                 </button>
             </form>
@@ -86,7 +86,7 @@
             <div class="mt-6 text-center">
                 <p class="text-sm text-[#666666]">
                     {% url 'accounts:login' as login_url %}
-                    {% blocktrans %}Already have an account? <a href="{{ login_url }}" class="text-[#8FABD4] hover:text-[#4A70A9] font-semibold">Log in</a>{% endblocktrans %}
+                    {% blocktrans %}Already have an account? <a href="{{ login_url }}" class="text-[#e28f64] hover:text-[#d17a4f] font-semibold">Log in</a>{% endblocktrans %}
                 </p>
             </div>
         </div>
@@ -94,18 +94,28 @@
 </div>
 
 <style>
-/* Style form inputs to match Coursera style */
+/* Style form inputs to match Apple style */
 input[type="text"],
 input[type="email"],
 input[type="password"],
 select {
     width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 14px 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    font-size: 15px;
     color: #000000;
-    transition: all 0.2s;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+select:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 input[type="text"]:focus,
@@ -114,7 +124,7 @@ input[type="password"]:focus,
 select:focus {
     outline: none;
     border-color: #8FABD4;
-    box-shadow: 0 0 0 3px rgba(143, 171, 212, 0.1);
+    box-shadow: 0 0 0 4px rgba(143, 171, 212, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>
 {% endblock %}

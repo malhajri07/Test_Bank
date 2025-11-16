@@ -15,68 +15,106 @@
     <!-- Swiper.js JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
-    <!-- RTL Support: Load Arabic font if language is Arabic -->
+    <!-- Apple-style Fonts: SF Pro Display/Text -->
     {% if IS_RTL %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {% else %}
-    <!-- Udemy-style fonts -->
+    <!-- Apple System Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% endif %}
+    
     <style>
+        /* Apple-style Typography and Layout */
+        :root {
+            --apple-bg: rgb(245, 245, 247);
+            --apple-text: #1d1d1f;
+            --apple-text-secondary: #86868b;
+            --apple-border: rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            {% if IS_RTL %}
+            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            {% else %}
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            {% endif %}
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            color: var(--apple-text);
+            background-color: var(--apple-bg);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            {% if IS_RTL %}
+            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+            {% else %}
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+            {% endif %}
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        
+        /* Apple-style smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Apple-style button transitions */
+        a, button {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Apple-style focus states */
+        *:focus {
+            outline: none;
+        }
+        
+        *:focus-visible {
+            outline: 2px solid #8FABD4;
+            outline-offset: 2px;
+            border-radius: 4px;
         }
     </style>
-    {% endif %}
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="min-h-screen flex flex-col" style="background-color: rgb(245, 245, 247);">
-    <!-- Navigation Bar - Coursera Style -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+    <!-- Navigation Bar - Apple Style -->
+    <nav class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+            <div class="flex justify-between items-center h-20">
                 <!-- Logo/Brand -->
                 <div class="flex-shrink-0 flex items-center">
                     <a href="{% url 'catalog:index' %}" class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
-                        <div class="w-8 h-8 bg-[#8FABD4] rounded flex items-center justify-center">
-                            <span class="text-white font-bold text-lg">ES</span>
+                        <div class="w-10 h-10 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-2xl flex items-center justify-center shadow-lg">
+                            <span class="font-semibold text-base"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
                         </div>
-                        <span class="text-xl font-bold text-[#000000] hidden sm:block">Exam Stellar</span>
+                        <span class="text-2xl font-semibold hidden sm:block tracking-tight">
+                            <span class="text-[#666666]">Exam</span><span class="font-bold" style="color: #e28f64;">{Stellar}</span>
+                        </span>
                     </a>
                 </div>
                 
-                <!-- Navigation Links - Desktop (Coursera Style) -->
-                <div class="hidden lg:flex items-center space-x-1 {% if IS_RTL %}space-x-reverse{% endif %}">
-                    <a href="{% url 'catalog:category_list' %}" class="px-3 py-2 text-sm font-normal text-[#000000] hover:text-[#8FABD4] transition">
+                <!-- Navigation Links - Desktop (Apple Style) -->
+                <div class="hidden lg:flex items-center space-x-8 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <a href="{% url 'catalog:category_list' %}" class="px-4 py-2 text-base font-medium text-[#000000] hover:text-[#e28f64] transition-colors">
                         {% trans "Browse" %}
                     </a>
                     {% if user.is_authenticated %}
-                    <a href="{% url 'accounts:dashboard' %}" class="px-3 py-2 text-sm font-normal text-[#000000] hover:text-[#8FABD4] transition">
+                    <a href="{% url 'accounts:dashboard' %}" class="px-4 py-2 text-base font-medium text-[#000000] hover:text-[#e28f64] transition-colors">
                         {% trans "My Learning" %}
                     </a>
                     {% endif %}
-                </div>
-                
-                <!-- Language Switcher -->
-                <div class="flex items-center mr-4 {% if IS_RTL %}ml-4 mr-0{% endif %}">
-                    <form method="post" action="{% url 'accounts:set_language' %}" class="language-switcher-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <select name="language" onchange="this.form.submit()" 
-                                class="text-sm border border-gray-300 rounded px-2 py-1.5 focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent bg-white text-[#000000]">
-                            <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>EN</option>
-                            <option value="ar" {% if CURRENT_LANGUAGE == 'ar' %}selected{% endif %}>AR</option>
-                        </select>
-                    </form>
                 </div>
                 
                 <!-- User Authentication Links -->
@@ -84,30 +122,30 @@
                     {% if user.is_authenticated %}
                     <!-- User Menu -->
                     <div class="relative group">
-                        <button class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %} px-3 py-2 rounded hover:bg-gray-50 transition">
-                            <div class="w-8 h-8 bg-[#8FABD4] rounded-full flex items-center justify-center">
+                        <button class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %} px-3 py-2 rounded-xl hover:bg-gray-50/80 transition-all">
+                            <div class="w-9 h-9 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-full flex items-center justify-center shadow-sm">
                                 <span class="text-white text-xs font-semibold">{{ user.username|first|upper }}</span>
                             </div>
-                            <span class="hidden sm:block text-sm font-normal text-[#000000]">{{ user.username }}</span>
+                            <span class="hidden sm:block text-sm font-medium text-[#000000]">{{ user.username }}</span>
                             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                            <a href="{% url 'accounts:profile' pk=user.pk %}" class="block px-4 py-2 text-sm text-[#000000] hover:bg-gray-50">
+                        <div class="absolute right-0 mt-2 w-52 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                            <a href="{% url 'accounts:profile' pk=user.pk %}" class="block px-5 py-3 text-sm font-medium text-[#000000] hover:bg-gray-50/80 transition-colors rounded-lg mx-2">
                                 {% trans "Profile" %}
                             </a>
-                            <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-[#000000] hover:bg-gray-50">
+                            <a href="{% url 'accounts:logout' %}" class="block px-5 py-3 text-sm font-medium text-[#000000] hover:bg-gray-50/80 transition-colors rounded-lg mx-2">
                                 {% trans "Logout" %}
                             </a>
                         </div>
                     </div>
                     {% else %}
                     <!-- Login/Register Links -->
-                    <a href="{% url 'accounts:login' %}" class="px-4 py-2 text-sm font-normal text-[#000000] hover:text-[#8FABD4] transition">
+                    <a href="{% url 'accounts:login' %}" class="px-4 py-2 text-sm font-normal text-[#000000] hover:text-[#e28f64] transition">
                         {% trans "Log in" %}
                     </a>
-                    <a href="{% url 'accounts:register' %}" class="px-4 py-2 text-sm font-semibold text-white bg-[#8FABD4] hover:bg-[#4A70A9] rounded transition">
+                    <a href="{% url 'accounts:register' %}" class="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#e28f64] to-[#d17a4f] hover:from-[#d17a4f] hover:to-[#c86a3f] rounded-xl transition-all shadow-md hover:shadow-lg">
                         {% trans "Join for Free" %}
                     </a>
                     {% endif %}
@@ -151,17 +189,17 @@
         {% block content %}{% endblock %}
     </main>
     
-    <!-- Footer - Coursera Style -->
-    <footer class="bg-white border-t border-gray-200 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Footer - Apple Style -->
+    <footer class="bg-white border-t border-gray-100 mt-20">
+        <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16">
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-8">
                 <!-- Platform -->
                 <div>
-                    <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "Platform" %}</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="{% url 'catalog:index' %}" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Home" %}</a></li>
-                        <li><a href="{% url 'catalog:category_list' %}" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Browse" %}</a></li>
-                        <li><a href="{% url 'catalog:category_list' %}" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Categories" %}</a></li>
+                    <h4 class="font-semibold text-[#000000] mb-5 text-sm tracking-tight">{% trans "Platform" %}</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="{% url 'catalog:index' %}" class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans "Home" %}</a></li>
+                        <li><a href="{% url 'catalog:category_list' %}" class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans "Browse" %}</a></li>
+                        <li><a href="{% url 'catalog:category_list' %}" class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans "Categories" %}</a></li>
                     </ul>
                 </div>
                 <!-- Account -->
@@ -169,11 +207,11 @@
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "Account" %}</h4>
                     <ul class="space-y-2 text-sm">
                         {% if user.is_authenticated %}
-                        <li><a href="{% url 'accounts:dashboard' %}" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "My Learning" %}</a></li>
-                        <li><a href="{% url 'accounts:profile' pk=user.pk %}" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Profile" %}</a></li>
+                        <li><a href="{% url 'accounts:dashboard' %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "My Learning" %}</a></li>
+                        <li><a href="{% url 'accounts:profile' pk=user.pk %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Profile" %}</a></li>
                         {% else %}
-                        <li><a href="{% url 'accounts:login' %}" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Log in" %}</a></li>
-                        <li><a href="{% url 'accounts:register' %}" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Sign Up" %}</a></li>
+                        <li><a href="{% url 'accounts:login' %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Log in" %}</a></li>
+                        <li><a href="{% url 'accounts:register' %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Sign Up" %}</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -181,12 +219,12 @@
                 <div>
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "Support" %}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Help" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Contact" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Help" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Contact" %}</a></li>
                         {% load cms_tags %}
                         {% if cms_pages %}
                         {% for page in cms_pages|slice:":3" %}
-                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}" class="text-[#666666] hover:text-[#8FABD4] transition">{{ page.title }}</a></li>
+                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}" class="text-[#666666] hover:text-[#e28f64] transition">{{ page.title }}</a></li>
                         {% endfor %}
                         {% endif %}
                     </ul>
@@ -195,16 +233,16 @@
                 <div>
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "Community" %}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Blog" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Forums" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Blog" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Forums" %}</a></li>
                     </ul>
                 </div>
                 <!-- More -->
                 <div>
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "More" %}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "About" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Careers" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "About" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Careers" %}</a></li>
                     </ul>
                 </div>
                 <!-- Legal -->
@@ -215,23 +253,25 @@
                         {% get_cms_pages as all_pages %}
                         {% for page in all_pages %}
                         {% if 'terms' in page.slug|lower or 'privacy' in page.slug|lower or 'legal' in page.slug|lower %}
-                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}" class="text-[#666666] hover:text-[#8FABD4] transition">{{ page.title }}</a></li>
+                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}" class="text-[#666666] hover:text-[#e28f64] transition">{{ page.title }}</a></li>
                         {% endif %}
                         {% empty %}
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Terms" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#8FABD4] transition">{% trans "Privacy" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Terms" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Privacy" %}</a></li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %} mb-4 md:mb-0">
-                    <div class="w-6 h-6 bg-[#8FABD4] rounded flex items-center justify-center">
-                        <span class="text-white font-bold text-xs">ES</span>
+            <div class="border-t border-gray-100 pt-10 flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-3 {% if IS_RTL %}space-x-reverse{% endif %} mb-4 md:mb-0">
+                    <div class="w-7 h-7 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-xl flex items-center justify-center shadow-sm">
+                        <span class="font-semibold text-xs"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
                     </div>
-                    <span class="text-sm font-semibold text-[#000000]">Exam Stellar</span>
+                    <span class="text-base font-semibold tracking-tight">
+                        <span class="text-[#666666]">Exam</span><span class="font-bold" style="color: #e28f64;">{Stellar}</span>
+                    </span>
                 </div>
-                <p class="text-sm text-[#666666]">
+                <p class="text-sm text-[#666666] font-medium">
                     {% blocktrans %}&copy; 2024 Exam Stellar. All rights reserved.{% endblocktrans %}
                 </p>
             </div>
