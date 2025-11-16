@@ -1,0 +1,486 @@
+# Arabic translations for Test Bank Platform
+# Copyright (C) 2024
+# This file is distributed under the same license as the Test Bank Platform package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Test Bank Platform\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-12 21:49+0000\n"
+"PO-Revision-Date: 2024-11-12 21:49+0000\n"
+"Last-Translator: \n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: accounts/views.py:71
+msgid "Registration successful! Welcome to Test Bank Platform."
+msgstr "تم التسجيل بنجاح! مرحباً بك في منصة بنك الاختبارات."
+
+#: accounts/views.py:94
+msgid "You do not have permission to view this profile."
+msgstr "ليس لديك صلاحية لعرض هذا الملف الشخصي."
+
+#: accounts/views.py:111
+msgid "Profile updated successfully!"
+msgstr "تم تحديث الملف الشخصي بنجاح!"
+
+#: accounts/views.py:198
+msgid "Language changed successfully."
+msgstr "تم تغيير اللغة بنجاح."
+
+#: templates/accounts/dashboard.html:4
+msgid "Dashboard - Test Bank Platform"
+msgstr "لوحة التحكم - منصة بنك الاختبارات"
+
+#: templates/accounts/dashboard.html:11
+msgid "My Dashboard"
+msgstr "لوحة التحكم الخاصة بي"
+
+#: templates/accounts/dashboard.html:14
+msgid "Track your practice progress"
+msgstr "تتبع تقدمك في التدريب"
+
+#: templates/accounts/dashboard.html:25
+msgid "Total Sessions"
+msgstr "إجمالي الجلسات"
+
+#: templates/accounts/dashboard.html:39
+msgid "Completed"
+msgstr "مكتمل"
+
+#: templates/accounts/dashboard.html:53
+msgid "Average Score"
+msgstr "متوسط النقاط"
+
+#: templates/accounts/dashboard.html:61
+msgid "My Test Banks"
+msgstr "بنوك الاختبارات الخاصة بي"
+
+#: templates/accounts/dashboard.html:65
+msgid "Start"
+msgstr "ابدأ"
+
+#: templates/accounts/dashboard.html:71 templates/accounts/dashboard.html:177 templates/catalog/category_list.html:35 templates/catalog/index.html:61 templates/catalog/index.html:111
+msgid "View"
+msgstr "عرض"
+
+#: templates/accounts/dashboard.html:75
+msgid "You haven't purchased any test banks yet"
+msgstr "لم تشتري أي بنوك اختبارات بعد"
+
+#: templates/accounts/dashboard.html:79 templates/catalog/index.html:20
+msgid "Browse Test Banks"
+msgstr "تصفح بنوك الاختبارات"
+
+#: templates/accounts/dashboard.html:83
+msgid "Recent Practice Sessions"
+msgstr "جلسات التدريب الأخيرة"
+
+#: templates/accounts/dashboard.html:87
+msgid "Test Bank"
+msgstr "بنك الاختبارات"
+
+#: templates/accounts/dashboard.html:91
+msgid "Status"
+msgstr "الحالة"
+
+#: templates/accounts/dashboard.html:95
+msgid "Score"
+msgstr "النقاط"
+
+#: templates/accounts/dashboard.html:99
+msgid "Date"
+msgstr "التاريخ"
+
+#: templates/accounts/dashboard.html:103
+msgid "Actions"
+msgstr "الإجراءات"
+
+#: templates/accounts/dashboard.html:107
+msgid "Continue"
+msgstr "متابعة"
+
+#: templates/accounts/dashboard.html:111
+msgid "No practice sessions yet"
+msgstr "لا توجد جلسات تدريب بعد"
+
+#: templates/accounts/login.html:4
+msgid "Login - Test Bank Platform"
+msgstr "تسجيل الدخول - منصة بنك الاختبارات"
+
+#: templates/accounts/login.html:15
+msgid "Log in to your account"
+msgstr "تسجيل الدخول إلى حسابك"
+
+#: templates/accounts/login.html:26 templates/accounts/register.html:29
+msgid "Username"
+msgstr "اسم المستخدم"
+
+#: templates/accounts/login.html:34 templates/accounts/register.html:49
+msgid "Password"
+msgstr "كلمة المرور"
+
+#: templates/accounts/login.html:43
+msgid "Invalid username or password"
+msgstr "اسم المستخدم أو كلمة المرور غير صحيحة"
+
+#: templates/accounts/login.html:50
+msgid "Forgot password?"
+msgstr "نسيت كلمة المرور؟"
+
+#: templates/accounts/login.html:55 templates/base.html:105
+msgid "Log in"
+msgstr "تسجيل الدخول"
+
+#: templates/accounts/login.html:62
+#, python-format
+msgid ""
+"Don't have an account? <a href=\"%(register_url)s\" class=\"text-purple-600 "
+"hover:text-purple-700 font-semibold\">Sign up</a>"
+msgstr ""
+"ليس لديك حساب؟ <a href=\"%(register_url)s\" class=\"text-purple-600 "
+"hover:text-purple-700 font-semibold\">سجل الآن</a>"
+
+#: templates/accounts/register.html:4
+msgid "Register - Test Bank Platform"
+msgstr "التسجيل - منصة بنك الاختبارات"
+
+#: templates/accounts/register.html:15
+msgid "Create your account"
+msgstr "إنشاء حسابك"
+
+#: templates/accounts/register.html:18
+msgid "Start your learning journey"
+msgstr "ابدأ رحلتك التعليمية"
+
+#: templates/accounts/register.html:39
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+#: templates/accounts/register.html:59
+msgid "Confirm Password"
+msgstr "تأكيد كلمة المرور"
+
+#: templates/accounts/register.html:69
+msgid "Full Name"
+msgstr "الاسم الكامل"
+
+#: templates/accounts/register.html:76
+msgid "Preferred Language"
+msgstr "اللغة المفضلة"
+
+#: templates/accounts/register.html:82
+msgid "Create Account"
+msgstr "إنشاء حساب"
+
+#: templates/accounts/register.html:89
+#, python-format
+msgid ""
+"Already have an account? <a href=\"%(login_url)s\" class=\"text-purple-600 "
+"hover:text-purple-700 font-semibold\">Log in</a>"
+msgstr ""
+"لديك حساب بالفعل؟ <a href=\"%(login_url)s\" class=\"text-purple-600 "
+"hover:text-purple-700 font-semibold\">سجل الدخول</a>"
+
+#: templates/base.html:6 templates/catalog/testbank_detail.html:4 templates/catalog/testbank_list.html:4
+msgid "Test Bank Platform"
+msgstr "منصة بنك الاختبارات"
+
+#: templates/base.html:54 templates/base.html:159
+msgid "Browse"
+msgstr "تصفح"
+
+#: templates/base.html:58
+msgid "My Tests"
+msgstr "اختباراتي"
+
+#: templates/base.html:61
+msgid "My Purchases"
+msgstr "مشترياتي"
+
+#: templates/base.html:95 templates/base.html:168
+msgid "Profile"
+msgstr "الملف الشخصي"
+
+#: templates/base.html:98
+msgid "Logout"
+msgstr "تسجيل الخروج"
+
+#: templates/base.html:108
+msgid "Sign up"
+msgstr "التسجيل"
+
+#: templates/base.html:153
+msgid "Professional test bank platform for practice and learning"
+msgstr "منصة احترافية للتدريب على الاختبارات والتعلم"
+
+#: templates/base.html:157
+msgid "Platform"
+msgstr "المنصة"
+
+#: templates/base.html:160 templates/catalog/testbank_detail.html:13 templates/catalog/testbank_list.html:16
+msgid "Home"
+msgstr "الرئيسية"
+
+#: templates/base.html:164
+msgid "Account"
+msgstr "الحساب"
+
+#: templates/base.html:167 templates/practice/practice_results.html:135
+msgid "Dashboard"
+msgstr "لوحة التحكم"
+
+#: templates/base.html:170
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+#: templates/base.html:171
+msgid "Sign Up"
+msgstr "التسجيل"
+
+#: templates/base.html:176
+msgid "Support"
+msgstr "الدعم"
+
+#: templates/base.html:178
+msgid "Help"
+msgstr "مساعدة"
+
+#: templates/base.html:179
+msgid "Contact"
+msgstr "اتصل بنا"
+
+#: templates/base.html:185
+msgid "&copy; 2024 TestBank Platform. All rights reserved."
+msgstr "&copy; 2024 منصة بنك الاختبارات. جميع الحقوق محفوظة."
+
+#: templates/catalog/category_list.html:4
+msgid "Categories - Test Bank Platform"
+msgstr "الفئات - منصة بنك الاختبارات"
+
+#: templates/catalog/category_list.html:11
+msgid "All Categories"
+msgstr "جميع الفئات"
+
+#: templates/catalog/category_list.html:32 templates/catalog/index.html:58
+#, python-format
+msgid "%(count)s test bank"
+msgid_plural "%(count)s test banks"
+msgstr[0] "بنك اختبار واحد"
+msgstr[1] "بنكان اختبار"
+msgstr[2] "%(count)s بنوك اختبار"
+msgstr[3] "%(count)s بنك اختبار"
+msgstr[4] "%(count)s بنك اختبار"
+msgstr[5] "%(count)s بنك اختبار"
+
+#: templates/catalog/category_list.html:49 templates/catalog/index.html:69
+msgid "No categories available at the moment"
+msgstr "لا توجد فئات متاحة في الوقت الحالي"
+
+#: templates/catalog/index.html:4
+msgid "Test Bank Platform - Practice Tests for School, College & Professional"
+msgstr "منصة بنك الاختبارات - اختبارات تدريبية للمدرسة والكلية والمهنيين"
+
+#: templates/catalog/index.html:12
+msgid "Learn and Practice with Test Banks"
+msgstr "تعلم وتدرب مع بنوك الاختبارات"
+
+#: templates/catalog/index.html:15
+msgid ""
+"Thousands of practice questions for School, College, and Professional "
+"certification levels"
+msgstr ""
+"الآلاف من أسئلة التدريب لمستويات المدرسة والكلية والشهادات المهنية"
+
+#: templates/catalog/index.html:25
+msgid "Get Started"
+msgstr "ابدأ الآن"
+
+#: templates/catalog/index.html:37
+msgid "Explore Categories"
+msgstr "استكشف الفئات"
+
+#: templates/catalog/index.html:40
+msgid "Choose from a wide range of test banks"
+msgstr "اختر من مجموعة واسعة من بنوك الاختبارات"
+
+#: templates/catalog/index.html:82
+msgid "Featured Test Banks"
+msgstr "بنوك الاختبارات المميزة"
+
+#: templates/catalog/index.html:85
+msgid "Start with these popular test banks"
+msgstr "ابدأ مع هذه بنوك الاختبارات الشائعة"
+
+#: templates/catalog/index.html:126
+msgid "Ready to get started?"
+msgstr "هل أنت مستعد للبدء؟"
+
+#: templates/catalog/index.html:129
+msgid "Join thousands of students using our platform to prepare for exams"
+msgstr "انضم إلى آلاف الطلاب الذين يستخدمون منصتنا للتحضير للامتحانات"
+
+#: templates/catalog/index.html:134
+msgid "Sign Up Free"
+msgstr "سجل مجاناً"
+
+#: templates/catalog/testbank_detail.html:13 templates/catalog/testbank_list.html:16
+msgid "Categories"
+msgstr "الفئات"
+
+#: templates/catalog/testbank_detail.html:37
+#, python-format
+msgid "%(count)s question"
+msgid_plural "%(count)s questions"
+msgstr[0] "سؤال واحد"
+msgstr[1] "سؤالان"
+msgstr[2] "%(count)s أسئلة"
+msgstr[3] "%(count)s سؤال"
+msgstr[4] "%(count)s سؤال"
+msgstr[5] "%(count)s سؤال"
+
+#: templates/catalog/testbank_detail.html:42
+msgid "Description"
+msgstr "الوصف"
+
+#: templates/catalog/testbank_detail.html:49
+msgid "Previous Attempts"
+msgstr "المحاولات السابقة"
+
+#: templates/catalog/testbank_detail.html:61
+msgid "View Results"
+msgstr "عرض النتائج"
+
+#: templates/catalog/testbank_detail.html:81
+msgid "You have access"
+msgstr "لديك وصول"
+
+#: templates/catalog/testbank_detail.html:86
+msgid "Start Practice"
+msgstr "ابدأ التدريب"
+
+#: templates/catalog/testbank_detail.html:90 templates/catalog/testbank_detail.html:104
+msgid "Unlimited practice"
+msgstr "تدريب غير محدود"
+
+#: templates/catalog/testbank_detail.html:96
+msgid "One-time payment"
+msgstr "دفعة واحدة"
+
+#: templates/catalog/testbank_detail.html:110
+#, python-format
+msgid "%(count)s question available"
+msgid_plural "%(count)s questions available"
+msgstr[0] "سؤال واحد متاح"
+msgstr[1] "سؤالان متاحان"
+msgstr[2] "%(count)s أسئلة متاحة"
+msgstr[3] "%(count)s سؤال متاح"
+msgstr[4] "%(count)s سؤال متاح"
+msgstr[5] "%(count)s سؤال متاح"
+
+#: templates/catalog/testbank_detail.html:116
+msgid "Results review"
+msgstr "مراجعة النتائج"
+
+#: templates/catalog/testbank_detail.html:123
+msgid "Buy Now"
+msgstr "اشتري الآن"
+
+#: templates/catalog/testbank_detail.html:128
+msgid "Login to Purchase"
+msgstr "سجل الدخول للشراء"
+
+#: templates/catalog/testbank_detail.html:133
+msgid "30-day money-back guarantee"
+msgstr "ضمان استرداد الأموال لمدة 30 يوماً"
+
+#: templates/catalog/testbank_list.html:53
+msgid "View Details"
+msgstr "عرض التفاصيل"
+
+#: templates/catalog/testbank_list.html:66
+msgid "No test banks available"
+msgstr "لا توجد بنوك اختبارات متاحة"
+
+#: templates/catalog/testbank_list.html:69
+msgid "in this category at the moment"
+msgstr "في هذه الفئة في الوقت الحالي"
+
+#: templates/practice/practice_results.html:4 templates/practice/practice_results.html:11
+msgid "Practice Results"
+msgstr "نتائج التدريب"
+
+#: templates/practice/practice_results.html:28 templates/practice/practice_results.html:63
+msgid "Correct"
+msgstr "صحيح"
+
+#: templates/practice/practice_results.html:32 templates/practice/practice_results.html:67
+msgid "Incorrect"
+msgstr "غير صحيح"
+
+#: templates/practice/practice_results.html:36
+#, python-format
+msgid "%(correct)s out of %(total)s correct"
+msgstr "%(correct)s من أصل %(total)s صحيح"
+
+#: templates/practice/practice_results.html:43
+msgid "Question Review"
+msgstr "مراجعة الأسئلة"
+
+#: templates/practice/practice_results.html:58
+#, python-format
+msgid "Question %(num)s"
+msgstr "السؤال %(num)s"
+
+#: templates/practice/practice_results.html:78
+msgid "Your Answer:"
+msgstr "إجابتك:"
+
+#: templates/practice/practice_results.html:88
+msgid "No answer provided"
+msgstr "لم يتم تقديم إجابة"
+
+#: templates/practice/practice_results.html:97
+msgid "Correct Answer:"
+msgstr "الإجابة الصحيحة:"
+
+#: templates/practice/practice_results.html:113
+msgid "Explanation:"
+msgstr "شرح:"
+
+#: templates/practice/practice_results.html:127
+msgid "Try Again"
+msgstr "حاول مرة أخرى"
+
+#: templates/practice/practice_results.html:131
+msgid "Back"
+msgstr "رجوع"
+
+#: templates/practice/practice_session.html:4
+msgid "Practice Session"
+msgstr "جلسة التدريب"
+
+#: templates/practice/practice_session.html:14
+#, python-format
+msgid "Question %(current)s of %(total)s"
+msgstr "السؤال %(current)s من %(total)s"
+
+#: templates/practice/practice_session.html:24
+msgid "complete"
+msgstr "مكتمل"
+
+#: templates/practice/practice_session.html:81
+msgid "Previous"
+msgstr "السابق"
+
+#: templates/practice/practice_session.html:90
+msgid "Next"
+msgstr "التالي"
+
+#: templates/practice/practice_session.html:100
+msgid "Submit"
+msgstr "إرسال"

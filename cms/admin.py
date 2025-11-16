@@ -1,0 +1,269 @@
+"""
+Admin configuration for CMS app.
+
+Provides comprehensive admin interfaces for:
+- Pages: Static content pages
+- Announcements: Site-wide announcements
+- Media: File uploads and media management
+- ContentBlocks: Reusable content blocks
+
+Includes role-based permissions and rich text editing.
+"""
+
+from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
+from django.utils import timezone
+from django.core.exceptions import PermissionDenied
+from .models import Page, Announcement, Media, ContentBlock
+
+
+# Permission mixins for role-based access
+class CMSAdminMixin:
+    """Mixin to add CMS permission checks to admin classes."""
+    
+    def has_add_permission(self, request):
+        """Check if user can add content."""
+        # Superusers and staff always have full access
+        if request.user.is_superuser or request.user.is_staff:
+            return True
+        return request.user.is_editor()
+    
+    def has_change_permission(self, request, obj=None):
+        """Check if user can change content."""
+        # Superusers and staff always have full access
+        if request.user.is_superuser or request.user.is_staff:
+            return True
+        return request.user.is_editor()
+    
+    def has_delete_permission(self, request, obj=None):
+        """Check if user can delete content."""
+        # Superusers and staff always have full access
+        if request.user.is_superuser or request.user.is_staff:
+            return True
+        return request.user.is_content_manager()
+    
+    def has_view_permission(self, request, obj=None):
+        """Check if user can view content."""
+        # Superusers and staff always have full access
+        if request.user.is_superuser or request.user.is_staff:
+            return True
+        return request.user.is_editor()
+
+
+# Custom admin actions
+@admin.action(description='Mark selected pages as published')
+def make_published(modeladmin, request, queryset):
+    """Admin action to publish selected pages."""
+    queryset.update(status='published', published_at=timezone.now())
+
+
+@admin.action(description='Mark selected pages as draft')
+def make_draft(modeladmin, request, queryset):
+    """Admin action to set selected pages as draft."""
+    queryset.update(status='draft')
+
+
+@admin.action(description='Activate selected announcements')
+def activate_announcements(modeladmin, request, queryset):
+    """Admin action to activate selected announcements."""
+    queryset.update(is_active=True)
+
+
+@admin.action(description='Deactivate selected announcements')
+def deactivate_announcements(modeladmin, request, queryset):
+    """Admin action to deactivate selected announcements."""
+    queryset.update(is_active=False)
+
+
+@admin.register(Page)
+class PageAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for Page model with rich text editing."""
+    
+    list_display = ('title', 'slug', 'status', 'is_featured', 'author', 'created_at', 'published_at', 'view_link')
+    list_filter = ('status', 'is_featured', 'created_at', 'author')
+    search_fields = ('title', 'slug', 'content', 'meta_title', 'meta_description')
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields = ('created_at', 'updated_at', 'published_at', 'author')
+    
+    # RichTextField is used directly in the model, so no custom form needed
+    
+    # Fieldsets for better organization
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'slug', 'content')
+        }),
+        ('SEO Settings', {
+            'fields': ('meta_title', 'meta_description'),
+            'classes': ('collapse',)
+        }),
+        ('Publication', {
+            'fields': ('status', 'is_featured', 'order', 'published_at')
+        }),
+        ('Metadata', {
+            'fields': ('author', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    # Admin actions
+    actions = [make_published, make_draft]
+    
+    def view_link(self, obj):
+        """Display link to view page on site."""
+        if obj.status == 'published':
+            url = obj.get_absolute_url()
+            return format_html('<a href="{}" target="_blank">View</a>', url)
+        return '-'
+    view_link.short_description = 'View on Site'
+    
+    def save_model(self, request, obj, form, change):
+        """Set author when creating new page and check publish permissions."""
+        if not change:  # New object
+            obj.author = request.user
+        
+        # Check publish permission (superusers and staff can always publish)
+        if obj.status == 'published' and not (request.user.is_superuser or request.user.is_staff or request.user.can_publish_content()):
+            obj.status = 'draft'
+        
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(Announcement)
+class AnnouncementAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for Announcement model."""
+    
+    list_display = ('title', 'announcement_type', 'is_active', 'show_on_homepage', 'start_date', 'end_date', 'author', 'created_at', 'status_indicator')
+    list_filter = ('announcement_type', 'is_active', 'show_on_homepage', 'created_at', 'author')
+    search_fields = ('title', 'content')
+    readonly_fields = ('created_at', 'updated_at', 'author')
+    
+    # RichTextField is used directly in the model, so no custom form needed
+    
+    # Fieldsets for better organization
+    fieldsets = (
+        ('Content', {
+            'fields': ('title', 'content', 'announcement_type')
+        }),
+        ('Visibility', {
+            'fields': ('is_active', 'show_on_homepage')
+        }),
+        ('Scheduling', {
+            'fields': ('start_date', 'end_date'),
+            'description': 'Set dates to schedule when announcement should be displayed'
+        }),
+        ('Link (Optional)', {
+            'fields': ('link_url', 'link_text'),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('author', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    # Admin actions
+    actions = [activate_announcements, deactivate_announcements]
+    
+    def status_indicator(self, obj):
+        """Display visual indicator of announcement status."""
+        if obj.is_currently_active():
+            return format_html('<span style="color: green;">●</span> Active')
+        return format_html('<span style="color: red;">●</span> Inactive')
+    status_indicator.short_description = 'Status'
+    
+    def save_model(self, request, obj, form, change):
+        """Set author when creating new announcement."""
+        if not change:  # New object
+            obj.author = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(Media)
+class MediaAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for Media model with file preview."""
+    
+    list_display = ('title', 'media_type', 'file_preview', 'uploaded_by', 'created_at', 'file_size')
+    list_filter = ('media_type', 'created_at', 'uploaded_by')
+    search_fields = ('title', 'description', 'alt_text')
+    readonly_fields = ('uploaded_by', 'created_at', 'file_preview_large')
+    
+    # Fieldsets for better organization
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'media_type')
+        }),
+        ('File', {
+            'fields': ('file', 'file_preview_large', 'alt_text')
+        }),
+        ('Metadata', {
+            'fields': ('uploaded_by', 'created_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def file_preview(self, obj):
+        """Display file preview in list view."""
+        if obj.file and obj.media_type == 'image':
+            return format_html('<img src="{}" style="max-width: 50px; max-height: 50px;" />', obj.file.url)
+        return '-'
+    file_preview.short_description = 'Preview'
+    
+    def file_preview_large(self, obj):
+        """Display larger file preview in detail view."""
+        if obj.file and obj.media_type == 'image':
+            return format_html('<img src="{}" style="max-width: 300px; max-height: 300px;" />', obj.file.url)
+        return 'Preview not available for this file type'
+    file_preview_large.short_description = 'File Preview'
+    file_preview_large.allow_tags = True
+    
+    def file_size(self, obj):
+        """Display file size."""
+        if obj.file:
+            size = obj.file.size
+            for unit in ['B', 'KB', 'MB', 'GB']:
+                if size < 1024.0:
+                    return f"{size:.1f} {unit}"
+                size /= 1024.0
+            return f"{size:.1f} TB"
+        return '-'
+    file_size.short_description = 'Size'
+    
+    def save_model(self, request, obj, form, change):
+        """Set uploaded_by when creating new media."""
+        if not change:  # New object
+            obj.uploaded_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(ContentBlock)
+class ContentBlockAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for ContentBlock model."""
+    
+    list_display = ('name', 'slug', 'block_type', 'author', 'created_at', 'updated_at')
+    list_filter = ('block_type', 'created_at', 'author')
+    search_fields = ('name', 'slug', 'content')
+    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ('created_at', 'updated_at', 'author')
+    
+    # RichTextField is used directly in the model, so no custom form needed
+    
+    # Fieldsets for better organization
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'block_type')
+        }),
+        ('Content', {
+            'fields': ('content',)
+        }),
+        ('Metadata', {
+            'fields': ('author', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def save_model(self, request, obj, form, change):
+        """Set author when creating new content block."""
+        if not change:  # New object
+            obj.author = request.user
+        super().save_model(request, obj, form, change)

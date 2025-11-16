@@ -1,0 +1,167 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}Upload Test Bank from JSON | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url 'admin:catalog_testbank_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% trans 'Upload JSON' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="content" style="max-width: 900px; margin: 0 auto;">
+    <h1 style="color: #4A70A9; margin-bottom: 20px;">Upload Test Bank from JSON</h1>
+    
+    <!-- Available Categories/Subcategories Info -->
+    <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #2196F3;">
+        <h2 style="color: #1976D2; margin-top: 0; font-size: 18px; margin-bottom: 15px;">📋 Available Categories & Subcategories</h2>
+        <p style="margin-bottom: 15px; color: #424242;">
+            <strong>Important:</strong> You must use the <strong>slug</strong> (not the name) for category, subcategory, or certification in your JSON file.
+            You can find the slugs in the admin panel under Categories, SubCategories, or Certifications.
+        </p>
+        <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 10px;">
+            <p style="margin: 0; font-size: 14px; color: #666;">
+                <strong>Tip:</strong> Visit the admin pages for Categories, SubCategories, or Certifications to see the exact slugs you can use.
+                The slug is usually the lowercase, hyphenated version of the name (e.g., "School Level" → "school-level").
+            </p>
+        </div>
+    </div>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #8FABD4;">
+        <h2 style="color: #4A70A9; margin-top: 0; font-size: 18px;">JSON Format Guide</h2>
+        <p style="margin-bottom: 10px;">Your JSON file should follow this structure:</p>
+        <pre style="background: white; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px; line-height: 1.5; max-height: 400px; overflow-y: auto;">{
+  "test_bank": {
+    "title": "Test Bank Title",
+    "description": "Description of the test bank",
+    "category": "category-slug",
+    "subcategory": "subcategory-slug",
+    "certification": "certification-slug",
+    "difficulty_level": "beginner",
+    "price": 0.00,
+    "is_active": true
+  },
+  "questions": [
+    {
+      "question_text": "What is the capital of France?",
+      "question_type": "mcq_single",
+      "explanation": "Paris is the capital and largest city of France.",
+      "order": 1,
+      "options": [
+        {
+          "option_text": "Paris",
+          "is_correct": true,
+          "order": 1
+        },
+        {
+          "option_text": "London",
+          "is_correct": false,
+          "order": 2
+        },
+        {
+          "option_text": "Berlin",
+          "is_correct": false,
+          "order": 3
+        }
+      ]
+    }
+  ]
+}</pre>
+        <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+            <p style="margin: 0; font-size: 14px;">
+                <strong>⚠️ Required:</strong> At least one of <code>category</code>, <code>subcategory</code>, or <code>certification</code> must be specified and must exist in the database.
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 14px;">
+                <strong>Question types:</strong> <code>mcq_single</code>, <code>mcq_multi</code>, or <code>true_false</code>.
+            </p>
+        </div>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 25px;">
+            <label for="{{ form.json_file.id_for_label }}" style="display: block; font-weight: 600; color: #000; margin-bottom: 8px;">
+                {{ form.json_file.label }}
+            </label>
+            {{ form.json_file }}
+            {% if form.json_file.help_text %}
+            <p style="color: #666; font-size: 13px; margin-top: 5px;">{{ form.json_file.help_text }}</p>
+            {% endif %}
+            {% if form.json_file.errors %}
+            <ul style="color: #dc3545; margin-top: 5px;">
+                {% for error in form.json_file.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+            <label for="{{ form.test_bank.id_for_label }}" style="display: block; font-weight: 600; color: #000; margin-bottom: 8px;">
+                {{ form.test_bank.label }}
+            </label>
+            {{ form.test_bank }}
+            {% if form.test_bank.help_text %}
+            <p style="color: #666; font-size: 13px; margin-top: 5px;">{{ form.test_bank.help_text }}</p>
+            {% endif %}
+            {% if form.test_bank.errors %}
+            <ul style="color: #dc3545; margin-top: 5px;">
+                {% for error in form.test_bank.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+            <button type="submit" style="background: #8FABD4; color: white; padding: 12px 30px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                Upload & Import
+            </button>
+            <a href="{% url 'admin:catalog_testbank_changelist' %}" style="background: #6c757d; color: white; padding: 12px 30px; border: none; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.3s;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #8FABD4;
+    border-radius: 6px;
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+input[type="file"]:hover {
+    border-color: #4A70A9;
+    background: #e9ecef;
+}
+
+select.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+button[type="submit"]:hover {
+    background: #4A70A9 !important;
+}
+
+a[href*="changelist"]:hover {
+    background: #5a6268 !important;
+}
+
+pre {
+    font-family: 'Courier New', monospace;
+}
+</style>
+{% endblock %}

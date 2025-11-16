@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ category.name }} - {% trans "Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {% if breadcrumbs %}
+            {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
+        {% else %}
+            <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %}">
+                <a href="{% url 'catalog:index' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">
+                    {% trans "Home" %}
+                </a>
+                <span class="text-[#666666]">/</span>
+                <a href="{% url 'catalog:category_list' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">
+                    {% trans "Categories" %}
+                </a>
+                <span class="text-[#666666]">/</span>
+                <span class="text-[#000000]">{{ category.name }}</span>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Category Header -->
+<div class="bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-bold mb-4">{{ category.name }}</h1>
+        <p class="text-xl text-white opacity-90">{{ category.description }}</p>
+    </div>
+</div>
+
+<!-- Test Bank Grid -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-6 flex items-center justify-between">
+        <p class="text-[#666666]">
+            {% blocktrans count count=test_banks|length %}{{ count }} test bank available{% plural %}{{ count }} test banks available{% endblocktrans %}
+        </p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for test_bank in test_banks %}
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 card-hover">
+            <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
+                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                    <span class="px-2 py-1 bg-white bg-opacity-90 text-[#8FABD4] text-xs font-semibold rounded">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                    <span class="text-white text-xl font-bold">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+                </div>
+            </div>
+            <div class="p-5">
+                <h2 class="text-lg font-semibold text-[#000000] mb-2 line-clamp-2 min-h-[3.5rem]">
+                    {{ test_bank.title }}
+                </h2>
+                <p class="text-sm text-[#666666] mb-4 line-clamp-3 min-h-[3.75rem]">
+                    {{ test_bank.description|truncatewords:20 }}
+                </p>
+                <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
+                   class="block w-full text-center px-4 py-2 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold rounded-md transition">
+                    {% trans "View Details" %}
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-16">
+            <div class="max-w-md mx-auto">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <p class="text-[#666666] text-lg mb-2">
+                    {% trans "No test banks available" %}
+                </p>
+                <p class="text-[#666666] text-sm">
+                    {% trans "in this category at the moment" %}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

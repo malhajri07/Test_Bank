@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ test_bank.title }} - {% trans "Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %}">
+            <a href="{% url 'catalog:index' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">{% trans "Home" %}</a>
+            <span class="text-[#666666]">/</span>
+            <a href="{% url 'catalog:category_list' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">{% trans "Categories" %}</a>
+            <span class="text-[#666666]">/</span>
+            <a href="{% url 'catalog:testbank_list' category_slug=test_bank.category.slug %}" class="text-[#8FABD4] hover:text-[#4A70A9]">{{ test_bank.category.name }}</a>
+            <span class="text-[#666666]">/</span>
+            <span class="text-[#000000]">{{ test_bank.title|truncatewords:5 }}</span>
+        </nav>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ test_bank.title }}</h1>
+            <div class="flex flex-wrap items-center gap-4">
+                <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm font-semibold">
+                    {{ test_bank.get_difficulty_level_display }}
+                </span>
+                <span class="flex items-center text-white opacity-90">
+                    <svg class="w-5 h-5 mr-2 {% if IS_RTL %}ml-2 mr-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    {% blocktrans count count=question_count %}{{ count }} question{% plural %}{{ count }} questions{% endblocktrans %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-6">
+                <h2 class="text-2xl font-bold text-[#000000] mb-6">{% trans "Description" %}</h2>
+                <div class="prose max-w-none">
+                    <p class="text-[#000000] leading-relaxed whitespace-pre-line">{{ test_bank.description }}</p>
+                </div>
+            </div>
+            
+            {% if recent_sessions %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                <h2 class="text-2xl font-bold text-[#000000] mb-6">{% trans "Previous Attempts" %}</h2>
+                <div class="space-y-4">
+                    {% for session in recent_sessions %}
+                    <div class="flex items-center justify-between p-4 bg-[rgb(245, 245, 247)] rounded-lg hover:bg-gray-50 transition">
+                        <div>
+                            <p class="text-sm text-[#666666]">{{ session.started_at|date:"M d, Y H:i" }}</p>
+                            {% if session.score %}
+                            <p class="text-lg font-semibold text-[#000000] mt-1">{{ session.score|floatformat:1 }}%</p>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'practice:results' session_id=session.pk %}" 
+                           class="px-4 py-2 bg-[#8FABD4] hover:bg-[#4A70A9] text-white text-sm font-semibold rounded-md transition">
+                            {% trans "View Results" %}
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar - Purchase/Action Card -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg border-2 border-gray-200 sticky top-20 p-6">
+                {% if has_access %}
+                <!-- User has access -->
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-green-600 font-semibold mb-2">{% trans "You have access" %}</p>
+                </div>
+                
+                <a href="{% url 'practice:start_practice' testbank_slug=test_bank.slug %}" 
+                   class="block w-full text-center px-6 py-4 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-bold text-lg rounded-md transition shadow-lg mb-4">
+                    {% trans "Start Practice" %}
+                </a>
+                
+                <div class="text-center text-sm text-[#666666]">
+                    <p>{% trans "Unlimited practice" %}</p>
+                </div>
+                {% else %}
+                <!-- Purchase Card -->
+                <div class="text-center mb-6">
+                    {% if is_free %}
+                    <div class="text-5xl font-bold text-green-600 mb-2">{% trans "FREE" %}</div>
+                    <p class="text-[#666666] text-sm">{% trans "No payment required" %}</p>
+                    {% else %}
+                    <div class="text-5xl font-bold text-[#000000] mb-2">${{ test_bank.price }}</div>
+                    <p class="text-[#666666] text-sm">{% trans "One-time payment" %}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-start space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
+                        <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-sm text-[#000000]">{% trans "Unlimited practice" %}</span>
+                    </div>
+                    <div class="flex items-start space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
+                        <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-sm text-[#000000]">{% blocktrans count count=question_count %}{{ count }} question available{% plural %}{{ count }} questions available{% endblocktrans %}</span>
+                    </div>
+                    <div class="flex items-start space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
+                        <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-sm text-[#000000]">{% trans "Results review" %}</span>
+                    </div>
+                </div>
+                
+                {% if user.is_authenticated %}
+                    {% if is_free %}
+                    <a href="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}" 
+                       class="block w-full text-center px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-md transition shadow-lg mb-4">
+                        {% trans "Get Free Access" %}
+                    </a>
+                    {% else %}
+                    <a href="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}" 
+                       class="block w-full text-center px-6 py-4 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-bold text-lg rounded-md transition shadow-lg mb-4">
+                        {% trans "Buy Now" %}
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="{% url 'accounts:login' %}" 
+                   class="block w-full text-center px-6 py-4 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-bold text-lg rounded-md transition shadow-lg mb-4">
+                    {% if is_free %}
+                    {% trans "Login to Get Free Access" %}
+                    {% else %}
+                    {% trans "Login to Purchase" %}
+                    {% endif %}
+                </a>
+                {% endif %}
+                
+                {% if not is_free %}
+                <p class="text-xs text-center text-[#666666]">
+                    {% trans "30-day money-back guarantee" %}
+                </p>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Test Banks Carousel -->
+    {% if related_test_banks %}
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold text-[#000000] mb-6">{% trans "Related test banks" %}</h2>
+        <div class="swiper related-swiper relative">
+            <div class="swiper-wrapper">
+                {% for related in related_test_banks %}
+                <div class="swiper-slide">
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 card-hover h-full">
+                        <div class="h-40 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
+                            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                                <span class="px-2 py-1 bg-white bg-opacity-90 text-[#8FABD4] text-xs font-semibold rounded">
+                                    {{ related.get_difficulty_level_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="text-lg font-semibold text-[#000000] mb-2 line-clamp-2 min-h-[3.5rem]">
+                                {{ related.title }}
+                            </h3>
+                            <p class="text-sm text-[#666666] mb-4 line-clamp-2">
+                                {{ related.description|truncatewords:15 }}
+                            </p>
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <span class="text-xl font-bold text-[#000000]">${{ related.price }}</span>
+                                <a href="{% url 'catalog:testbank_detail' slug=related.slug %}" 
+                                   class="text-[#8FABD4] hover:text-[#4A70A9] font-semibold text-sm">
+                                    {% trans "View" %} →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-button-next related-next"></div>
+            <div class="swiper-button-prev related-prev"></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const relatedSwiper = new Swiper('.related-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 16,
+        loop: true,
+        navigation: {
+            nextEl: '.related-next',
+            prevEl: '.related-prev',
+        },
+        breakpoints: {
+            640: {
+                slidesPerView: 2,
+            },
+            768: {
+                slidesPerView: 3,
+            },
+            1024: {
+                slidesPerView: 4,
+            },
+        },
+    });
+});
+</script>
+{% endblock %}

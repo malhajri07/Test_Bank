@@ -1,0 +1,92 @@
+{
+  "test_bank": {
+    "title": "Sample Test Bank",
+    "description": "This is a sample test bank with questions and answers. Replace this with your actual test bank data.",
+    "category": "category-slug",
+    "subcategory": "subcategory-slug",
+    "certification": "certification-slug",
+    "difficulty_level": "beginner",
+    "price": 0.00,
+    "is_active": true
+  },
+  "questions": [
+    {
+      "question_text": "What is the capital of France?",
+      "question_type": "mcq_single",
+      "explanation": "Paris is the capital and largest city of France. It is located in the north-central part of the country.",
+      "order": 1,
+      "is_active": true,
+      "options": [
+        {
+          "option_text": "Paris",
+          "is_correct": true,
+          "order": 1
+        },
+        {
+          "option_text": "London",
+          "is_correct": false,
+          "order": 2
+        },
+        {
+          "option_text": "Berlin",
+          "is_correct": false,
+          "order": 3
+        },
+        {
+          "option_text": "Madrid",
+          "is_correct": false,
+          "order": 4
+        }
+      ]
+    },
+    {
+      "question_text": "Which of the following are programming languages?",
+      "question_type": "mcq_multi",
+      "explanation": "Python, JavaScript, and Java are all programming languages. HTML is a markup language, not a programming language.",
+      "order": 2,
+      "is_active": true,
+      "options": [
+        {
+          "option_text": "Python",
+          "is_correct": true,
+          "order": 1
+        },
+        {
+          "option_text": "JavaScript",
+          "is_correct": true,
+          "order": 2
+        },
+        {
+          "option_text": "Java",
+          "is_correct": true,
+          "order": 3
+        },
+        {
+          "option_text": "HTML",
+          "is_correct": false,
+          "order": 4
+        }
+      ]
+    },
+    {
+      "question_text": "Django is a Python web framework.",
+      "question_type": "true_false",
+      "explanation": "Django is indeed a high-level Python web framework that encourages rapid development and clean, pragmatic design.",
+      "order": 3,
+      "is_active": true,
+      "options": [
+        {
+          "option_text": "True",
+          "is_correct": true,
+          "order": 1
+        },
+        {
+          "option_text": "False",
+          "is_correct": false,
+          "order": 2
+        }
+      ]
+    }
+  ]
+}
+

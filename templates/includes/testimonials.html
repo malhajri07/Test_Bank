@@ -1,0 +1,68 @@
+{% load i18n %}
+{% comment %}Testimonials Section Component - Usage: {% include 'includes/testimonials.html' with testimonials=testimonials_list %}{% endcomment %}
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-[#000000] mb-4">
+                {% trans "Why people choose Exam Stellar" %}
+            </h2>
+        </div>
+        
+        <div class="swiper testimonials-swiper relative">
+            <div class="swiper-wrapper">
+                {% for testimonial in testimonials %}
+                <div class="swiper-slide">
+                    <div class="bg-[rgb(245, 245, 247)] rounded-lg p-8 h-full">
+                        <div class="flex items-start space-x-4 {% if IS_RTL %}space-x-reverse{% endif %} mb-4">
+                            <div class="w-12 h-12 bg-[#8FABD4] rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-semibold text-lg">{{ testimonial.name|first|upper }}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-[#000000]">{{ testimonial.name }}</h4>
+                                {% if testimonial.role %}
+                                <p class="text-sm text-[#666666]">{{ testimonial.role }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="text-[#000000] leading-relaxed">{{ testimonial.quote }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-button-next testimonials-next"></div>
+            <div class="swiper-button-prev testimonials-prev"></div>
+            <div class="swiper-pagination testimonials-pagination"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const testimonialsSwiper = new Swiper('.testimonials-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 24,
+        loop: true,
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
+        navigation: {
+            nextEl: '.testimonials-next',
+            prevEl: '.testimonials-prev',
+        },
+        pagination: {
+            el: '.testimonials-pagination',
+            clickable: true,
+        },
+        breakpoints: {
+            768: {
+                slidesPerView: 2,
+            },
+            1024: {
+                slidesPerView: 3,
+            },
+        },
+    });
+});
+</script>
+

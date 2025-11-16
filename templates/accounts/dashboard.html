@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard - Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-4xl font-bold text-[#000000] mb-2">
+            {% trans "My Learning" %}
+        </h1>
+        <p class="text-[#666666] text-lg">
+            {% trans "Welcome back, " %}{{ user.first_name|default:user.username }}!
+        </p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-[#666666] mb-1">{% trans "Total Sessions" %}</p>
+                    <p class="text-3xl font-bold text-[#000000]">{{ total_sessions }}</p>
+                </div>
+                <div class="w-12 h-12 bg-[#8FABD4] bg-opacity-10 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-[#8FABD4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-[#666666] mb-1">{% trans "Completed" %}</p>
+                    <p class="text-3xl font-bold text-[#000000]">{{ completed_sessions }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-[#666666] mb-1">{% trans "Average Score" %}</p>
+                    <p class="text-3xl font-bold text-[#000000]">
+                        {% if avg_score %}{{ avg_score|floatformat:1 }}%{% else %}N/A{% endif %}
+                    </p>
+                </div>
+                <div class="w-12 h-12 bg-[#EFECE3] bg-opacity-10 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-[#EFECE3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- My Learning Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-[#000000]">
+                {% trans "My Test Banks" %}
+            </h2>
+        </div>
+        <div class="p-6">
+            {% if purchased_test_banks %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for test_bank in purchased_test_banks %}
+                <div class="border border-gray-200 rounded-lg overflow-hidden card-hover">
+                    <div class="h-32 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
+                        <div class="absolute bottom-2 left-2 right-2">
+                            <span class="px-2 py-1 bg-white bg-opacity-90 text-[#8FABD4] text-xs font-semibold rounded">
+                                {{ test_bank.get_difficulty_level_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-[#000000] mb-2 line-clamp-2">{{ test_bank.title }}</h3>
+                        <div class="flex space-x-2 {% if IS_RTL %}space-x-reverse{% endif %} mt-4">
+                            <a href="{% url 'practice:start_practice' testbank_slug=test_bank.slug %}" 
+                               class="flex-1 text-center px-4 py-2 bg-[#8FABD4] hover:bg-[#4A70A9] text-white text-sm font-semibold rounded-md transition">
+                                {% trans "Start" %}
+                            </a>
+                            <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
+                               class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#000000] text-sm font-semibold rounded-md transition">
+                                {% trans "View" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <p class="text-[#666666] mb-4">
+                    {% trans "You haven't purchased any test banks yet" %}
+                </p>
+                <a href="{% url 'catalog:category_list' %}" 
+                   class="inline-block px-6 py-3 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold rounded-md transition">
+                    {% trans "Browse Test Banks" %}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-[#000000]">
+                {% trans "Recent Practice Sessions" %}
+            </h2>
+        </div>
+        <div class="p-6">
+            {% if recent_sessions %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-[rgb(245, 245, 247)]">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                                {% trans "Test Bank" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                                {% trans "Status" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                                {% trans "Score" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                                {% trans "Date" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                                {% trans "Actions" %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for session in recent_sessions %}
+                        <tr class="hover:bg-[rgb(245, 245, 247)] transition">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-[#000000]">{{ session.test_bank.title }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if session.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif session.status == 'in_progress' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ session.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-semibold text-[#000000]">
+                                    {% if session.score %}{{ session.score|floatformat:1 }}%{% else %}--{% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-[#666666]">
+                                {{ session.started_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {% if session.status == 'completed' %}
+                                <a href="{% url 'practice:results' session_id=session.pk %}" 
+                                   class="text-[#8FABD4] hover:text-[#4A70A9]">
+                                    {% trans "View" %}
+                                </a>
+                                {% else %}
+                                <a href="{% url 'practice:practice_session' session_id=session.pk %}" 
+                                   class="text-[#8FABD4] hover:text-[#4A70A9]">
+                                    {% trans "Continue" %}
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-[#666666]">
+                    {% trans "No practice sessions yet" %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

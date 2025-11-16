@@ -1,0 +1,53 @@
+{% load i18n %}
+{% comment %}Partner/Institution Logos Section - Usage: {% include 'includes/partners.html' with partners=partners_list %}{% endcomment %}
+<section class="py-12 bg-[rgb(245, 245, 247)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-[#000000] mb-2">
+                {% trans "Learn from leading institutions" %}
+            </h2>
+        </div>
+        
+        <div class="swiper partners-swiper">
+            <div class="swiper-wrapper">
+                {% for partner in partners %}
+                <div class="swiper-slide">
+                    <div class="flex items-center justify-center h-16 bg-white rounded-lg p-4 opacity-60 hover:opacity-100 transition-opacity">
+                        {% if partner.logo_url %}
+                        <img src="{{ partner.logo_url }}" alt="{{ partner.name }}" class="max-h-12 max-w-full object-contain">
+                        {% else %}
+                        <span class="text-[#666666] font-semibold text-sm">{{ partner.name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const partnersSwiper = new Swiper('.partners-swiper', {
+        slidesPerView: 2,
+        spaceBetween: 16,
+        loop: true,
+        autoplay: {
+            delay: 3000,
+            disableOnInteraction: false,
+        },
+        breakpoints: {
+            640: {
+                slidesPerView: 3,
+            },
+            768: {
+                slidesPerView: 4,
+            },
+            1024: {
+                slidesPerView: 6,
+            },
+        },
+    });
+});
+</script>
+

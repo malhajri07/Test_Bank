@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Register - Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[rgb(245, 245, 247)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-[#8FABD4] rounded-lg mb-4">
+                <span class="text-white font-bold text-2xl">ES</span>
+            </div>
+            <h2 class="text-3xl font-bold text-[#000000]">
+                {% trans "Create your account" %}
+            </h2>
+            <p class="mt-2 text-sm text-[#666666]">
+                {% trans "Start your learning journey" %}
+            </p>
+        </div>
+        
+        <!-- Registration Form -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Username" %}
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.username.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Email" %}
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.email.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Password" %}
+                    </label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.password1.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Confirm Password" %}
+                    </label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.password2.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Full Name" %}
+                    </label>
+                    {{ form.full_name }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.preferred_language.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Preferred Language" %}
+                    </label>
+                    {{ form.preferred_language }}
+                </div>
+                
+                <button type="submit" class="w-full bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold py-3 px-4 rounded-md transition shadow-lg">
+                    {% trans "Create Account" %}
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-[#666666]">
+                    {% url 'accounts:login' as login_url %}
+                    {% blocktrans %}Already have an account? <a href="{{ login_url }}" class="text-[#8FABD4] hover:text-[#4A70A9] font-semibold">Log in</a>{% endblocktrans %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Style form inputs to match Coursera style */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #000000;
+    transition: all 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus {
+    outline: none;
+    border-color: #8FABD4;
+    box-shadow: 0 0 0 3px rgba(143, 171, 212, 0.1);
+}
+</style>
+{% endblock %}

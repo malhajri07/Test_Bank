@@ -1,0 +1,12 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="{% url 'admin:catalog_testbank_upload_json' %}" class="addlink" style="background: #8FABD4; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;">
+            📤 Upload JSON Test Bank
+        </a>
+    </li>
+{% endblock %}
+

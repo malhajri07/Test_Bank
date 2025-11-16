@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Practice Session" %} - {{ session.test_bank.title }}{% endblock %}
+
+{% block content %}
+<!-- Practice Session Header -->
+<div class="bg-white border-b border-gray-200 sticky top-16 z-40">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-[#000000]">{{ session.test_bank.title }}</h1>
+                <p class="text-sm text-[#666666] mt-1">
+                    {% blocktrans with current=current_index|add:1 total=total_questions %}Question {{ current }} of {{ total }}{% endblocktrans %}
+                </p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="hidden md:block w-64">
+                {% widthratio current_index|add:1 total_questions 100 as progress_percent %}
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div class="bg-[#8FABD4] h-2 rounded-full transition-all duration-300" 
+                         style="--progress-width: {{ progress_percent }}%; width: var(--progress-width);"></div>
+                </div>
+                <p class="text-xs text-[#666666] mt-1 text-right {% if IS_RTL %}text-left{% endif %}">
+                    {{ progress_percent }}% {% trans "complete" %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Practice Session Content -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-6">
+        <!-- Question -->
+        <div class="mb-8">
+            <div class="flex items-start space-x-4 {% if IS_RTL %}space-x-reverse{% endif %} mb-6">
+                <div class="flex-shrink-0 w-10 h-10 bg-[#8FABD4] rounded-full flex items-center justify-center text-white font-bold">
+                    {{ current_index|add:1 }}
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-2xl font-bold text-[#000000] mb-4">{{ current_question.question_text }}</h2>
+                    
+                    <!-- Answer Options -->
+                    <form id="answerForm" method="post" action="{% url 'practice:save_answer' session_id=session.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="question_id" value="{{ current_question.id }}">
+                        
+                        <div class="space-y-3">
+                            {% for option in answer_options %}
+                            <label class="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all duration-200
+                                          {% if option.id in selected_option_ids %}border-[#8FABD4] bg-[#8FABD4] bg-opacity-5{% else %}border-gray-200 hover:border-[#8FABD4] hover:bg-gray-50{% endif %}">
+                                {% if current_question.question_type == 'mcq_single' or current_question.question_type == 'true_false' %}
+                                <input type="radio" name="selected_options[]" value="{{ option.id }}" 
+                                       class="mt-1 mr-4 {% if IS_RTL %}ml-4 mr-0{% endif %} w-5 h-5 text-[#8FABD4] focus:ring-[#8FABD4]"
+                                       {% if option.id in selected_option_ids %}checked{% endif %}
+                                       onchange="saveAnswer()">
+                                {% else %}
+                                <input type="checkbox" name="selected_options[]" value="{{ option.id }}" 
+                                       class="mt-1 mr-4 {% if IS_RTL %}ml-4 mr-0{% endif %} w-5 h-5 text-[#8FABD4] focus:ring-[#8FABD4] rounded"
+                                       {% if option.id in selected_option_ids %}checked{% endif %}
+                                       onchange="saveAnswer()">
+                                {% endif %}
+                                <span class="flex-1 text-[#000000] font-medium">{{ option.option_text }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+            <div>
+                {% if current_index > 0 %}
+                <a href="?q={{ current_index|add:-1 }}" 
+                   class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-[#000000] font-semibold rounded-md transition">
+                    <svg class="w-5 h-5 mr-2 {% if IS_RTL %}ml-2 mr-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    {% trans "Previous" %}
+                </a>
+                {% endif %}
+            </div>
+            
+            <div>
+                {% if current_index < total_questions|add:-1 %}
+                <a href="?q={{ current_index|add:1 }}" 
+                   class="inline-flex items-center px-6 py-3 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-semibold rounded-md transition shadow-lg">
+                    {% trans "Next" %}
+                    <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                {% else %}
+                <form method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="inline">
+                    {% csrf_token %}
+                        <button type="submit" 
+                                class="inline-flex items-center px-8 py-3 bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-bold rounded-md transition shadow-lg">
+                            {% trans "Submit" %}
+                        <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveAnswer() {
+    const form = document.getElementById('answerForm');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const form = document.getElementById('answerForm');
+            form.classList.add('ring-2', 'ring-green-500');
+            setTimeout(() => {
+                form.classList.remove('ring-2', 'ring-green-500');
+            }, 500);
+        }
+    })
+    .catch(error => console.error('Error saving answer:', error));
+}
+</script>
+{% endblock %}

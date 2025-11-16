@@ -1,0 +1,60 @@
+{% load i18n %}
+<!-- Swiper Carousel Component -->
+<!-- Usage: {% include 'includes/carousel.html' with carousel_id='unique-id' items=items_list slides_per_view=4 %}
+     items should be a list of dictionaries with content to display -->
+<div class="swiper {{ carousel_id|default:'carousel' }}" id="{{ carousel_id|default:'carousel' }}">
+    <div class="swiper-wrapper">
+        {% for item in items %}
+        <div class="swiper-slide">
+            {% block carousel_slide %}
+            <!-- Default slide content - override in parent template -->
+            <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-lg transition-shadow">
+                {{ item }}
+            </div>
+            {% endblock %}
+        </div>
+        {% endfor %}
+    </div>
+    <!-- Navigation buttons -->
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+    <!-- Pagination -->
+    <div class="swiper-pagination"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const swiper = new Swiper('#{{ carousel_id|default:"carousel" }}', {
+        slidesPerView: {{ slides_per_view|default:3 }},
+        spaceBetween: {{ space_between|default:24 }},
+        loop: {{ loop|default:"true" }},
+        autoplay: {{ autoplay|default:"false" }} ? {
+            delay: {{ autoplay_delay|default:3000 }},
+            disableOnInteraction: false,
+        } : false,
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        breakpoints: {
+            640: {
+                slidesPerView: {{ mobile_slides|default:1 }},
+                spaceBetween: 16,
+            },
+            768: {
+                slidesPerView: {{ tablet_slides|default:2 }},
+                spaceBetween: 20,
+            },
+            1024: {
+                slidesPerView: {{ slides_per_view|default:3 }},
+                spaceBetween: {{ space_between|default:24 }},
+            },
+        },
+    });
+});
+</script>
+
