@@ -1,0 +1,45 @@
+# App Engine Flexible configuration (Alternative deployment option)
+# Note: Cloud Run is recommended, but this provides App Engine option
+
+runtime: custom
+env: flex
+
+runtime_config:
+  operating_system: ubuntu
+  runtime_version: "18"
+
+resources:
+  cpu: 1
+  memory_gb: 2
+  disk_size_gb: 10
+
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 10
+  cool_down_period_sec: 180
+  cpu_utilization:
+    target_utilization: 0.6
+
+env_variables:
+  DEBUG: 'False'
+  # DB_HOST will be set via Cloud SQL connection
+  # Format: /cloudsql/PROJECT_ID:REGION:INSTANCE_NAME
+
+beta_settings:
+  cloud_sql_instances: 'PROJECT_ID:REGION:INSTANCE_NAME'
+
+health_check:
+  enable_health_check: true
+  check_interval_sec: 5
+  timeout_sec: 4
+  unhealthy_threshold: 2
+  healthy_threshold: 2
+
+readiness_check:
+  path: '/'
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout_sec: 300
+

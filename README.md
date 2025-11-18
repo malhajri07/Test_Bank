@@ -36,6 +36,23 @@ testbank_platform/
 
 ## Installation
 
+### Option 1: Docker (Recommended)
+
+See [DOCKER.md](DOCKER.md) for complete Docker setup instructions.
+
+**Quick Start:**
+```bash
+# Copy environment file
+cp env.example .env
+
+# Edit .env with your settings
+
+# Start with Docker Compose
+docker-compose up --build
+```
+
+### Option 2: Local Development
+
 ### Prerequisites
 
 - Python 3.9+

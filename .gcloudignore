@@ -1,29 +1,17 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environment
 venv/
 env/
 ENV/
@@ -41,7 +29,7 @@ db.sqlite3-journal
 *.pot
 *.pyc
 
-# Environment variables
+# Environment
 .env
 .env.local
 .env.*.local
@@ -69,14 +57,18 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Docker
-.docker/
+# Docker (keep Dockerfile, ignore compose files)
+docker-compose*.yml
+Dockerfile.dev
 
-# Stress test reports (large files)
+# Documentation (keep README)
+*.md
+!README.md
+
+# Stress tests (large files)
 stress_tests/reports/*.html
 stress_tests/reports/*.csv
 stress_tests/reports/*.log
-stress_tests/reports/benchmarks/*.json
 
 # Temporary files
 *.tmp
@@ -85,3 +77,4 @@ stress_tests/reports/benchmarks/*.json
 # OS
 Thumbs.db
 .DS_Store
+
