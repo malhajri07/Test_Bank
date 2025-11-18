@@ -1,36 +1,112 @@
+/* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind base;
+/* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind components;
+/* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind utilities;
 
-/* Swiper Custom Styles */
+/* Swiper Custom Styles - Apple Style */
 .swiper {
     width: 100%;
     padding-bottom: 40px;
+    position: relative;
+}
+
+/* Ensure all swiper slides have the same height */
+.swiper-wrapper {
+    display: flex;
+    align-items: stretch;
+}
+
+.swiper-slide {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* For hero carousel, ensure slides have consistent height */
+.hero-swiper .swiper-slide {
+    min-height: 500px;
+    display: flex;
+}
+
+.hero-swiper .swiper-slide > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .swiper-button-next,
 .swiper-button-prev {
-    color: #e28f64;
-    background: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    color: #e28f64 !important;
+    background: white !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+    margin-top: 0 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+    background: #f8f8f8 !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18) !important;
+    transform: scale(1.05) !important;
+}
+
+.swiper-button-next:active,
+.swiper-button-prev:active {
+    transform: scale(0.95) !important;
 }
 
 .swiper-button-next:after,
 .swiper-button-prev:after {
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #e28f64 !important;
+}
+
+/* Position buttons with more distance from content */
+.swiper-button-next {
+    right: -20px !important;
+}
+
+.swiper-button-prev {
+    left: -20px !important;
+}
+
+/* For swipers with relative positioning, adjust */
+.swiper.relative .swiper-button-next {
+    right: -24px !important;
+}
+
+.swiper.relative .swiper-button-prev {
+    left: -24px !important;
+}
+
+/* Hide buttons on mobile */
+@media (max-width: 768px) {
+    .swiper-button-next,
+    .swiper-button-prev {
+        display: none !important;
+    }
 }
 
 .swiper-pagination-bullet {
-    background: #e28f64;
-    opacity: 0.3;
+    background: #e28f64 !important;
+    opacity: 0.3 !important;
+    width: 10px !important;
+    height: 10px !important;
+    transition: all 0.3s ease !important;
 }
 
 .swiper-pagination-bullet-active {
-    opacity: 1;
+    opacity: 1 !important;
+    width: 24px !important;
+    border-radius: 5px !important;
 }
 
 /* Card Hover Effects */

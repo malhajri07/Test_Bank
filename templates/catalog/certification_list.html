@@ -33,18 +33,38 @@
             <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
                 <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
                 <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#8FABD4] text-xs font-semibold rounded-xl shadow-sm">
+                    {% if test_bank.difficulty_level == 'easy' %}
+                    <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
                         {{ test_bank.get_difficulty_level_display }}
                     </span>
+                    {% elif test_bank.difficulty_level == 'medium' %}
+                    <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                    {% else %}
+                    <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                    {% endif %}
                     <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#000000] text-lg font-bold rounded-xl shadow-sm">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
                 </div>
             </div>
             {% else %}
             <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
                 <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#8FABD4] text-xs font-semibold rounded-xl shadow-sm">
+                    {% if test_bank.difficulty_level == 'easy' %}
+                    <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
                         {{ test_bank.get_difficulty_level_display }}
                     </span>
+                    {% elif test_bank.difficulty_level == 'medium' %}
+                    <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                    {% else %}
+                    <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                    {% endif %}
                     <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#000000] text-lg font-bold rounded-xl shadow-sm">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
                 </div>
             </div>

@@ -1,0 +1,96 @@
+Collecting locust
+  Downloading locust-2.34.0-py3-none-any.whl (2.3 MB)
+Collecting pytest-benchmark
+  Downloading pytest_benchmark-5.2.3-py3-none-any.whl (45 kB)
+Collecting httpx
+  Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+Collecting faker
+  Downloading faker-37.12.0-py3-none-any.whl (2.0 MB)
+Collecting flask-login>=0.6.3
+  Downloading Flask_Login-0.6.3-py3-none-any.whl (17 kB)
+Collecting msgpack>=1.0.0
+  Downloading msgpack-1.1.2-cp39-cp39-macosx_11_0_arm64.whl (84 kB)
+Collecting psutil>=5.9.1
+  Downloading psutil-7.1.3-cp36-abi3-macosx_11_0_arm64.whl (239 kB)
+Requirement already satisfied: typing-extensions>=4.6.0 in ./venv/lib/python3.9/site-packages (from locust) (4.15.0)
+Collecting flask-cors>=3.0.10
+  Downloading flask_cors-6.0.1-py3-none-any.whl (13 kB)
+Collecting setuptools>=70.0.0
+  Downloading setuptools-80.9.0-py3-none-any.whl (1.2 MB)
+Collecting configargparse>=1.5.5
+  Downloading configargparse-1.7.1-py3-none-any.whl (25 kB)
+Collecting geventhttpclient>=2.3.1
+  Downloading geventhttpclient-2.3.5-cp39-cp39-macosx_11_0_arm64.whl (51 kB)
+Collecting flask>=2.0.0
+  Downloading flask-3.1.2-py3-none-any.whl (103 kB)
+Collecting pyzmq>=25.0.0
+  Downloading pyzmq-27.1.0-cp39-cp39-macosx_10_15_universal2.whl (1.3 MB)
+Requirement already satisfied: requests>=2.26.0 in ./venv/lib/python3.9/site-packages (from locust) (2.32.5)
+Requirement already satisfied: tomli>=1.1.0 in ./venv/lib/python3.9/site-packages (from locust) (2.3.0)
+Collecting werkzeug>=2.0.0
+  Downloading werkzeug-3.1.3-py3-none-any.whl (224 kB)
+Collecting gevent>=22.10.2
+  Downloading gevent-25.9.1.tar.gz (5.1 MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+    Preparing wheel metadata: started
+    Preparing wheel metadata: finished with status 'done'
+Collecting py-cpuinfo
+  Downloading py_cpuinfo-9.0.0-py3-none-any.whl (22 kB)
+Requirement already satisfied: pytest>=8.1 in ./venv/lib/python3.9/site-packages (from pytest-benchmark) (8.4.2)
+Collecting anyio
+  Downloading anyio-4.11.0-py3-none-any.whl (109 kB)
+Requirement already satisfied: certifi in ./venv/lib/python3.9/site-packages (from httpx) (2025.11.12)
+Collecting httpcore==1.*
+  Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+Requirement already satisfied: idna in ./venv/lib/python3.9/site-packages (from httpx) (3.11)
+Collecting h11>=0.16
+  Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Collecting tzdata
+  Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+Collecting click>=8.1.3
+  Downloading click-8.1.8-py3-none-any.whl (98 kB)
+Collecting blinker>=1.9.0
+  Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Collecting importlib-metadata>=3.6.0
+  Downloading importlib_metadata-8.7.0-py3-none-any.whl (27 kB)
+Collecting markupsafe>=2.1.1
+  Downloading markupsafe-3.0.3-cp39-cp39-macosx_11_0_arm64.whl (12 kB)
+Collecting jinja2>=3.1.2
+  Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+Collecting itsdangerous>=2.2.0
+  Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Collecting greenlet>=3.2.2
+  Using cached greenlet-3.2.4-cp39-cp39-macosx_11_0_universal2.whl (269 kB)
+Collecting zope.event
+  Downloading zope_event-6.0-py3-none-any.whl (6.4 kB)
+Collecting zope.interface
+  Downloading zope_interface-8.0.1-cp39-cp39-macosx_11_0_arm64.whl (207 kB)
+Collecting brotli
+  Downloading brotli-1.2.0-cp39-cp39-macosx_10_9_universal2.whl (862 kB)
+Requirement already satisfied: urllib3 in ./venv/lib/python3.9/site-packages (from geventhttpclient>=2.3.1->locust) (2.5.0)
+Collecting zipp>=3.20
+  Downloading zipp-3.23.0-py3-none-any.whl (10 kB)
+Requirement already satisfied: pluggy<2,>=1.5 in ./venv/lib/python3.9/site-packages (from pytest>=8.1->pytest-benchmark) (1.6.0)
+Requirement already satisfied: iniconfig>=1 in ./venv/lib/python3.9/site-packages (from pytest>=8.1->pytest-benchmark) (2.1.0)
+Requirement already satisfied: pygments>=2.7.2 in ./venv/lib/python3.9/site-packages (from pytest>=8.1->pytest-benchmark) (2.19.2)
+Requirement already satisfied: exceptiongroup>=1 in ./venv/lib/python3.9/site-packages (from pytest>=8.1->pytest-benchmark) (1.3.0)
+Requirement already satisfied: packaging>=20 in ./venv/lib/python3.9/site-packages (from pytest>=8.1->pytest-benchmark) (25.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./venv/lib/python3.9/site-packages (from requests>=2.26.0->locust) (3.4.4)
+Collecting sniffio>=1.1
+  Using cached sniffio-1.3.1-py3-none-any.whl (10 kB)
+Building wheels for collected packages: gevent
+  Building wheel for gevent (PEP 517): started
+  Building wheel for gevent (PEP 517): still running...
+  Building wheel for gevent (PEP 517): finished with status 'done'
+  Created wheel for gevent: filename=gevent-25.9.1-cp39-cp39-macosx_10_9_universal2.whl size=2977362 sha256=9426e228189c46de8794f03b6ac941317816d2b83344f8ced9b7a8b4df0dbb1b
+  Stored in directory: /Users/mohammedalhajri/Library/Caches/pip/wheels/04/ce/13/ed332938d6b51dd2dbfe3a4b5d387a94e803d072e1cfb9c869
+Successfully built gevent
+Installing collected packages: zipp, setuptools, markupsafe, zope.interface, zope.event, werkzeug, jinja2, itsdangerous, importlib-metadata, greenlet, click, blinker, sniffio, h11, gevent, flask, brotli, tzdata, pyzmq, py-cpuinfo, psutil, msgpack, httpcore, geventhttpclient, flask-login, flask-cors, configargparse, anyio, pytest-benchmark, locust, httpx, faker
+  Attempting uninstall: setuptools
+    Found existing installation: setuptools 58.0.4
+    Uninstalling setuptools-58.0.4:
+      Successfully uninstalled setuptools-58.0.4
+Successfully installed anyio-4.11.0 blinker-1.9.0 brotli-1.2.0 click-8.1.8 configargparse-1.7.1 faker-37.12.0 flask-3.1.2 flask-cors-6.0.1 flask-login-0.6.3 gevent-25.9.1 geventhttpclient-2.3.5 greenlet-3.2.4 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 importlib-metadata-8.7.0 itsdangerous-2.2.0 jinja2-3.1.6 locust-2.34.0 markupsafe-3.0.3 msgpack-1.1.2 psutil-7.1.3 py-cpuinfo-9.0.0 pytest-benchmark-5.2.3 pyzmq-27.1.0 setuptools-80.9.0 sniffio-1.3.1 tzdata-2025.2 werkzeug-3.1.3 zipp-3.23.0 zope.event-6.0 zope.interface-8.0.1

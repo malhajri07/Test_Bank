@@ -17,53 +17,63 @@
 <section class="bg-white">
     <div class="swiper hero-swiper">
         <div class="swiper-wrapper">
-            <!-- Slide 1: Main Hero -->
-            <div class="swiper-slide">
-                <div class="bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] text-white py-20">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="max-w-3xl">
-                            <h1 class="text-5xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight tracking-tight">
-                                {% trans "Learn without limits" %}
-                            </h1>
-                            <p class="text-xl md:text-2xl mb-10 text-white/90 font-medium leading-relaxed">
-                                {% trans "Enjoy the gift of unlimited learning" %}
-                            </p>
-                            <div class="flex flex-col sm:flex-row gap-4">
-                                <a href="{% url 'catalog:category_list' %}" 
-                                   class="inline-flex items-center justify-center px-10 py-4 bg-white text-[#e28f64] font-semibold rounded-2xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
-                                    {% trans "Browse Test Banks" %}
-                                </a>
-                                {% if not user.is_authenticated %}
-                                <a href="{% url 'accounts:register' %}" 
-                                   class="inline-flex items-center justify-center px-10 py-4 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-2xl hover:bg-white/30 transition-all shadow-xl hover:shadow-2xl border border-white/30">
-                                    {% trans "Join for Free" %}
-                                </a>
+            {% if cms_hero_slides %}
+                {% for slide in cms_hero_slides %}
+                <div class="swiper-slide">
+                    <div class="text-white py-20 flex flex-col justify-center {% if slide.background_image %}bg-cover bg-center{% else %}bg-gradient-to-r{% endif %}" 
+                         {% if slide.background_image %}style="background-image: url('{{ slide.background_image.url }}');"{% else %}style="background: linear-gradient(to right, {{ slide.gradient_from }}, {{ slide.gradient_to }});"{% endif %}>
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                            <div class="max-w-3xl">
+                                <h1 class="text-5xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight tracking-tight">
+                                    {{ slide.title }}
+                                </h1>
+                                {% if slide.description %}
+                                <p class="text-xl md:text-2xl mb-10 text-white/90 font-medium leading-relaxed">
+                                    {{ slide.description }}
+                                </p>
                                 {% endif %}
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    {% if slide.primary_button_text and slide.primary_button_url %}
+                                    <a href="{{ slide.primary_button_url }}" 
+                                       class="inline-flex items-center justify-center px-10 py-4 bg-white text-[#e28f64] font-semibold rounded-2xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+                                        {{ slide.primary_button_text }}
+                                    </a>
+                                    {% endif %}
+                                    {% if slide.secondary_button_text and slide.secondary_button_url %}
+                                    <a href="{{ slide.secondary_button_url }}" 
+                                       class="inline-flex items-center justify-center px-10 py-4 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-2xl hover:bg-white/30 transition-all shadow-xl hover:shadow-2xl border border-white/30">
+                                        {{ slide.secondary_button_text }}
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Slide 2: Promotional Offer -->
-            <div class="swiper-slide">
-                <div class="bg-gradient-to-r from-[#EFECE3] to-[#8FABD4] text-white py-20">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="max-w-3xl">
-                            <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-                                {% trans "Start, switch, or advance your career" %}
-                            </h1>
-                            <p class="text-xl md:text-2xl mb-8 text-white opacity-90">
-                                {% trans "Grow with thousands of practice questions from top organizations" %}
-                            </p>
-                            <a href="{% url 'catalog:category_list' %}" 
-                               class="inline-flex items-center justify-center px-8 py-4 bg-white text-[#e28f64] font-semibold rounded-md hover:bg-gray-100 transition shadow-lg">
-                                {% trans "Explore Test Banks" %}
-                            </a>
+                {% endfor %}
+            {% else %}
+                <!-- Default slide if no CMS slides exist -->
+                <div class="swiper-slide">
+                    <div class="bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] text-white py-20 flex flex-col justify-center">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                            <div class="max-w-3xl">
+                                <h1 class="text-5xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight tracking-tight">
+                                    {% trans "Learn without limits" %}
+                                </h1>
+                                <p class="text-xl md:text-2xl mb-10 text-white/90 font-medium leading-relaxed">
+                                    {% trans "Enjoy the gift of unlimited learning" %}
+                                </p>
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    <a href="{% url 'catalog:category_list' %}" 
+                                       class="inline-flex items-center justify-center px-10 py-4 bg-white text-[#e28f64] font-semibold rounded-2xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+                                        {% trans "Browse Test Banks" %}
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
         <div class="swiper-pagination"></div>
     </div>
@@ -85,27 +95,47 @@
             </h2>
         </div>
         
-        <div class="swiper trending-swiper relative">
+        <div class="swiper trending-swiper relative" style="padding-left: 60px; padding-right: 60px;">
             <div class="swiper-wrapper">
                 {% for test_bank in trending_test_banks %}
                 <div class="swiper-slide">
-                    <div class="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 card-hover h-full transition-all duration-300 hover:shadow-2xl">
+                    <div class="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 card-hover h-full transition-all duration-300 hover:shadow-xl">
                         <!-- Test Bank Image -->
                         {% if test_bank.image %}
                         <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
                             <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
                             <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                                <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#8FABD4] text-xs font-semibold rounded-xl shadow-sm">
+                                {% if test_bank.difficulty_level == 'easy' %}
+                                <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
                                     {{ test_bank.get_difficulty_level_display }}
                                 </span>
+                                {% elif test_bank.difficulty_level == 'medium' %}
+                                <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
+                                    {{ test_bank.get_difficulty_level_display }}
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
+                                    {{ test_bank.get_difficulty_level_display }}
+                                </span>
+                                {% endif %}
                             </div>
                         </div>
                         {% else %}
                         <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
                             <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                                <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#8FABD4] text-xs font-semibold rounded-xl shadow-sm">
+                                {% if test_bank.difficulty_level == 'easy' %}
+                                <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
                                     {{ test_bank.get_difficulty_level_display }}
                                 </span>
+                                {% elif test_bank.difficulty_level == 'medium' %}
+                                <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
+                                    {{ test_bank.get_difficulty_level_display }}
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
+                                    {{ test_bank.get_difficulty_level_display }}
+                                </span>
+                                {% endif %}
                             </div>
                         </div>
                         {% endif %}
@@ -119,7 +149,7 @@
                             <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                                 <span class="text-xl font-bold text-[#000000]">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
                                 <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                                   class="text-[#8FABD4] hover:text-[#4A70A9] font-semibold text-sm">
+                                   class="text-[#e28f64] hover:text-[#df804f] font-semibold text-sm">
                                     {% trans "View" %} →
                                 </a>
                             </div>
@@ -145,29 +175,40 @@
             </h2>
         </div>
         
-        <div class="swiper categories-swiper relative">
+        <div class="swiper categories-swiper relative" style="padding-left: 60px; padding-right: 60px;">
             <div class="swiper-wrapper">
                 {% for category in categories %}
                 <div class="swiper-slide">
-                    <a href="{% if category.subcategory_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block">
-                        <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-[#8FABD4] hover:shadow-lg transition-all card-hover h-full">
-                            <div class="w-16 h-16 bg-[#8FABD4] bg-opacity-10 rounded-lg flex items-center justify-center mb-4">
-                                <span class="text-3xl font-bold text-[#8FABD4]">{{ category.name|first }}</span>
+                    <a href="{% if category.subcategory_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block h-full">
+                        <div class="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 card-hover h-full flex flex-col">
+                            <!-- Category Image -->
+                            {% if category.image %}
+                            <div class="h-40 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
+                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
                             </div>
-                            <h3 class="text-lg font-semibold text-[#000000] mb-2">{{ category.name }}</h3>
-                            <p class="text-sm text-[#666666] mb-4 line-clamp-2">{{ category.description|truncatewords:15 }}</p>
-                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                                <div class="flex flex-col">
-                                    {% if category.subcategory_count > 0 %}
-                                    <span class="text-xs text-[#666666] mb-1">
-                                        {% blocktrans count count=category.subcategory_count %}{{ count }} subcategory{% plural %}{{ count }} subcategories{% endblocktrans %}
-                                    </span>
-                                    {% endif %}
-                                    <span class="text-sm text-[#666666]">
-                                        {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
-                                    </span>
+                            {% else %}
+                            <div class="h-40 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative flex items-center justify-center">
+                                <span class="text-5xl font-bold text-white/80">{{ category.name|first|upper }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="p-6 flex-1 flex flex-col">
+                                <h3 class="text-xl font-semibold text-[#000000] mb-3">{{ category.name }}</h3>
+                                {% if category.description %}
+                                <p class="text-sm text-[#666666] mb-4 line-clamp-2 flex-1">{{ category.description|truncatewords:15 }}</p>
+                                {% endif %}
+                                <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
+                                    <div class="flex flex-col">
+                                        {% if category.subcategory_count > 0 %}
+                                        <span class="text-xs text-[#666666] mb-1">
+                                            {% blocktrans count count=category.subcategory_count %}{{ count }} subcategory{% plural %}{{ count }} subcategories{% endblocktrans %}
+                                        </span>
+                                        {% endif %}
+                                        <span class="text-sm text-[#666666]">
+                                            {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
+                                        </span>
+                                    </div>
+                                    <span class="text-[#e28f64] font-semibold text-lg">→</span>
                                 </div>
-                                <span class="text-[#8FABD4] font-semibold text-sm">→</span>
                             </div>
                         </div>
                     </a>
@@ -193,22 +234,54 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for test_bank in featured_test_banks %}
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 card-hover">
-                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
-                    <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                        <span class="px-2 py-1 bg-white bg-opacity-90 text-[#8FABD4] text-xs font-semibold rounded">
+            <div class="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 card-hover h-full transition-all duration-300 hover:shadow-xl flex flex-col">
+                <!-- Test Bank Image -->
+                {% if test_bank.image %}
+                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
+                    <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
+                    <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                        {% if test_bank.difficulty_level == 'easy' %}
+                        <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
                             {{ test_bank.get_difficulty_level_display }}
                         </span>
+                        {% elif test_bank.difficulty_level == 'medium' %}
+                        <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
+                            {{ test_bank.get_difficulty_level_display }}
+                        </span>
+                        {% else %}
+                        <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
+                            {{ test_bank.get_difficulty_level_display }}
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
-                <div class="p-5">
-                    <h3 class="text-lg font-semibold text-[#000000] mb-2 line-clamp-2">
+                {% else %}
+                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
+                    <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                        {% if test_bank.difficulty_level == 'easy' %}
+                        <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
+                            {{ test_bank.get_difficulty_level_display }}
+                        </span>
+                        {% elif test_bank.difficulty_level == 'medium' %}
+                        <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
+                            {{ test_bank.get_difficulty_level_display }}
+                        </span>
+                        {% else %}
+                        <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
+                            {{ test_bank.get_difficulty_level_display }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="p-6 flex-1 flex flex-col">
+                    <h3 class="text-lg font-semibold text-[#000000] mb-2 line-clamp-2 min-h-[3.5rem]">
                         {{ test_bank.title }}
                     </h3>
-                    <p class="text-sm text-[#666666] mb-4 line-clamp-2">
+                    <p class="text-sm text-[#666666] mb-4 line-clamp-2 min-h-[2.5rem]">
                         {{ test_bank.description|truncatewords:15 }}
                     </p>
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
                         <span class="text-xl font-bold text-[#000000]">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
                         <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
                            class="text-[#e28f64] hover:text-[#df804f] font-semibold text-sm">

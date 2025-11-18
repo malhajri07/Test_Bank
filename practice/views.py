@@ -139,6 +139,17 @@ def practice_session(request, session_id):
     answer_options = list(current_question.answer_options.all().order_by('order'))
     random.shuffle(answer_options)
     
+    # Get all answered question IDs for navigation box
+    answered_question_ids = set(
+        UserAnswer.objects.filter(session=session)
+        .values_list('question_id', flat=True)
+    )
+    
+    # Calculate completion percentage based on answered questions
+    answered_count = len(answered_question_ids)
+    total_questions_count = len(questions)
+    completion_percent = int((answered_count / total_questions_count * 100)) if total_questions_count > 0 else 0
+    
     return render(request, 'practice/practice_session.html', {
         'session': session,
         'questions': questions,
@@ -147,7 +158,10 @@ def practice_session(request, session_id):
         'answer_options': answer_options,
         'selected_option_ids': selected_option_ids,
         'existing_answer': existing_answer,
-        'total_questions': len(questions),
+        'total_questions': total_questions_count,
+        'answered_question_ids': answered_question_ids,
+        'answered_count': answered_count,
+        'completion_percent': completion_percent,
     })
 
 

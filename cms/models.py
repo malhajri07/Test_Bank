@@ -455,3 +455,192 @@ class ContentBlock(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+
+class HeroSlide(models.Model):
+    """
+    HeroSlide model for managing hero carousel slides on the homepage.
+    
+    Allows admins to create and manage hero slides with:
+    - Title and description
+    - Background image or gradient
+    - Call-to-action buttons
+    - Display order
+    """
+    
+    title = models.CharField(
+        max_length=200,
+        verbose_name='Title',
+        help_text='Main heading for the slide'
+    )
+    
+    description = models.TextField(
+        max_length=500,
+        verbose_name='Description',
+        help_text='Subheading or description text',
+        blank=True
+    )
+    
+    # Background options
+    background_image = models.ImageField(
+        upload_to='cms/hero_slides/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        verbose_name='Background Image',
+        help_text='Optional background image (if not provided, gradient will be used)'
+    )
+    
+    gradient_from = models.CharField(
+        max_length=7,
+        default='#8FABD4',
+        verbose_name='Gradient From Color',
+        help_text='Hex color for gradient start (e.g., #8FABD4)'
+    )
+    
+    gradient_to = models.CharField(
+        max_length=7,
+        default='#4A70A9',
+        verbose_name='Gradient To Color',
+        help_text='Hex color for gradient end (e.g., #4A70A9)'
+    )
+    
+    # Call-to-action buttons
+    primary_button_text = models.CharField(
+        max_length=100,
+        verbose_name='Primary Button Text',
+        help_text='Text for the primary CTA button',
+        blank=True
+    )
+    
+    primary_button_url = models.CharField(
+        max_length=200,
+        verbose_name='Primary Button URL',
+        help_text='URL for the primary button (e.g., /categories/)',
+        blank=True
+    )
+    
+    secondary_button_text = models.CharField(
+        max_length=100,
+        verbose_name='Secondary Button Text',
+        help_text='Text for the secondary CTA button (optional)',
+        blank=True
+    )
+    
+    secondary_button_url = models.CharField(
+        max_length=200,
+        verbose_name='Secondary Button URL',
+        help_text='URL for the secondary button (optional)',
+        blank=True
+    )
+    
+    # Display settings
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Is Active',
+        help_text='Whether this slide is currently displayed'
+    )
+    
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Order',
+        help_text='Display order (lower numbers appear first)'
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At'
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Updated At'
+    )
+    
+    class Meta:
+        """Meta options for HeroSlide model."""
+        verbose_name = 'Hero Slide'
+        verbose_name_plural = 'Hero Slides'
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['is_active', 'order']),
+        ]
+    
+    def __str__(self):
+        """String representation of the hero slide."""
+        return self.title
+
+
+class Testimonial(models.Model):
+    """
+    Testimonial model for customer testimonials.
+    
+    Allows admins to create and manage testimonials with:
+    - Customer name and role
+    - Quote/testimonial text
+    - Optional photo
+    - Display order
+    """
+    
+    name = models.CharField(
+        max_length=100,
+        verbose_name='Name',
+        help_text='Customer name'
+    )
+    
+    role = models.CharField(
+        max_length=100,
+        verbose_name='Role/Title',
+        help_text='Customer role or job title',
+        blank=True
+    )
+    
+    quote = models.TextField(
+        verbose_name='Quote',
+        help_text='Testimonial quote'
+    )
+    
+    photo = models.ImageField(
+        upload_to='cms/testimonials/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        verbose_name='Photo',
+        help_text='Optional customer photo'
+    )
+    
+    # Display settings
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Is Active',
+        help_text='Whether this testimonial is currently displayed'
+    )
+    
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Order',
+        help_text='Display order (lower numbers appear first)'
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At'
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Updated At'
+    )
+    
+    class Meta:
+        """Meta options for Testimonial model."""
+        verbose_name = 'Testimonial'
+        verbose_name_plural = 'Testimonials'
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['is_active', 'order']),
+        ]
+    
+    def __str__(self):
+        """String representation of the testimonial."""
+        return f"{self.name} - {self.role or 'Customer'}"

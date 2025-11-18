@@ -6,7 +6,7 @@ Makes CMS content available globally across all templates.
 
 from django.utils import timezone
 from django.db.models import Q
-from .models import Announcement, Page, ContentBlock
+from .models import Announcement, Page, ContentBlock, HeroSlide, Testimonial
 
 
 def cms_content(request):
@@ -49,10 +49,22 @@ def cms_content(request):
         is_featured=True
     )[:5]
     
+    # Get active hero slides
+    hero_slides = HeroSlide.objects.filter(
+        is_active=True
+    ).order_by('order', 'created_at')
+    
+    # Get active testimonials
+    testimonials = Testimonial.objects.filter(
+        is_active=True
+    ).order_by('order', 'created_at')
+    
     return {
         'cms_homepage_announcements': homepage_announcements,
         'cms_site_announcements': site_announcements,
         'cms_pages': published_pages,
         'cms_featured_pages': featured_pages,
+        'cms_hero_slides': hero_slides,
+        'cms_testimonials': testimonials,
     }
 

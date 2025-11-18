@@ -4,93 +4,123 @@
 {% block title %}{% trans "Profile - Exam Stellar" %}{% endblock %}
 
 {% block content %}
-<!-- Profile Page Section -->
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4">
-        <h2 class="text-2xl font-bold mb-6 text-[#000000]">
+<!-- Profile Header - Apple Style -->
+<div class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
+        <h1 class="text-4xl font-semibold text-[#000000] mb-2 tracking-tight">
             {% trans "Profile" %}
-        </h2>
-        
-        <!-- User Information Display -->
-        <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-4 text-[#000000]">
+        </h1>
+        <p class="text-[#666666] text-lg font-medium">
+            {% trans "Manage your account information and preferences" %}
+        </p>
+    </div>
+</div>
+
+<div class="bg-[rgb(245, 245, 247)] min-h-screen">
+    <div class="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+        <!-- User Information Card - Apple Style -->
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 mb-8">
+            <h2 class="text-2xl font-semibold text-[#000000] mb-6 tracking-tight">
                 {% trans "User Information" %}
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <p class="text-sm text-[#666666]">
-                        {% trans "Username:" %}
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <p class="text-sm text-[#666666] mb-2 font-medium">
+                        {% trans "Username" %}
                     </p>
-                    <p class="font-medium text-[#000000]">{{ user.username }}</p>
+                    <p class="text-lg font-semibold text-[#000000]">{{ user.username }}</p>
                 </div>
-                <div>
-                    <p class="text-sm text-[#666666]">
-                        {% trans "Email:" %}
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <p class="text-sm text-[#666666] mb-2 font-medium">
+                        {% trans "Email" %}
                     </p>
-                    <p class="font-medium text-[#000000]">{{ user.email }}</p>
+                    <p class="text-lg font-semibold text-[#000000]">{{ user.email }}</p>
                 </div>
             </div>
         </div>
         
-        <!-- Profile Edit Form -->
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            
-            <h3 class="text-lg font-semibold mb-4 text-[#000000]">
+        <!-- Profile Edit Form - Apple Style -->
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10">
+            <h2 class="text-2xl font-semibold text-[#000000] mb-8 tracking-tight">
                 {% trans "Edit Profile" %}
-            </h3>
+            </h2>
             
-            <!-- Full Name Field -->
-            <div>
-                <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-[#000000] mb-1">
-                    {% trans "Full Name" %}
-                </label>
-                {{ form.full_name }}
-                {% if form.full_name.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.full_name.errors }}</p>
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Full Name Field -->
+                <div>
+                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Full Name" %}
+                    </label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.full_name.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Phone Number Field with Country Code -->
+                <div>
+                    <label class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Phone Number" %}
+                    </label>
+                    <div class="flex items-stretch rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex-shrink-0">
+                            {{ form.phone_country_code }}
+                        </div>
+                        <div class="flex-1">
+                            {{ form.phone_number_only }}
+                        </div>
+                    </div>
+                    {% if form.phone_country_code.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.phone_country_code.errors }}</p>
+                    {% endif %}
+                    {% if form.phone_number_only.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.phone_number_only.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Country Field -->
+                <div>
+                    <label for="{{ form.country.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Country" %}
+                    </label>
+                    {{ form.country }}
+                    {% if form.country.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.country.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Preferred Language Field -->
+                <div>
+                    <label for="{{ form.preferred_language.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                        {% trans "Preferred Language" %}
+                    </label>
+                    {{ form.preferred_language }}
+                    {% if form.preferred_language.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.preferred_language.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-2xl">
+                    <ul class="text-sm text-red-700 space-y-1">
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
                 {% endif %}
-            </div>
-            
-            <!-- Phone Number Field -->
-            <div>
-                <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-[#000000] mb-1">
-                    {% trans "Phone Number" %}
-                </label>
-                {{ form.phone_number }}
-                {% if form.phone_number.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.phone_number.errors }}</p>
-                {% endif %}
-            </div>
-            
-            <!-- Country Field -->
-            <div>
-                <label for="{{ form.country.id_for_label }}" class="block text-sm font-medium text-[#000000] mb-1">
-                    {% trans "Country" %}
-                </label>
-                {{ form.country }}
-                {% if form.country.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.country.errors }}</p>
-                {% endif %}
-            </div>
-            
-            <!-- Preferred Language Field -->
-            <div>
-                <label for="{{ form.preferred_language.id_for_label }}" class="block text-sm font-medium text-[#000000] mb-1">
-                    {% trans "Preferred Language" %}
-                </label>
-                {{ form.preferred_language }}
-                {% if form.preferred_language.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.preferred_language.errors }}</p>
-                {% endif %}
-            </div>
-            
-            <!-- Submit Button -->
-            <div class="pt-4">
-                <button type="submit" class="bg-[#8FABD4] hover:bg-[#4A70A9] text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-[#8FABD4]">
-                    {% trans "Save Changes" %}
-                </button>
-            </div>
-        </form>
+                
+                <!-- Submit Button -->
+                <div class="pt-4">
+                    <button type="submit" class="bg-gradient-to-r from-[#e28f64] to-[#df804f] hover:from-[#df804f] hover:to-[#c87850] text-white font-semibold py-4 px-8 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+                        {% trans "Save Changes" %}
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

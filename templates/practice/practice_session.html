@@ -3,6 +3,53 @@
 
 {% block title %}{% trans "Practice Session" %} - {{ session.test_bank.title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Disable text selection on practice session page */
+    .practice-content {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+    
+    /* Allow selection only for input fields and textareas */
+    .practice-content input, 
+    .practice-content textarea, 
+    .practice-content [contenteditable="true"] {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+    }
+    
+    /* Disable image dragging in practice content */
+    .practice-content img {
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+    }
+    
+    /* Prevent text highlighting */
+    .practice-content p,
+    .practice-content h1,
+    .practice-content h2,
+    .practice-content h3,
+    .practice-content h4,
+    .practice-content h5,
+    .practice-content h6,
+    .practice-content span,
+    .practice-content div:not([contenteditable="true"]) {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Practice Session Header - Apple Style -->
 <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
@@ -16,13 +63,12 @@
             </div>
             <!-- Progress Bar - Apple Style -->
             <div class="flex flex-col items-end ml-8">
-                {% widthratio current_index|add:1 total_questions 100 as progress_percent %}
                 <div class="w-48 md:w-64 lg:w-72 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] h-full rounded-full transition-all duration-500 ease-out" 
-                         style="width: {{ progress_percent }}%;"></div>
+                    <div id="progressBar" class="bg-gradient-to-r from-[#e28f64] to-[#df804f] h-full rounded-full transition-all duration-500 ease-out" 
+                         style="--progress-width: {{ completion_percent }}%; width: var(--progress-width);"></div>
                 </div>
-                <p class="text-xs text-[#666666] mt-2 font-medium hidden sm:block">
-                    {{ progress_percent }}% {% trans "complete" %}
+                <p id="progressText" class="text-xs text-[#666666] mt-2 font-medium hidden sm:block">
+                    {{ completion_percent }}% {% trans "complete" %} ({{ answered_count }}/{{ total_questions }})
                 </p>
             </div>
         </div>
@@ -31,6 +77,45 @@
 
 <!-- Practice Session Content - Apple Style Wide Layout -->
 <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 practice-content">
+    <!-- Question Navigation Box - Top, Very Compact -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-2.5 mb-4">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-semibold text-[#000000]">{% trans "Questions" %}</h3>
+            <div class="flex items-center space-x-3 {% if IS_RTL %}space-x-reverse{% endif %} text-xs">
+                <div class="flex items-center space-x-1 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="w-2 h-2 rounded-full bg-green-300"></div>
+                    <span class="text-[#666666]">{% trans "Answered" %}</span>
+                </div>
+                <div class="flex items-center space-x-1 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                    <span class="text-[#666666]">{% trans "Not Answered" %}</span>
+                </div>
+                <div class="flex items-center space-x-1 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="w-2 h-2 rounded-full bg-[#e28f64]"></div>
+                    <span class="text-[#666666]">{% trans "Current" %}</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+            {% for question in questions %}
+            <a href="?q={{ forloop.counter0 }}" 
+               onclick="window.isInternalNavigation = true;"
+               data-question-index="{{ forloop.counter0 }}"
+               data-question-id="{{ question.id }}"
+               class="question-nav-link flex items-center justify-center w-7 h-7 rounded-md font-semibold text-xs transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110
+                      {% if forloop.counter0 == current_index %}
+                      bg-gradient-to-br from-[#e28f64] to-[#df804f] text-white border border-[#df804f]
+                      {% elif question.id in answered_question_ids %}
+                      bg-green-300 text-white border border-green-400 hover:bg-green-400
+                      {% else %}
+                      bg-gray-100 text-[#666666] border border-gray-300 hover:bg-gray-200 hover:border-gray-400
+                      {% endif %}">
+                {{ forloop.counter }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
     <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
         <!-- Question Section -->
         <div class="p-12 lg:p-16">
@@ -85,6 +170,7 @@
                 <div>
                     {% if current_index > 0 %}
                     <a href="?q={{ current_index|add:-1 }}" 
+                       onclick="window.isInternalNavigation = true;"
                        class="inline-flex items-center px-8 py-3.5 bg-white hover:bg-gray-50 text-[#000000] font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200">
                         <svg class="w-5 h-5 mr-2.5 {% if IS_RTL %}ml-2.5 mr-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -97,14 +183,15 @@
                 <div>
                     {% if current_index < total_questions|add:-1 %}
                     <a href="?q={{ current_index|add:1 }}" 
-                       class="inline-flex items-center px-10 py-3.5 bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] hover:from-[#4A70A9] hover:to-[#3a5a8a] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                       onclick="window.isInternalNavigation = true;"
+                       class="inline-flex items-center px-10 py-3.5 bg-[#e0875a] hover:bg-[#d17a4f] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                         {% trans "Next" %}
                         <svg class="w-5 h-5 ml-2.5 {% if IS_RTL %}mr-2.5 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                     </a>
                     {% else %}
-                    <form method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="inline">
+                    <form method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="inline" onsubmit="window.isInternalNavigation = true;">
                         {% csrf_token %}
                         <button type="submit" 
                                 class="inline-flex items-center px-12 py-3.5 bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] hover:from-[#4A70A9] hover:to-[#3a5a8a] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
@@ -188,6 +275,28 @@ function saveAnswer() {
             form.style.transition = 'all 0.3s ease';
             form.style.boxShadow = '0 0 0 4px rgba(143, 171, 212, 0.2)';
             
+            // Update navigation box - mark current question as answered
+            const currentIndex = parseInt('{{ current_index }}', 10);
+            const currentQuestionLink = document.querySelector('a[data-question-index="' + currentIndex + '"]');
+            if (currentQuestionLink && !currentQuestionLink.classList.contains('bg-gradient-to-br')) {
+                // Only update if it's not the current question (which has gradient background)
+                currentQuestionLink.classList.remove('bg-gray-100', 'text-[#666666]', 'border-gray-300', 'hover:bg-gray-200', 'hover:border-gray-400');
+                currentQuestionLink.classList.add('bg-green-300', 'text-white', 'border-green-400', 'hover:bg-green-400');
+            }
+            
+            // Update progress bar
+            const answeredCount = parseInt('{{ answered_count }}', 10) + 1;
+            const totalQuestions = parseInt('{{ total_questions }}', 10);
+            const newCompletionPercent = Math.round((answeredCount / totalQuestions) * 100);
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) {
+                progressBar.style.width = newCompletionPercent + '%';
+            }
+            const progressText = document.getElementById('progressText');
+            if (progressText) {
+                progressText.textContent = newCompletionPercent + '% complete (' + answeredCount + '/' + totalQuestions + ')';
+            }
+            
             setTimeout(() => {
                 form.style.boxShadow = '';
                 if (submitButton) {
@@ -215,5 +324,164 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 10);
     }
 });
+
+// ============================================
+// EXAM SECURITY: Disable Copy, Paste, Screenshot
+// ============================================
+
+// Disable right-click context menu
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+}, false);
+
+// Disable keyboard shortcuts for copy, paste, cut, select all, print, etc.
+document.addEventListener('keydown', function(e) {
+    // Disable Ctrl+C (Copy)
+    if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+V (Paste)
+    if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+X (Cut)
+    if (e.ctrlKey && e.key === 'x') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+A (Select All)
+    if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+P (Print)
+    if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+S (Save)
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable F12 (Developer Tools)
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+Shift+I (Developer Tools)
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+Shift+J (Console)
+    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+Shift+C (Inspect Element)
+    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+U (View Source)
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Print Screen (though this is harder to fully prevent)
+    if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable text selection via mouse drag
+document.addEventListener('selectstart', function(e) {
+    // Allow selection only in input fields and textareas
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable drag and drop
+document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+}, false);
+
+// Disable copy event
+document.addEventListener('copy', function(e) {
+    // Allow copy only from input fields and textareas
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        e.clipboardData.setData('text/plain', '');
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable cut event
+document.addEventListener('cut', function(e) {
+    // Allow cut only from input fields and textareas
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        e.clipboardData.setData('text/plain', '');
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable paste event (except in input fields)
+document.addEventListener('paste', function(e) {
+    // Allow paste only in input fields and textareas
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Track if user is navigating internally (not leaving the page)
+// Initialize on window object so it's accessible from inline onclick handlers
+window.isInternalNavigation = false;
+
+// Warn user only if they try to leave the page (not internal navigation)
+window.addEventListener('beforeunload', function(e) {
+    // Don't warn if it's internal navigation
+    if (window.isInternalNavigation) {
+        window.isInternalNavigation = false; // Reset for next time
+        return undefined; // Return undefined to prevent warning
+    }
+    
+    // Only warn if actually leaving the page
+    // Note: Modern browsers ignore custom messages and show their own generic message
+    e.preventDefault();
+    e.returnValue = ''; // Required for Chrome
+    return ''; // Required for some browsers
+});
+
+// Disable screenshot attempts (limited effectiveness, but adds a layer)
+// Note: Full screenshot prevention is not possible in browsers for security reasons
+// This will at least make it more difficult
+document.addEventListener('keyup', function(e) {
+    // Disable Alt+PrintScreen
+    if (e.altKey && e.key === 'PrintScreen') {
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Clear clipboard on page load (limited effectiveness)
+if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText('').catch(function() {
+        // Ignore errors
+    });
+}
+
+// Console warning
+console.log('%c⚠️ Exam Security Active', 'color: red; font-size: 20px; font-weight: bold;');
+console.log('%cCopy, paste, and screenshot functions are disabled during this exam.', 'color: red; font-size: 14px;');
 </script>
 {% endblock %}

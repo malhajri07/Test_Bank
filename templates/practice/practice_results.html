@@ -3,7 +3,41 @@
 
 {% block title %}{% trans "Practice Results" %} - {{ session.test_bank.title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Disable text selection */
+.results-content {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Allow selection in specific elements if needed (like buttons) */
+.results-content a,
+.results-content button {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+}
+
+/* Disable image dragging */
+.results-content img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="results-content">
 <!-- Results Header - Apple Style -->
 <div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white py-16">
     <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
@@ -136,4 +170,124 @@
         </a>
     </div>
 </div>
+</div>
+
+<script>
+// ============================================
+// SECURITY: Disable Copy, Paste, Screenshot
+// ============================================
+
+// Disable right-click context menu
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+}, false);
+
+// Disable keyboard shortcuts for copy, paste, cut, select all, print, etc.
+document.addEventListener('keydown', function(e) {
+    // Disable Ctrl+C (Copy)
+    if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+V (Paste)
+    if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+X (Cut)
+    if (e.ctrlKey && e.key === 'x') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+A (Select All)
+    if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+P (Print)
+    if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+S (Save)
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable F12 (Developer Tools)
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+Shift+I (Developer Tools)
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+Shift+J (Console)
+    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Ctrl+U (View Source)
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        return false;
+    }
+    // Disable Print Screen
+    if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable drag and drop
+document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+}, false);
+
+// Disable copy event
+document.addEventListener('copy', function(e) {
+    // Allow copy only from input fields and textareas (if any)
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        e.clipboardData.setData('text/plain', '');
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable cut event
+document.addEventListener('cut', function(e) {
+    // Allow cut only from input fields and textareas (if any)
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        e.clipboardData.setData('text/plain', '');
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable paste event (except in input fields)
+document.addEventListener('paste', function(e) {
+    // Allow paste only in input fields and textareas (if any)
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Disable screenshot attempts (limited effectiveness)
+document.addEventListener('keyup', function(e) {
+    // Disable Alt+PrintScreen
+    if (e.altKey && e.key === 'PrintScreen') {
+        e.preventDefault();
+        return false;
+    }
+}, false);
+
+// Console warning
+console.log('%c⚠️ Results Page Security Active', 'color: red; font-size: 20px; font-weight: bold;');
+console.log('%cCopy, paste, and screenshot functions are disabled on this page.', 'color: red; font-size: 14px;');
+</script>
 {% endblock %}

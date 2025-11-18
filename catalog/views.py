@@ -42,29 +42,7 @@ def index(request):
     # Get trending test banks (most purchased or recently added)
     trending_test_banks = list(TestBank.objects.filter(is_active=True).order_by('-created_at')[:8])
     
-    # Testimonials data (static for now, can be moved to model later)
-    testimonials = [
-        {
-            'name': 'Sarah W.',
-            'role': 'Data Analyst',
-            'quote': "TestBank's reputation for high-quality content, paired with its flexible structure, made it possible for me to dive into data analytics while managing family, health, and everyday life."
-        },
-        {
-            'name': 'Noeris B.',
-            'role': 'Software Developer',
-            'quote': "TestBank rebuilt my confidence and showed me I could dream bigger. It wasn't just about gaining knowledge—it was about believing in my potential again."
-        },
-        {
-            'name': 'Abdullahi M.',
-            'role': 'Project Manager',
-            'quote': "I now feel more prepared to take on leadership roles and have already started mentoring some of my colleagues."
-        },
-        {
-            'name': 'Anas A.',
-            'role': 'Business Analyst',
-            'quote': "Learning with TestBank has expanded my professional expertise by giving me access to cutting-edge research, practical tools, and global perspectives."
-        },
-    ]
+    # Testimonials are now loaded from CMS via context processor
     
     # Partner/Institution data (static for now)
     partners = [
@@ -82,7 +60,6 @@ def index(request):
         'categories': categories,
         'featured_test_banks': featured_test_banks,
         'trending_test_banks': trending_test_banks,
-        'testimonials': testimonials,
         'partners': partners,
     })
 

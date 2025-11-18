@@ -1,0 +1,176 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Load Test Report - 2025-11-19 01:30:16</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                background-color: #f5f5f5;
+            }
+            h1 {
+                color: #333;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                background-color: white;
+                margin: 20px 0;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 12px;
+                text-align: left;
+            }
+            th {
+                background-color: #4CAF50;
+                color: white;
+            }
+            tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+            .warning {
+                color: orange;
+                font-weight: bold;
+            }
+            .error {
+                color: red;
+                font-weight: bold;
+            }
+            .success {
+                color: green;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Load Test Report</h1>
+        <p>Generated: 2025-11-19 01:30:16</p>
+        
+        <h2>Endpoint Performance</h2>
+        <table>
+            <tr>
+                <th>Endpoint</th>
+                <th>Requests</th>
+                <th>Failures</th>
+                <th>Median RT (ms)</th>
+                <th>Avg RT (ms)</th>
+                <th>Min RT (ms)</th>
+                <th>Max RT (ms)</th>
+                <th>RPS</th>
+                <th>Status</th>
+            </tr>
+    
+            <tr>
+                <td>/</td>
+                <td>66</td>
+                <td>0</td>
+                <td>47.00</td>
+                <td>46.99</td>
+                <td>27.38</td>
+                <td>66.95</td>
+                <td>0.55</td>
+                <td class="success">OK</td>
+            </tr>
+        
+            <tr>
+                <td>/accounts/dashboard/</td>
+                <td>76</td>
+                <td>0</td>
+                <td>28.00</td>
+                <td>30.47</td>
+                <td>18.51</td>
+                <td>148.69</td>
+                <td>0.64</td>
+                <td class="success">OK</td>
+            </tr>
+        
+            <tr>
+                <td>/accounts/login/</td>
+                <td>8</td>
+                <td>8</td>
+                <td>6.00</td>
+                <td>6.08</td>
+                <td>5.00</td>
+                <td>6.90</td>
+                <td>0.07</td>
+                <td class="error">HIGH FAILURE RATE</td>
+            </tr>
+        
+            <tr>
+                <td>/accounts/profile/1/</td>
+                <td>14</td>
+                <td>0</td>
+                <td>30.00</td>
+                <td>51.81</td>
+                <td>19.57</td>
+                <td>334.84</td>
+                <td>0.12</td>
+                <td class="success">OK</td>
+            </tr>
+        
+            <tr>
+                <td>/categories/</td>
+                <td>80</td>
+                <td>0</td>
+                <td>49.00</td>
+                <td>56.89</td>
+                <td>30.66</td>
+                <td>415.71</td>
+                <td>0.67</td>
+                <td class="success">OK</td>
+            </tr>
+        
+            <tr>
+                <td>/categories/[category]</td>
+                <td>8</td>
+                <td>0</td>
+                <td>49.00</td>
+                <td>48.55</td>
+                <td>29.14</td>
+                <td>62.98</td>
+                <td>0.07</td>
+                <td class="success">OK</td>
+            </tr>
+        
+            <tr>
+                <td>/categories/[category]/test-banks/[testbank]</td>
+                <td>45</td>
+                <td>0</td>
+                <td>49.00</td>
+                <td>48.57</td>
+                <td>29.74</td>
+                <td>133.21</td>
+                <td>0.38</td>
+                <td class="success">OK</td>
+            </tr>
+        
+            <tr>
+                <td>/payments/checkout/[slug]</td>
+                <td>15</td>
+                <td>0</td>
+                <td>27.00</td>
+                <td>27.96</td>
+                <td>16.46</td>
+                <td>43.08</td>
+                <td>0.13</td>
+                <td class="success">OK</td>
+            </tr>
+        
+            <tr>
+                <td>/practice/start/[slug]</td>
+                <td>9</td>
+                <td>0</td>
+                <td>30.00</td>
+                <td>31.20</td>
+                <td>24.59</td>
+                <td>43.20</td>
+                <td>0.08</td>
+                <td class="success">OK</td>
+            </tr>
+        
+        </table>
+    </body>
+    </html>
+    

@@ -15,7 +15,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
-from .models import Page, Announcement, Media, ContentBlock
+from .models import Page, Announcement, Media, ContentBlock, HeroSlide, Testimonial
 
 
 # Permission mixins for role-based access
@@ -267,3 +267,80 @@ class ContentBlockAdmin(CMSAdminMixin, admin.ModelAdmin):
         if not change:  # New object
             obj.author = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(HeroSlide)
+class HeroSlideAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for HeroSlide model."""
+    
+    list_display = ('title', 'is_active', 'order', 'created_at', 'preview')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('title', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('Content', {
+            'fields': ('title', 'description')
+        }),
+        ('Background', {
+            'fields': ('background_image', 'gradient_from', 'gradient_to'),
+            'description': 'Either use a background image or gradient colors'
+        }),
+        ('Call-to-Action Buttons', {
+            'fields': ('primary_button_text', 'primary_button_url', 'secondary_button_text', 'secondary_button_url')
+        }),
+        ('Display Settings', {
+            'fields': ('is_active', 'order')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def preview(self, obj):
+        """Display preview of slide."""
+        if obj.background_image:
+            return format_html('<img src="{}" style="max-width: 100px; max-height: 50px;" />', obj.background_image.url)
+        return format_html('<div style="width: 100px; height: 50px; background: linear-gradient(to right, {}, {});"></div>', obj.gradient_from, obj.gradient_to)
+    preview.short_description = 'Preview'
+
+
+@admin.register(Testimonial)
+class TestimonialAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for Testimonial model."""
+    
+    list_display = ('name', 'role', 'is_active', 'order', 'created_at', 'photo_preview')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('name', 'role', 'quote')
+    readonly_fields = ('created_at', 'updated_at', 'photo_preview_large')
+    
+    fieldsets = (
+        ('Content', {
+            'fields': ('name', 'role', 'quote')
+        }),
+        ('Photo', {
+            'fields': ('photo', 'photo_preview_large')
+        }),
+        ('Display Settings', {
+            'fields': ('is_active', 'order')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def photo_preview(self, obj):
+        """Display photo preview in list view."""
+        if obj.photo:
+            return format_html('<img src="{}" style="max-width: 50px; max-height: 50px; border-radius: 50%;" />', obj.photo.url)
+        return '-'
+    photo_preview.short_description = 'Photo'
+    
+    def photo_preview_large(self, obj):
+        """Display larger photo preview in detail view."""
+        if obj.photo:
+            return format_html('<img src="{}" style="max-width: 200px; max-height: 200px; border-radius: 50%;" />', obj.photo.url)
+        return 'No photo uploaded'
+    photo_preview_large.short_description = 'Photo Preview'
