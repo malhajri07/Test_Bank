@@ -41,7 +41,7 @@ GCS_STATIC_BUCKET_NAME = config('GCS_STATIC_BUCKET_NAME', default=f'{GCP_PROJECT
 
 if USE_GCS:
     # Install django-storages for GCS support
-    # Add to requirements: django-storages[google]>=2.0.0
+    # Add to requirements: django-storages[google]>=1.14.0
     
     # Media files (user uploads) - Cloud Storage
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
