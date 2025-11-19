@@ -74,14 +74,16 @@ RUN chmod +x /docker-entrypoint.sh
 # Switch to django user
 USER django
 
-# Expose port
-EXPOSE 8000
+# Expose port (Cloud Run uses PORT env var, defaults to 8080)
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:${PORT:-8080}/ || exit 1
 
 # Entrypoint
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["gunicorn", "testbank_platform.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+# Use PORT environment variable (Cloud Run sets this to 8080)
+# Default to 8080 if PORT is not set
+CMD gunicorn testbank_platform.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 3 --timeout 120
 

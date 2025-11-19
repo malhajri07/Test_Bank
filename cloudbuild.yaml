@@ -56,7 +56,7 @@ steps:
       - '--min-instances'
       - '1'
       - '--port'
-      - '8000'
+      - '8080'
 
 images:
   - 'gcr.io/$PROJECT_ID/exam-stellar:$SHORT_SHA'

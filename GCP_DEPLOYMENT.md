@@ -390,7 +390,7 @@ gcloud run deploy $SERVICE_NAME \
     --timeout=300 \
     --max-instances=10 \
     --min-instances=1 \
-    --port=8000
+    --port=8080
 ```
 
 ### Option B: App Engine Flexible
