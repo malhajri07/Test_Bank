@@ -11,6 +11,10 @@ This module defines the core domain models:
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -382,6 +386,21 @@ class TestBank(models.Model):
         help_text='Whether this test bank is active and visible to users'
     )
     
+    # Rating fields - cached for performance
+    average_rating = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=0.00,
+        verbose_name='Average Rating',
+        help_text='Average rating (0.00 to 5.00)'
+    )
+    
+    total_ratings = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Total Ratings',
+        help_text='Total number of ratings received'
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -436,6 +455,92 @@ class TestBank(models.Model):
     def get_question_count(self):
         """Get total number of active questions in this test bank."""
         return self.questions.filter(is_active=True).count()
+    
+    def get_user_count(self):
+        """Get total number of users who have selected/purchased this test bank."""
+        return self.user_accesses.filter(is_active=True).count()
+    
+    def update_rating(self):
+        """Update average rating and total ratings count from user ratings."""
+        ratings = self.ratings.all()
+        if ratings.exists():
+            self.total_ratings = ratings.count()
+            self.average_rating = ratings.aggregate(
+                avg=models.Avg('rating')
+            )['avg'] or 0.00
+        else:
+            self.total_ratings = 0
+            self.average_rating = 0.00
+        self.save(update_fields=['average_rating', 'total_ratings'])
+
+
+class TestBankRating(models.Model):
+    """
+    TestBankRating model for user ratings of test banks.
+    
+    Users can rate test banks from 1 to 5 stars.
+    Each user can only rate a test bank once (enforced by unique_together).
+    """
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='test_bank_ratings',
+        verbose_name='User',
+        help_text='User who gave the rating'
+    )
+    
+    test_bank = models.ForeignKey(
+        TestBank,
+        on_delete=models.CASCADE,
+        related_name='ratings',
+        verbose_name='Test Bank',
+        help_text='Test bank being rated'
+    )
+    
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name='Rating',
+        help_text='Rating from 1 to 5 stars'
+    )
+    
+    review = models.TextField(
+        blank=True,
+        verbose_name='Review',
+        help_text='Optional review text'
+    )
+    
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At'
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Updated At'
+    )
+    
+    class Meta:
+        """Meta options for TestBankRating model."""
+        verbose_name = 'Test Bank Rating'
+        verbose_name_plural = 'Test Bank Ratings'
+        unique_together = ['user', 'test_bank']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        """String representation of the rating."""
+        return f'{self.user.username} - {self.test_bank.title} - {self.rating} stars'
+    
+    def save(self, *args, **kwargs):
+        """Save rating and update test bank's cached rating fields."""
+        super().save(*args, **kwargs)
+        self.test_bank.update_rating()
+    
+    def delete(self, *args, **kwargs):
+        """Delete rating and update test bank's cached rating fields."""
+        test_bank = self.test_bank
+        super().delete(*args, **kwargs)
+        test_bank.update_rating()
 
 
 class Question(models.Model):

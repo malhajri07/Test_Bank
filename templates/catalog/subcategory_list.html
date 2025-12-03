@@ -6,7 +6,7 @@
 {% block content %}
 <!-- Page Header -->
 <div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
         <h1 class="text-4xl font-bold text-[#000000] mt-4">
             {{ subcategory.name }}
@@ -18,36 +18,24 @@
 </div>
 
 <!-- Certifications Grid -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="mb-6">
         <p class="text-[#666666]">
             {% blocktrans count count=certifications|length %}{{ count }} certification available{% plural %}{{ count }} certifications available{% endblocktrans %}
         </p>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {% for certification in certifications %}
         <a href="{% url 'catalog:certification_list' subcategory_slug=subcategory.slug certification_slug=certification.slug %}" class="block">
-            <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-[#8FABD4] hover:shadow-lg transition-all card-hover h-full">
-                <div class="flex items-start space-x-4 {% if IS_RTL %}space-x-reverse{% endif %} mb-4">
-                    <div class="w-16 h-16 bg-[#8FABD4] bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-8 h-8 text-[#8FABD4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                        </svg>
-                    </div>
-                    <div class="flex-1">
-                        <h2 class="text-xl font-semibold text-[#000000] mb-2">{{ certification.name }}</h2>
-                        {% if certification.description %}
-                        <p class="text-sm text-[#666666] line-clamp-3">{{ certification.description|truncatewords:25 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <span class="text-sm text-[#666666]">
+            <div class="bg-white border border-gray-200 rounded p-4 hover:shadow-lg transition-all h-full flex flex-col">
+                <h2 class="text-base font-bold text-gray-900 mb-2">{{ certification.name }}</h2>
+                {% if certification.description %}
+                <p class="text-sm text-gray-600 line-clamp-2 mb-3 flex-1">{{ certification.description|truncatewords:15 }}</p>
+                {% endif %}
+                <div class="mt-auto pt-3 border-t border-gray-100">
+                    <span class="text-xs text-gray-600">
                         {% blocktrans count count=certification.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
-                    </span>
-                    <span class="text-[#8FABD4] font-semibold text-sm flex items-center">
-                        {% trans "Explore" %} <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </span>
                 </div>
             </div>

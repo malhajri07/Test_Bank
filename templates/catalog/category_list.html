@@ -6,7 +6,7 @@
 {% block content %}
 <!-- Page Header - Apple Style -->
 <div class="bg-white/80 backdrop-blur-xl border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
         <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %} mb-6">
             <a href="{% url 'catalog:index' %}" class="text-[#6184b7] hover:text-[#4A70A9] font-medium">
                 {% trans "Home" %}
@@ -21,42 +21,32 @@
 </div>
 
 <!-- Categories Grid - Apple Style -->
-<div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for category in categories %}
         <a href="{% if category.subcategory_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block">
-            <div class="bg-white border-2 border-gray-200 rounded-3xl overflow-hidden hover:border-[#8FABD4] hover:shadow-xl transition-all card-hover h-full">
-                <!-- Category Image -->
+            <div class="bg-white border border-gray-200 rounded overflow-hidden hover:shadow-lg transition-all h-full flex flex-col">
+                <!-- Category Image - Udemy Style -->
                 {% if category.image %}
-                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
+                <div class="h-40 bg-gray-200 relative overflow-hidden">
                     <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
                 </div>
                 {% else %}
-                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <span class="text-6xl font-bold text-white/30">{{ category.name|first }}</span>
-                    </div>
+                <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                    <div class="text-white text-5xl font-bold opacity-50">{{ category.name|first|upper }}</div>
                 </div>
                 {% endif %}
                 
                 <!-- Category Content -->
-                <div class="p-6">
-                    <h2 class="text-xl font-semibold text-[#000000] mb-2">{{ category.name }}</h2>
-                    <p class="text-sm text-[#666666] line-clamp-3 mb-4">{{ category.description|truncatewords:25 }}</p>
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div class="flex flex-col">
-                            {% if category.subcategory_count > 0 %}
-                            <span class="text-sm text-[#666666] font-medium">
-                                {% blocktrans count count=category.subcategory_count %}{{ count }} subcategory{% plural %}{{ count }} subcategories{% endblocktrans %}
-                            </span>
-                            {% endif %}
-                            <span class="text-sm text-[#666666] font-medium">
-                                {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
-                            </span>
+                <div class="p-4 flex-1 flex flex-col">
+                    <h2 class="text-base font-bold text-gray-900 mb-2">{{ category.name }}</h2>
+                    {% if category.description %}
+                    <p class="text-sm text-gray-600 line-clamp-2 mb-3 flex-1">{{ category.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    <div class="mt-auto pt-3 border-t border-gray-100">
+                        <div class="text-xs text-gray-600">
+                            {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
                         </div>
-                        <span class="text-[#6184b7] font-semibold text-sm flex items-center">
-                            {% trans "Explore" %} <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </span>
                     </div>
                 </div>
             </div>

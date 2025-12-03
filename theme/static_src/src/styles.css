@@ -5,136 +5,287 @@
 /* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind utilities;
 
-/* Swiper Custom Styles - Apple Style */
-.swiper {
-    width: 100%;
-    padding-bottom: 40px;
-    position: relative;
+@layer base {
+  /* Base styles are handled in Tailwind config plugin */
 }
 
-/* Ensure all swiper slides have the same height */
-.swiper-wrapper {
-    display: flex;
-    align-items: stretch;
-}
+@layer components {
+  /* Swiper Base Styles */
+  .swiper {
+    @apply w-full pb-10 relative;
+  }
 
-.swiper-slide {
-    height: auto;
-    display: flex;
-    flex-direction: column;
-}
+  .swiper-wrapper {
+    @apply flex items-stretch;
+  }
 
-/* For hero carousel, ensure slides have consistent height */
-.hero-swiper .swiper-slide {
-    min-height: 500px;
-    display: flex;
-}
+  .swiper-slide {
+    @apply h-auto flex flex-col;
+  }
 
-.hero-swiper .swiper-slide > div {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
+  /* Hero Swiper Styles */
+  .hero-swiper .swiper-slide {
+    @apply min-h-[500px] flex w-full;
+  }
 
-.swiper-button-next,
-.swiper-button-prev {
-    color: #e28f64 !important;
-    background: white !important;
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: 50% !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
-    margin-top: 0 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border: 1px solid rgba(0, 0, 0, 0.05) !important;
-}
+  .hero-swiper .swiper-slide > div {
+    @apply flex-1 flex flex-col justify-center;
+  }
 
-.swiper-button-next:hover,
-.swiper-button-prev:hover {
-    background: #f8f8f8 !important;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18) !important;
-    transform: scale(1.05) !important;
-}
+  /* Swiper Navigation Buttons */
+  .swiper-button-next,
+  .swiper-button-prev {
+    @apply text-udemy-purple bg-white w-12 h-12 rounded-full shadow-swiper-button m-0 transition-all duration-300 border border-black/5;
+    color: #5624d0 !important;
+  }
 
-.swiper-button-next:active,
-.swiper-button-prev:active {
-    transform: scale(0.95) !important;
-}
+  .swiper-button-next:hover,
+  .swiper-button-prev:hover {
+    @apply bg-gray-100 shadow-swiper-button-hover scale-105;
+  }
 
-.swiper-button-next:after,
-.swiper-button-prev:after {
-    font-size: 20px !important;
-    font-weight: 700 !important;
-    color: #e28f64 !important;
-}
+  .swiper-button-next:active,
+  .swiper-button-prev:active {
+    @apply scale-95;
+  }
 
-/* Position buttons with more distance from content */
-.swiper-button-next {
+  .swiper-button-next:after,
+  .swiper-button-prev:after {
+    @apply text-xl font-bold;
+    color: #5624d0 !important;
+  }
+
+  /* Swiper Button Positioning */
+  .swiper-button-next {
+    @apply -right-5;
     right: -20px !important;
-}
+  }
 
-.swiper-button-prev {
+  .swiper-button-prev {
+    @apply -left-5;
     left: -20px !important;
-}
+  }
 
-/* For swipers with relative positioning, adjust */
-.swiper.relative .swiper-button-next {
-    right: -24px !important;
-}
+  /* Swiper Button Positioning for Specific Swipers */
+  .trending-swiper .swiper-button-next,
+  .categories-swiper .swiper-button-next,
+  .testimonials-swiper .swiper-button-next {
+    @apply -right-14;
+    right: -56px !important;
+  }
 
-.swiper.relative .swiper-button-prev {
-    left: -24px !important;
-}
+  .trending-swiper .swiper-button-prev,
+  .categories-swiper .swiper-button-prev,
+  .testimonials-swiper .swiper-button-prev {
+    @apply -left-14;
+    left: -56px !important;
+  }
 
-/* Hide buttons on mobile */
-@media (max-width: 768px) {
+  /* Hide buttons on mobile */
+  @media (max-width: 768px) {
     .swiper-button-next,
     .swiper-button-prev {
-        display: none !important;
+      @apply hidden;
     }
-}
+  }
 
-.swiper-pagination-bullet {
+  /* Swiper Wrapper Padding */
+  .trending-swiper-wrapper,
+  .categories-swiper-wrapper,
+  .testimonials-swiper-wrapper {
+    @apply px-10;
+  }
+
+  /* Swiper Container Styles */
+  .trending-swiper,
+  .categories-swiper,
+  .testimonials-swiper {
+    @apply overflow-visible w-full relative;
+  }
+
+  /* Swiper Slide Styles */
+  .trending-swiper .swiper-slide,
+  .categories-swiper .swiper-slide,
+  .testimonials-swiper .swiper-slide {
+    @apply overflow-visible;
+    overflow: visible !important;
+  }
+
+  /* Card Shadow Styles */
+  .trending-swiper .swiper-slide > div,
+  .categories-swiper .swiper-slide > div,
+  .testimonials-swiper .swiper-slide > div {
+    @apply shadow-card;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) !important;
+  }
+
+  .trending-swiper .swiper-slide > div:hover,
+  .categories-swiper .swiper-slide > div:hover,
+  .testimonials-swiper .swiper-slide > div:hover {
+    @apply shadow-card-hover;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15)) !important;
+  }
+
+  /* Card Width Styles */
+  .trending-swiper .swiper-slide,
+  .categories-swiper .swiper-slide {
+    @apply w-[280px] flex-shrink-0;
+  }
+
+  .trending-swiper .swiper-slide > div,
+  .categories-swiper .swiper-slide > div {
+    @apply w-full;
+  }
+
+  @media (min-width: 1024px) {
+    .trending-swiper .swiper-slide,
+    .categories-swiper .swiper-slide {
+      @apply w-[300px];
+    }
+  }
+
+  @media (max-width: 639px) {
+    .trending-swiper .swiper-slide,
+    .categories-swiper .swiper-slide {
+      @apply w-full;
+    }
+  }
+
+  /* Swiper Pagination */
+  .swiper-pagination-bullet {
+    @apply bg-[#e28f64] opacity-30 w-2.5 h-2.5 transition-all duration-300 ease-in-out;
     background: #e28f64 !important;
-    opacity: 0.3 !important;
-    width: 10px !important;
-    height: 10px !important;
-    transition: all 0.3s ease !important;
-}
+  }
 
-.swiper-pagination-bullet-active {
+  .swiper-pagination-bullet-active {
+    @apply opacity-100 w-6 rounded-[5px];
     opacity: 1 !important;
     width: 24px !important;
     border-radius: 5px !important;
-}
+  }
 
-/* Card Hover Effects */
-.card-hover {
-    transition: all 0.3s ease;
-}
+  /* Card Hover Effects */
+  .card-hover {
+    @apply transition-all duration-300 ease-in-out;
+  }
 
-.card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
+  .card-hover:hover {
+    @apply -translate-y-1 shadow-card-hover-alt;
+  }
 
-/* Apple-style Primary Button */
-.btn-coursera {
+  /* Coursera Button Styles */
+  .btn-coursera {
+    @apply bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white px-7 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-200 shadow-btn-coursera tracking-apple;
     background: linear-gradient(to right, #e28f64, #df804f);
-    color: white;
-    padding: 14px 28px;
-    border-radius: 16px;
-    font-weight: 600;
-    font-size: 15px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(226, 143, 100, 0.3);
     letter-spacing: -0.01em;
-}
+  }
 
-.btn-coursera:hover {
+  .btn-coursera:hover {
+    @apply shadow-btn-coursera-hover -translate-y-0.5;
     background: linear-gradient(to right, #df804f, #c87850);
-    box-shadow: 0 6px 16px rgba(226, 143, 100, 0.4);
-    transform: translateY(-1px);
+  }
+
+  /* Mega Menu Styles */
+  .explore-menu-container {
+    @apply relative;
+  }
+
+  #explore-mega-menu {
+    @apply max-h-[80vh] overflow-y-auto;
+  }
+
+  .explore-category-column {
+    @apply min-w-0;
+  }
+
+  .explore-category-column ul {
+    @apply list-none p-0 m-0;
+  }
+
+  /* Mega Menu Click Effect */
+  .explore-menu-container.menu-open #explore-button svg {
+    @apply rotate-180;
+  }
+
+  .explore-menu-container.menu-open #explore-mega-menu {
+    @apply opacity-100 visible pointer-events-auto;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  /* Practice Content Styles */
+  .practice-content {
+    @apply select-none;
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .practice-content input,
+  .practice-content textarea,
+  .practice-content [contenteditable="true"] {
+    @apply select-text;
+  }
+
+  .practice-content img {
+    @apply drag-none;
+  }
+
+  .practice-content p,
+  .practice-content h1,
+  .practice-content h2,
+  .practice-content h3,
+  .practice-content h4,
+  .practice-content h5,
+  .practice-content h6,
+  .practice-content span,
+  .practice-content div:not([contenteditable="true"]) {
+    @apply select-none;
+  }
+
+  /* Radio/Checkbox Styles */
+  input[type="radio"],
+  input[type="checkbox"] {
+    accent-color: #8FABD4;
+    @apply cursor-pointer;
+  }
+
+  input[type="radio"]:focus,
+  input[type="checkbox"]:focus {
+    @apply outline-none;
+    box-shadow: 0 0 0 2px rgba(143, 171, 212, 0.5);
+  }
+
+  /* Option hover effect */
+  label.group:hover {
+    @apply translate-x-1;
+  }
+
+  label.group:has(input:checked) {
+    @apply scale-[1.01];
+  }
 }
 
+@layer utilities {
+  /* Animation keyframes */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Layout Utilities - These override Tailwind defaults */
+  .max-w-7xl {
+    @apply overflow-x-hidden overflow-y-visible w-full;
+    max-width: 960px !important;
+  }
+
+  .max-w-9xl {
+    @apply overflow-x-hidden overflow-y-visible w-full;
+    max-width: 1440px;
+  }
+}

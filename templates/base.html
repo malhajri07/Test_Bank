@@ -27,140 +27,130 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {% endif %}
     
-    <style>
-        /* Apple-style Typography and Layout */
-        :root {
-            --apple-bg: rgb(245, 245, 247);
-            --apple-text: #1d1d1f;
-            --apple-text-secondary: #86868b;
-            --apple-border: rgba(0, 0, 0, 0.1);
-        }
-        
-        * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        body {
-            font-weight: 400;
-            letter-spacing: -0.01em;
-            color: var(--apple-text);
-            background-color: var(--apple-bg);
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-        }
-    </style>
-    {% if IS_RTL %}
-    <style>
-        body {
-            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-    </style>
-    {% else %}
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
-        }
-    </style>
-    {% endif %}
-    <style>
-        
-        /* Apple-style smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Apple-style button transitions */
-        a, button {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Apple-style focus states */
-        *:focus {
-            outline: none;
-        }
-        
-        *:focus-visible {
-            outline: 2px solid #8FABD4;
-            outline-offset: 2px;
-            border-radius: 4px;
-        }
-    </style>
-    
     {% block extra_css %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col" style="background-color: rgb(245, 245, 247);">
-    <!-- Navigation Bar - Apple Style -->
-    <nav class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-            <div class="flex justify-between items-center h-20">
+<body class="min-h-screen flex flex-col bg-white antialiased font-normal tracking-apple text-apple-text bg-apple-bg pt-16 m-0 relative z-0 {% if IS_RTL %}font-arabic{% else %}font-sans{% endif %}">
+    <!-- Navigation Bar - Udemy Style (Rebuilt) -->
+    <nav class="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-[9999] w-full m-0 p-0">
+        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Top Navigation Row -->
+            <div class="flex justify-between items-center h-16">
                 <!-- Logo/Brand -->
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="{% url 'catalog:index' %}" class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
-                        <div class="w-10 h-10 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-2xl flex items-center justify-center shadow-lg">
-                            <span class="font-semibold text-base"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
-                        </div>
-                        <span class="text-2xl font-semibold hidden sm:block tracking-tight">
-                            <span class="text-[#666666]">Exam</span><span class="font-bold" style="color: #e28f64;">{Stellar}</span>
+                    <a href="{% url 'catalog:index' %}" class="flex items-center">
+                        <span class="text-2xl font-bold text-[#5624d0]">
+                            Exam<span class="text-[#5624d0]">Stellar</span>
                         </span>
                     </a>
                 </div>
                 
-                <!-- Navigation Links - Desktop (Apple Style) -->
-                <div class="hidden lg:flex items-center space-x-8 {% if IS_RTL %}space-x-reverse{% endif %}">
-                    <a href="{% url 'catalog:category_list' %}" class="px-4 py-2 text-base font-medium text-[#000000] hover:text-[#e28f64] transition-colors">
-                        {% trans "Browse" %}
-                    </a>
-                    <a href="{% url 'cms:page_detail' slug='find-my-path' %}" class="px-4 py-2 text-base font-medium text-[#000000] hover:text-[#e28f64] transition-colors">
-                        {% trans "Find my Path" %}
-                    </a>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'accounts:dashboard' %}" class="px-4 py-2 text-base font-medium text-[#000000] hover:text-[#e28f64] transition-colors">
-                        {% trans "My Learning" %}
-                    </a>
+                <!-- Explore Dropdown Button with Mega Menu -->
+                <div class="hidden lg:block relative explore-menu-container">
+                    <button type="button" 
+                            id="explore-button"
+                            class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors flex items-center">
+                        {% trans "Explore" %}
+                        <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %} transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Mega Menu Dropdown -->
+                    {% if categories %}
+                    <div id="explore-mega-menu" 
+                         class="absolute left-1/2 top-full mt-0 w-screen max-w-6xl bg-white border-t border-gray-200 shadow-xl opacity-0 invisible transition-all duration-200 pointer-events-none -translate-x-1/2 z-[10000]">
+                        <div class="max-w-9xl mx-auto px-6 py-8">
+                            <div class="grid grid-cols-4 gap-8">
+                                {% for category in categories %}
+                                <div class="explore-category-column">
+                                    <a href="{% url 'catalog:testbank_list' category_slug=category.slug %}" 
+                                       class="block text-sm font-semibold text-gray-900 mb-3 hover:text-[#5624d0] transition-colors">
+                                        {{ category.name }}
+                                    </a>
+                                    {% if category.subcategories.all %}
+                                    <ul class="space-y-2">
+                                        {% for subcategory in category.subcategories.all %}
+                                        <li>
+                                            <a href="{% url 'catalog:subcategory_list_full' category_slug=category.slug subcategory_slug=subcategory.slug %}" 
+                                               class="block text-sm text-gray-600 hover:text-[#5624d0] transition-colors py-1">
+                                                {{ subcategory.name }}
+                                            </a>
+                                            {% if subcategory.certifications.all %}
+                                            <ul class="ml-4 mt-1 space-y-1">
+                                                {% for certification in subcategory.certifications.all|slice:":3" %}
+                                                <li>
+                                                    <a href="{% url 'catalog:certification_list_full' category_slug=category.slug subcategory_slug=subcategory.slug certification_slug=certification.slug %}" 
+                                                       class="block text-xs text-gray-500 hover:text-[#5624d0] transition-colors">
+                                                        {{ certification.name }}
+                                                    </a>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                            {% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
                 
-                <!-- User Authentication Links -->
-                <div class="flex items-center space-x-4 {% if IS_RTL %}space-x-reverse{% endif %}">
-                    {% if user.is_authenticated %}
-                    <!-- User Menu -->
-                    <div class="relative group">
-                        <button class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %} px-3 py-2 rounded-xl hover:bg-gray-50/80 transition-all">
-                            <div class="w-9 h-9 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-full flex items-center justify-center shadow-sm">
-                                <span class="text-white text-xs font-semibold">{{ user.username|first|upper }}</span>
-                            </div>
-                            <span class="hidden sm:block text-sm font-medium text-[#000000]">{{ user.username }}</span>
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                <!-- Search Bar - Center (Udemy Style) -->
+                <div class="flex-1 max-w-2xl mx-4 hidden md:block">
+                    <form method="get" action="{% url 'catalog:index' %}" class="relative">
+                        <input type="text" 
+                               name="q" 
+                               placeholder="{% trans 'Search for anything' %}" 
+                               class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:border-transparent"
+                               value="{{ request.GET.q }}">
+                        <button type="submit" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#5624d0] transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </button>
-                        <div class="absolute right-0 mt-2 w-52 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                            <a href="{% url 'accounts:profile' pk=user.pk %}" class="block px-5 py-3 text-sm font-medium text-[#000000] hover:bg-gray-50/80 transition-colors rounded-lg mx-2">
+                    </form>
+                </div>
+                
+                <!-- Right Side Actions -->
+                <div class="flex items-center space-x-4 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    {% if user.is_authenticated %}
+                    <!-- Cart Icon -->
+                    <a href="#" class="p-2 text-gray-700 hover:text-[#5624d0] transition-colors relative">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </a>
+                    <!-- User Menu -->
+                    <div class="relative group">
+                        <button type="button" class="flex items-center px-3 py-1.5 rounded hover:bg-gray-100 transition-all">
+                            <div class="w-8 h-8 bg-[#5624d0] rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-semibold">{{ user.username|first|upper }}</span>
+                            </div>
+                        </button>
+                        <div class="absolute {% if IS_RTL %}left-0{% else %}right-0{% endif %} mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] pointer-events-none group-hover:pointer-events-auto">
+                            <a href="{% url 'accounts:profile' pk=user.pk %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                 {% trans "Profile" %}
                             </a>
-                            <a href="{% url 'accounts:logout' %}" class="block px-5 py-3 text-sm font-medium text-[#000000] hover:bg-gray-50/80 transition-colors rounded-lg mx-2">
+                            <a href="{% url 'accounts:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                {% trans "My Learning" %}
+                            </a>
+                            <hr class="my-1">
+                            <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                 {% trans "Logout" %}
                             </a>
                         </div>
                     </div>
                     {% else %}
                     <!-- Login/Register Links -->
-                    <a href="{% url 'accounts:login' %}" class="px-4 py-2 text-sm font-normal text-[#000000] hover:text-[#e28f64] transition">
+                    <a href="{% url 'accounts:login' %}" class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition">
                         {% trans "Log in" %}
                     </a>
-                    <a href="{% url 'accounts:register' %}" class="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#e28f64] to-[#d17a4f] hover:from-[#d17a4f] hover:to-[#c86a3f] rounded-xl transition-all shadow-md hover:shadow-lg">
-                        {% trans "Join for Free" %}
+                    <a href="{% url 'accounts:register' %}" class="px-4 py-2 text-sm font-semibold text-white bg-[#5624d0] hover:bg-[#4a1fb8] rounded transition-all">
+                        {% trans "Sign up" %}
                     </a>
                     {% endif %}
                 </div>
@@ -170,7 +160,7 @@
     
     <!-- Messages (Django messages framework) -->
     {% if messages %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-50 border-l-4 border-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-500 text-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4 shadow-sm" role="alert">
             <div class="flex items-center">
@@ -191,7 +181,7 @@
     <!-- CMS Site-Wide Announcements -->
     {% load cms_tags %}
     {% if cms_site_announcements %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         {% for announcement in cms_site_announcements %}
             {% render_announcement announcement %}
         {% endfor %}
@@ -199,13 +189,13 @@
     {% endif %}
     
     <!-- Main Content -->
-    <main class="flex-grow">
+    <main class="flex-grow relative z-[1] mt-0 pt-0">
         {% block content %}{% endblock %}
     </main>
     
     <!-- Footer - Apple Style -->
     <footer class="bg-white border-t border-gray-100 mt-20">
-        <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16">
+        <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-16">
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-8">
                 <!-- Platform -->
                 <div>
@@ -282,7 +272,7 @@
                         <span class="font-semibold text-xs"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
                     </div>
                     <span class="text-base font-semibold tracking-tight">
-                        <span class="text-[#666666]">Exam</span><span class="font-bold" style="color: #e28f64;">{Stellar}</span>
+                        <span class="text-[#666666]">Exam</span><span class="font-bold text-[#e28f64]">{Stellar}</span>
                     </span>
                 </div>
                 <p class="text-sm text-[#666666] font-medium">
@@ -293,5 +283,51 @@
     </footer>
     
     {% block extra_js %}{% endblock %}
+    
+    <!-- Mega Menu JavaScript - Click Effect -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const exploreButton = document.getElementById('explore-button');
+            const megaMenu = document.getElementById('explore-mega-menu');
+            const exploreContainer = document.querySelector('.explore-menu-container');
+            
+            if (exploreButton && megaMenu && exploreContainer) {
+                let isMenuOpen = false;
+                
+                // Toggle menu on button click
+                exploreButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    isMenuOpen = !isMenuOpen;
+                    
+                    if (isMenuOpen) {
+                        exploreContainer.classList.add('menu-open');
+                        megaMenu.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+                        megaMenu.classList.add('opacity-100', 'visible', 'pointer-events-auto');
+                    } else {
+                        exploreContainer.classList.remove('menu-open');
+                        megaMenu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+                        megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
+                    }
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (isMenuOpen && !exploreContainer.contains(event.target)) {
+                        isMenuOpen = false;
+                        exploreContainer.classList.remove('menu-open');
+                        megaMenu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+                        megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
+                    }
+                });
+                
+                // Prevent menu from closing when clicking inside it
+                megaMenu.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            }
+        });
+    </script>
 </body>
 </html>

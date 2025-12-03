@@ -78,6 +78,7 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "accounts.context_processors.user_language",
                 "cms.context_processors.cms_content",  # CMS content (announcements, pages)
+                "catalog.context_processors.categories",  # Categories for navigation
             ],
         },
     },

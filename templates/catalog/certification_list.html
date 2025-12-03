@@ -6,7 +6,7 @@
 {% block content %}
 <!-- Page Header -->
 <div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
         <h1 class="text-4xl font-bold text-[#000000] mt-4">
             {{ certification.name }}
@@ -18,70 +18,70 @@
 </div>
 
 <!-- Test Bank Grid -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="mb-6 flex items-center justify-between">
         <p class="text-[#666666]">
             {% blocktrans count count=test_banks|length %}{{ count }} test bank available{% plural %}{{ count }} test banks available{% endblocktrans %}
         </p>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {% for test_bank in test_banks %}
-        <div class="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100 card-hover hover:shadow-xl transition-all">
-            <!-- Test Bank Image -->
-            {% if test_bank.image %}
-            <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
-                <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
-                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                    {% if test_bank.difficulty_level == 'easy' %}
-                    <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                        {{ test_bank.get_difficulty_level_display }}
-                    </span>
-                    {% elif test_bank.difficulty_level == 'medium' %}
-                    <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                        {{ test_bank.get_difficulty_level_display }}
-                    </span>
-                    {% else %}
-                    <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                        {{ test_bank.get_difficulty_level_display }}
-                    </span>
-                    {% endif %}
-                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#000000] text-lg font-bold rounded-xl shadow-sm">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+        <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block h-full">
+            <div class="bg-white h-full transition-all duration-200 hover:shadow-lg overflow-hidden flex flex-col">
+                <!-- Test Bank Image - Udemy Style -->
+                {% if test_bank.image %}
+                <div class="h-40 bg-gray-200 relative overflow-hidden">
+                    <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
+                </div>
+                {% else %}
+                <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                    <div class="text-white text-4xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
+                </div>
+                {% endif %}
+                
+                <div class="p-4 flex-1 flex flex-col">
+                    <h3 class="text-sm font-bold text-gray-900 mb-1 line-clamp-2 h-10">
+                        {{ test_bank.title }}
+                    </h3>
+                    
+                    <!-- Rating - Udemy Style -->
+                    <div class="flex items-center mb-2">
+                        {% if test_bank.average_rating > 0 %}
+                        <span class="text-sm font-bold text-gray-900 mr-1">{{ test_bank.average_rating|floatformat:1 }}</span>
+                        <div class="flex items-center mr-1">
+                            {% with rating_int=test_bank.average_rating|floatformat:0 %}
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= rating_int|add:"0" %}
+                                    <svg class="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                            {% endwith %}
+                        </div>
+                        <span class="text-xs text-gray-600">({{ test_bank.total_ratings }})</span>
+                        {% else %}
+                        <span class="text-xs text-gray-600">{% trans "No ratings yet" %}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- User Count -->
+                    <div class="text-xs text-gray-600 mb-2">
+                        {{ test_bank.get_user_count }} {% trans "students" %}
+                    </div>
+                    
+                    <!-- Price - Udemy Style -->
+                    <div class="mt-auto">
+                        <span class="text-lg font-bold text-gray-900">{% if test_bank.price == 0 %}{% trans "Free" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+                    </div>
                 </div>
             </div>
-            {% else %}
-            <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
-                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                    {% if test_bank.difficulty_level == 'easy' %}
-                    <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                        {{ test_bank.get_difficulty_level_display }}
-                    </span>
-                    {% elif test_bank.difficulty_level == 'medium' %}
-                    <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                        {{ test_bank.get_difficulty_level_display }}
-                    </span>
-                    {% else %}
-                    <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                        {{ test_bank.get_difficulty_level_display }}
-                    </span>
-                    {% endif %}
-                    <span class="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-[#000000] text-lg font-bold rounded-xl shadow-sm">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
-                </div>
-            </div>
-            {% endif %}
-            <div class="p-6">
-                <h2 class="text-lg font-semibold text-[#000000] mb-3 line-clamp-2 min-h-[3.5rem]">
-                    {{ test_bank.title }}
-                </h2>
-                <p class="text-sm text-[#666666] mb-5 line-clamp-3 min-h-[3.75rem]">
-                    {{ test_bank.description|truncatewords:20 }}
-                </p>
-                <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                   class="block w-full text-center px-5 py-3 bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] hover:from-[#4A70A9] hover:to-[#3a5a8a] text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg">
-                    {% trans "View Details" %}
-                </a>
-            </div>
-        </div>
+        </a>
         {% empty %}
         <div class="col-span-full text-center py-16">
             <div class="max-w-md mx-auto">

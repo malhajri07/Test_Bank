@@ -10,7 +10,7 @@ This module provides views for:
 
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from .models import Category, SubCategory, Certification, TestBank
@@ -36,11 +36,15 @@ def index(request):
         subcategory_count=Count('subcategories')
     ).filter(test_bank_count__gt=0)[:8])
     
-    # Get featured test banks
-    featured_test_banks = list(TestBank.objects.filter(is_active=True)[:6])
+    # Get featured test banks with user counts
+    featured_test_banks = list(TestBank.objects.filter(is_active=True).annotate(
+        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
+    ).order_by('-user_count', '-average_rating')[:6])
     
-    # Get trending test banks (most purchased or recently added)
-    trending_test_banks = list(TestBank.objects.filter(is_active=True).order_by('-created_at')[:8])
+    # Get trending test banks (ordered by user count, then rating, then recent)
+    trending_test_banks = list(TestBank.objects.filter(is_active=True).annotate(
+        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
+    ).order_by('-user_count', '-average_rating', '-created_at')[:8])
     
     # Testimonials are now loaded from CMS via context processor
     
@@ -256,8 +260,10 @@ def testbank_list(request, category_slug, subcategory_slug=None, certification_s
         subcategory = get_object_or_404(SubCategory, category=category, slug=subcategory_slug)
         filter_q = Q(subcategory=subcategory, is_active=True)
     
-    # Get active test banks
-    test_banks = TestBank.objects.filter(filter_q).order_by('-created_at')
+    # Get active test banks with user counts
+    test_banks = TestBank.objects.filter(filter_q).annotate(
+        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
+    ).order_by('-user_count', '-average_rating', '-created_at')
     
     # Build breadcrumbs
     breadcrumbs = [

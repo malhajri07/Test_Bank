@@ -4,78 +4,60 @@
 {% block title %}{% trans "Exam Stellar - Practice Tests for School, College & Professional" %}{% endblock %}
 
 {% block content %}
+<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 <!-- CMS Homepage Announcements -->
 {% if cms_homepage_announcements %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+<div class="pt-4">
     {% for announcement in cms_homepage_announcements %}
         {% render_announcement announcement %}
     {% endfor %}
 </div>
 {% endif %}
 
-<!-- Hero Section with Carousel -->
-<section class="bg-white">
-    <div class="swiper hero-swiper">
-        <div class="swiper-wrapper">
-            {% if cms_hero_slides %}
-                {% for slide in cms_hero_slides %}
-                <div class="swiper-slide">
-                    <div class="text-white py-20 flex flex-col justify-center {% if slide.background_image %}bg-cover bg-center{% else %}bg-gradient-to-r{% endif %}" 
-                         {% if slide.background_image %}style="background-image: url('{{ slide.background_image.url }}');"{% else %}style="background: linear-gradient(to right, {{ slide.gradient_from }}, {{ slide.gradient_to }});"{% endif %}>
-                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                            <div class="max-w-3xl">
-                                <h1 class="text-5xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight tracking-tight">
-                                    {{ slide.title }}
-                                </h1>
-                                {% if slide.description %}
-                                <p class="text-xl md:text-2xl mb-10 text-white/90 font-medium leading-relaxed">
-                                    {{ slide.description }}
-                                </p>
-                                {% endif %}
-                                <div class="flex flex-col sm:flex-row gap-4">
-                                    {% if slide.primary_button_text and slide.primary_button_url %}
-                                    <a href="{{ slide.primary_button_url }}" 
-                                       class="inline-flex items-center justify-center px-10 py-4 bg-white text-[#e28f64] font-semibold rounded-2xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
-                                        {{ slide.primary_button_text }}
-                                    </a>
-                                    {% endif %}
-                                    {% if slide.secondary_button_text and slide.secondary_button_url %}
-                                    <a href="{{ slide.secondary_button_url }}" 
-                                       class="inline-flex items-center justify-center px-10 py-4 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-2xl hover:bg-white/30 transition-all shadow-xl hover:shadow-2xl border border-white/30">
-                                        {{ slide.secondary_button_text }}
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<!-- Hero Section - Udemy Style with Image Support -->
+<section class="bg-white border-b border-gray-200">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {% if cms_hero_slides %}
+            {% with slide=cms_hero_slides|first %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="max-w-2xl">
+                    <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                        {{ slide.title }}
+                    </h1>
+                    {% if slide.description %}
+                    <p class="text-lg text-gray-600 mb-6">
+                        {{ slide.description }}
+                    </p>
+                    {% endif %}
+                    {% if slide.primary_button_text and slide.primary_button_url %}
+                    <a href="{{ slide.primary_button_url }}" 
+                       class="inline-block px-6 py-3 bg-[#5624d0] text-white font-semibold rounded hover:bg-[#4a1fb8] transition-colors">
+                        {{ slide.primary_button_text }}
+                    </a>
+                    {% endif %}
                 </div>
-                {% endfor %}
-            {% else %}
-                <!-- Default slide if no CMS slides exist -->
-                <div class="swiper-slide">
-                    <div class="bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] text-white py-20 flex flex-col justify-center">
-                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                            <div class="max-w-3xl">
-                                <h1 class="text-5xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight tracking-tight">
-                                    {% trans "Learn without limits" %}
-                                </h1>
-                                <p class="text-xl md:text-2xl mb-10 text-white/90 font-medium leading-relaxed">
-                                    {% trans "Enjoy the gift of unlimited learning" %}
-                                </p>
-                                <div class="flex flex-col sm:flex-row gap-4">
-                                    <a href="{% url 'catalog:category_list' %}" 
-                                       class="inline-flex items-center justify-center px-10 py-4 bg-white text-[#e28f64] font-semibold rounded-2xl hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
-                                        {% trans "Browse Test Banks" %}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                {% if slide.background_image %}
+                <div class="hidden lg:block">
+                    <img src="{{ slide.background_image.url }}" alt="{{ slide.title }}" class="w-full h-auto rounded-lg shadow-lg">
                 </div>
-            {% endif %}
-        </div>
-        <div class="swiper-pagination"></div>
+                {% endif %}
+            </div>
+            {% endwith %}
+        {% else %}
+            <!-- Default hero - Udemy Style -->
+            <div class="max-w-4xl">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    {% trans "Learn without limits" %}
+                </h1>
+                <p class="text-lg text-gray-600 mb-6">
+                    {% trans "Master your exams with comprehensive practice tests" %}
+                </p>
+                <a href="{% url 'catalog:category_list' %}" 
+                   class="inline-block px-6 py-3 bg-[#5624d0] text-white font-semibold rounded hover:bg-[#4a1fb8] transition-colors">
+                    {% trans "Browse Test Banks" %}
+                </a>
+            </div>
+        {% endif %}
     </div>
 </section>
 
@@ -85,76 +67,75 @@
 <!-- Partner/Institution Logos -->
 {% include 'includes/partners.html' %}
 
-<!-- Trending Test Banks Carousel -->
+<!-- Trending Test Banks Carousel - Udemy Style -->
 {% if trending_test_banks %}
-<section class="py-16 bg-[rgb(245, 245, 247)]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-8">
-            <h2 class="text-4xl font-semibold text-[#000000] mb-3 tracking-tight">
+<section class="py-12 bg-white">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
                 {% trans "Trending test banks" %}
             </h2>
         </div>
         
-        <div class="swiper trending-swiper relative" style="padding-left: 60px; padding-right: 60px;">
-            <div class="swiper-wrapper">
+        <div class="swiper trending-swiper relative">
+            <div class="swiper-wrapper trending-swiper-wrapper">
                 {% for test_bank in trending_test_banks %}
                 <div class="swiper-slide">
-                    <div class="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 card-hover h-full transition-all duration-300 hover:shadow-xl">
-                        <!-- Test Bank Image -->
-                        {% if test_bank.image %}
-                        <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
-                            <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
-                            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                                {% if test_bank.difficulty_level == 'easy' %}
-                                <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                                    {{ test_bank.get_difficulty_level_display }}
-                                </span>
-                                {% elif test_bank.difficulty_level == 'medium' %}
-                                <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                                    {{ test_bank.get_difficulty_level_display }}
-                                </span>
-                                {% else %}
-                                <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                                    {{ test_bank.get_difficulty_level_display }}
-                                </span>
-                                {% endif %}
+                    <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block h-full">
+                        <div class="bg-white h-full transition-all duration-200 hover:shadow-lg overflow-hidden flex flex-col">
+                            <!-- Test Bank Image - Udemy Style -->
+                            {% if test_bank.image %}
+                            <div class="h-40 bg-gray-200 relative overflow-hidden">
+                                <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
+                            </div>
+                            {% else %}
+                            <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                                <div class="text-white text-4xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="p-4 flex-1 flex flex-col">
+                                <h3 class="text-sm font-bold text-gray-900 mb-1 line-clamp-2 h-10">
+                                    {{ test_bank.title }}
+                                </h3>
+                                
+                                <!-- Rating - Udemy Style -->
+                                <div class="flex items-center mb-2">
+                                    {% if test_bank.average_rating > 0 %}
+                                    <span class="text-sm font-bold text-gray-900 mr-1">{{ test_bank.average_rating|floatformat:1 }}</span>
+                                    <div class="flex items-center mr-1">
+                                        {% with rating_int=test_bank.average_rating|floatformat:0 %}
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= rating_int|add:"0" %}
+                                                <svg class="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                </svg>
+                                            {% else %}
+                                                <svg class="w-3 h-3 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                </svg>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                    <span class="text-xs text-gray-600">({{ test_bank.total_ratings }})</span>
+                                    {% else %}
+                                    <span class="text-xs text-gray-600">{% trans "No ratings yet" %}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- User Count -->
+                                <div class="text-xs text-gray-600 mb-2">
+                                    {{ test_bank.get_user_count }} {% trans "students" %}
+                                </div>
+                                
+                                <!-- Price - Udemy Style -->
+                                <div class="mt-auto">
+                                    <span class="text-lg font-bold text-gray-900">{% if test_bank.price == 0 %}{% trans "Free" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+                                </div>
                             </div>
                         </div>
-                        {% else %}
-                        <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
-                            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                                {% if test_bank.difficulty_level == 'easy' %}
-                                <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                                    {{ test_bank.get_difficulty_level_display }}
-                                </span>
-                                {% elif test_bank.difficulty_level == 'medium' %}
-                                <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                                    {{ test_bank.get_difficulty_level_display }}
-                                </span>
-                                {% else %}
-                                <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                                    {{ test_bank.get_difficulty_level_display }}
-                                </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        <div class="p-6">
-                            <h3 class="text-lg font-semibold text-[#000000] mb-2 line-clamp-2 min-h-[3.5rem]">
-                                {{ test_bank.title }}
-                            </h3>
-                            <p class="text-sm text-[#666666] mb-4 line-clamp-2 min-h-[2.5rem]">
-                                {{ test_bank.description|truncatewords:15 }}
-                            </p>
-                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                                <span class="text-xl font-bold text-[#000000]">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
-                                <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                                   class="text-[#e28f64] hover:text-[#df804f] font-semibold text-sm">
-                                    {% trans "View" %} →
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -165,49 +146,41 @@
 </section>
 {% endif %}
 
-<!-- Explore Categories -->
+<!-- Explore Categories - Udemy Style -->
 {% if categories %}
-<section class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-8">
-            <h2 class="text-3xl font-bold text-[#000000] mb-2">
+<section class="py-12 bg-white">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
                 {% trans "Explore categories" %}
             </h2>
         </div>
         
-        <div class="swiper categories-swiper relative" style="padding-left: 60px; padding-right: 60px;">
-            <div class="swiper-wrapper">
+        <div class="swiper categories-swiper relative">
+            <div class="swiper-wrapper categories-swiper-wrapper">
                 {% for category in categories %}
                 <div class="swiper-slide">
                     <a href="{% if category.subcategory_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block h-full">
-                        <div class="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 card-hover h-full flex flex-col">
-                            <!-- Category Image -->
+                        <div class="bg-white border border-gray-200 rounded hover:shadow-lg transition-all duration-200 h-full flex flex-col overflow-hidden">
+                            <!-- Category Image - Udemy Style -->
                             {% if category.image %}
-                            <div class="h-40 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
+                            <div class="h-40 bg-gray-200 relative overflow-hidden">
                                 <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
                             </div>
                             {% else %}
-                            <div class="h-40 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative flex items-center justify-center">
-                                <span class="text-5xl font-bold text-white/80">{{ category.name|first|upper }}</span>
+                            <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                                <div class="text-white text-5xl font-bold opacity-50">{{ category.name|first|upper }}</div>
                             </div>
                             {% endif %}
-                            <div class="p-6 flex-1 flex flex-col">
-                                <h3 class="text-xl font-semibold text-[#000000] mb-3">{{ category.name }}</h3>
+                            <div class="p-4 flex-1 flex flex-col">
+                                <h3 class="text-base font-bold text-gray-900 mb-2">{{ category.name }}</h3>
                                 {% if category.description %}
-                                <p class="text-sm text-[#666666] mb-4 line-clamp-2 flex-1">{{ category.description|truncatewords:15 }}</p>
+                                <p class="text-sm text-gray-600 mb-3 line-clamp-2 flex-1">{{ category.description|truncatewords:12 }}</p>
                                 {% endif %}
-                                <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                                    <div class="flex flex-col">
-                                        {% if category.subcategory_count > 0 %}
-                                        <span class="text-xs text-[#666666] mb-1">
-                                            {% blocktrans count count=category.subcategory_count %}{{ count }} subcategory{% plural %}{{ count }} subcategories{% endblocktrans %}
-                                        </span>
-                                        {% endif %}
-                                        <span class="text-sm text-[#666666]">
-                                            {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
-                                        </span>
-                                    </div>
-                                    <span class="text-[#e28f64] font-semibold text-lg">→</span>
+                                <div class="mt-auto pt-3 border-t border-gray-100">
+                                    <span class="text-xs text-gray-600">
+                                        {% blocktrans count count=category.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -222,74 +195,73 @@
 </section>
 {% endif %}
 
-<!-- Most Popular by Category -->
+<!-- Most Popular by Category - Udemy Style -->
 {% if featured_test_banks %}
-<section class="py-16 bg-[rgb(245, 245, 247)]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-8">
-            <h2 class="text-3xl font-bold text-[#000000] mb-2">
+<section class="py-12 bg-white">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
                 {% trans "Most popular by category" %}
             </h2>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for test_bank in featured_test_banks %}
-            <div class="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 card-hover h-full transition-all duration-300 hover:shadow-xl flex flex-col">
-                <!-- Test Bank Image -->
-                {% if test_bank.image %}
-                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#4A70A9] relative overflow-hidden">
-                    <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
-                    <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                        {% if test_bank.difficulty_level == 'easy' %}
-                        <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
-                        {% elif test_bank.difficulty_level == 'medium' %}
-                        <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
-                        {% else %}
-                        <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
-                        {% endif %}
+            <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block h-full">
+                <div class="bg-white h-full transition-all duration-200 hover:shadow-lg overflow-hidden flex flex-col">
+                    <!-- Test Bank Image - Udemy Style -->
+                    {% if test_bank.image %}
+                    <div class="h-40 bg-gray-200 relative overflow-hidden">
+                        <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
+                    </div>
+                    {% else %}
+                    <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                        <div class="text-white text-4xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="p-4 flex-1 flex flex-col">
+                        <h3 class="text-sm font-bold text-gray-900 mb-1 line-clamp-2 h-10">
+                            {{ test_bank.title }}
+                        </h3>
+                        
+                        <!-- Rating - Udemy Style -->
+                        <div class="flex items-center mb-2">
+                            {% if test_bank.average_rating > 0 %}
+                            <span class="text-sm font-bold text-gray-900 mr-1">{{ test_bank.average_rating|floatformat:1 }}</span>
+                            <div class="flex items-center mr-1">
+                                {% with rating_int=test_bank.average_rating|floatformat:0 %}
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= rating_int|add:"0" %}
+                                        <svg class="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <span class="text-xs text-gray-600">({{ test_bank.total_ratings }})</span>
+                            {% else %}
+                            <span class="text-xs text-gray-600">{% trans "No ratings yet" %}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- User Count -->
+                        <div class="text-xs text-gray-600 mb-2">
+                            {{ test_bank.get_user_count }} {% trans "students" %}
+                        </div>
+                        
+                        <!-- Price - Udemy Style -->
+                        <div class="mt-auto">
+                            <span class="text-lg font-bold text-gray-900">{% if test_bank.price == 0 %}{% trans "Free" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+                        </div>
                     </div>
                 </div>
-                {% else %}
-                <div class="h-48 bg-gradient-to-br from-[#8FABD4] to-[#EFECE3] relative">
-                    <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                        {% if test_bank.difficulty_level == 'easy' %}
-                        <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
-                        {% elif test_bank.difficulty_level == 'medium' %}
-                        <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
-                        {% else %}
-                        <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-                <div class="p-6 flex-1 flex flex-col">
-                    <h3 class="text-lg font-semibold text-[#000000] mb-2 line-clamp-2 min-h-[3.5rem]">
-                        {{ test_bank.title }}
-                    </h3>
-                    <p class="text-sm text-[#666666] mb-4 line-clamp-2 min-h-[2.5rem]">
-                        {{ test_bank.description|truncatewords:15 }}
-                    </p>
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                        <span class="text-xl font-bold text-[#000000]">{% if test_bank.price == 0 %}{% trans "FREE" %}{% else %}${{ test_bank.price }}{% endif %}</span>
-                        <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                           class="text-[#e28f64] hover:text-[#df804f] font-semibold text-sm">
-                            {% trans "View" %} →
-                        </a>
-                    </div>
-                </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
     </div>
@@ -299,18 +271,18 @@
 <!-- Testimonials Section -->
 {% include 'includes/testimonials.html' %}
 
-<!-- Final CTA Section -->
-<section class="py-16 bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">
+<!-- Final CTA Section - Udemy Style -->
+<section class="py-12 bg-white border-t border-gray-200">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">
             {% trans "Ready to get started?" %}
         </h2>
-        <p class="text-xl text-white opacity-90 mb-8">
+        <p class="text-lg text-gray-600 mb-6">
             {% trans "Join thousands of students using our platform to prepare for exams" %}
         </p>
         {% if not user.is_authenticated %}
         <a href="{% url 'accounts:register' %}" 
-           class="inline-block px-8 py-4 bg-white text-[#e28f64] font-semibold rounded-md hover:bg-gray-100 transition shadow-lg">
+           class="inline-block px-8 py-3 bg-[#5624d0] text-white font-semibold rounded hover:bg-[#4a1fb8] transition shadow-md">
             {% trans "Join for Free" %}
         </a>
         {% endif %}
@@ -336,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Trending Test Banks Carousel
     const trendingSwiper = new Swiper('.trending-swiper', {
-        slidesPerView: 1,
+        slidesPerView: 'auto',
         spaceBetween: 16,
         loop: true,
         navigation: {
@@ -345,20 +317,23 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         breakpoints: {
             640: {
-                slidesPerView: 2,
+                slidesPerView: 'auto',
+                spaceBetween: 16,
             },
             768: {
-                slidesPerView: 3,
+                slidesPerView: 'auto',
+                spaceBetween: 16,
             },
             1024: {
-                slidesPerView: 4,
+                slidesPerView: 'auto',
+                spaceBetween: 16,
             },
         },
     });
     
     // Categories Carousel
     const categoriesSwiper = new Swiper('.categories-swiper', {
-        slidesPerView: 1,
+        slidesPerView: 'auto',
         spaceBetween: 16,
         loop: true,
         navigation: {
@@ -367,16 +342,20 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         breakpoints: {
             640: {
-                slidesPerView: 2,
+                slidesPerView: 'auto',
+                spaceBetween: 16,
             },
             768: {
-                slidesPerView: 3,
+                slidesPerView: 'auto',
+                spaceBetween: 16,
             },
             1024: {
-                slidesPerView: 4,
+                slidesPerView: 'auto',
+                spaceBetween: 16,
             },
         },
     });
 });
 </script>
+</div>
 {% endblock %}

@@ -6,7 +6,7 @@
 {% block content %}
 <!-- Dashboard Header -->
 <div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-4xl font-bold text-[#000000] mb-2">
             {% trans "My Learning" %}
         </h1>
@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
     <!-- Statistics Cards - Apple Style -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
         <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-300">
@@ -75,55 +75,26 @@
             {% if purchased_test_banks %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for test_bank in purchased_test_banks %}
-                <div class="border border-gray-100 rounded-3xl overflow-hidden card-hover bg-white shadow-lg hover:shadow-2xl transition-all duration-300">
-                    <!-- Test Bank Image -->
+                <div class="bg-white border border-gray-200 rounded overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col h-full">
+                    <!-- Test Bank Image - Udemy Style -->
                     {% if test_bank.image %}
-                    <div class="h-40 bg-gradient-to-br from-[#e28f64] to-[#df804f] relative overflow-hidden">
+                    <div class="h-40 bg-gray-200 relative overflow-hidden">
                         <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
-                        <div class="absolute bottom-3 left-3 right-3">
-                            {% if test_bank.difficulty_level == 'easy' %}
-                            <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                                {{ test_bank.get_difficulty_level_display }}
-                            </span>
-                            {% elif test_bank.difficulty_level == 'medium' %}
-                            <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                                {{ test_bank.get_difficulty_level_display }}
-                            </span>
-                            {% else %}
-                            <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                                {{ test_bank.get_difficulty_level_display }}
-                            </span>
-                            {% endif %}
-                        </div>
                     </div>
                     {% else %}
-                    <div class="h-40 bg-gradient-to-br from-[#e28f64] to-[#EFECE3] relative">
-                        <div class="absolute bottom-3 left-3 right-3">
-                            {% if test_bank.difficulty_level == 'easy' %}
-                            <span class="px-3 py-1.5 bg-green-300/95 backdrop-blur-sm text-green-800 text-xs font-semibold rounded-xl shadow-sm">
-                                {{ test_bank.get_difficulty_level_display }}
-                            </span>
-                            {% elif test_bank.difficulty_level == 'medium' %}
-                            <span class="px-3 py-1.5 bg-yellow-300/95 backdrop-blur-sm text-yellow-800 text-xs font-semibold rounded-xl shadow-sm">
-                                {{ test_bank.get_difficulty_level_display }}
-                            </span>
-                            {% else %}
-                            <span class="px-3 py-1.5 bg-red-300/95 backdrop-blur-sm text-red-800 text-xs font-semibold rounded-xl shadow-sm">
-                                {{ test_bank.get_difficulty_level_display }}
-                            </span>
-                            {% endif %}
-                        </div>
+                    <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                        <div class="text-white text-4xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
                     </div>
                     {% endif %}
-                    <div class="p-6">
-                        <h3 class="font-semibold text-lg text-[#000000] mb-3 line-clamp-2 leading-snug">{{ test_bank.title }}</h3>
-                        <div class="flex space-x-3 {% if IS_RTL %}space-x-reverse{% endif %} mt-5">
+                    <div class="p-4 flex-1 flex flex-col">
+                        <h3 class="text-sm font-bold text-gray-900 mb-3 line-clamp-2 h-10">{{ test_bank.title }}</h3>
+                        <div class="mt-auto flex space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
                             <a href="{% url 'practice:start_practice' testbank_slug=test_bank.slug %}" 
-                               class="flex-1 text-center px-5 py-3 bg-gradient-to-r from-[#e28f64] to-[#df804f] hover:from-[#df804f] hover:to-[#c87850] text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg">
+                               class="flex-1 text-center px-4 py-2 bg-[#5624d0] hover:bg-[#4a1fb8] text-white text-sm font-semibold rounded transition-all">
                                 {% trans "Start" %}
                             </a>
                             <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                               class="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-[#000000] text-sm font-semibold rounded-xl transition-all">
+                               class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-semibold rounded transition-all">
                                 {% trans "View" %}
                             </a>
                         </div>

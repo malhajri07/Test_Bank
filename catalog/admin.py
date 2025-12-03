@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.urls import path
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-from .models import Category, SubCategory, Certification, TestBank, Question, AnswerOption
+from .models import Category, SubCategory, Certification, TestBank, TestBankRating, Question, AnswerOption
 from .forms import TestBankJSONUploadForm
 from .utils import import_test_bank_from_json, parse_json_file
 
@@ -111,11 +111,16 @@ class CertificationAdmin(admin.ModelAdmin):
 @admin.register(TestBank)
 class TestBankAdmin(admin.ModelAdmin):
     """Admin interface for TestBank model with JSON upload functionality."""
-    list_display = ('title', 'category', 'subcategory', 'certification', 'difficulty_level', 'price', 'is_active', 'question_count', 'created_at')
+    list_display = ('title', 'category', 'subcategory', 'certification', 'difficulty_level', 'price', 'average_rating', 'total_ratings', 'user_count', 'is_active', 'question_count', 'created_at')
     list_filter = ('category', 'subcategory', 'certification', 'difficulty_level', 'is_active', 'created_at')
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}  # Auto-generate slug from title
-    readonly_fields = ('created_at', 'updated_at', 'question_count')
+    readonly_fields = ('created_at', 'updated_at', 'question_count', 'user_count', 'average_rating', 'total_ratings')
+    
+    def user_count(self, obj):
+        """Display user count for this test bank."""
+        return obj.get_user_count()
+    user_count.short_description = 'Users'
     
     def changelist_view(self, request, extra_context=None):
         """Add custom button for JSON upload."""
@@ -136,7 +141,7 @@ class TestBankAdmin(admin.ModelAdmin):
             'fields': ('difficulty_level', 'price', 'is_active')
         }),
         ('Statistics', {
-            'fields': ('question_count',),
+            'fields': ('question_count', 'user_count', 'average_rating', 'total_ratings'),
             'classes': ('collapse',)
         }),
         ('Timestamps', {
@@ -240,6 +245,26 @@ class QuestionAdmin(admin.ModelAdmin):
         }),
         ('Settings', {
             'fields': ('order', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(TestBankRating)
+class TestBankRatingAdmin(admin.ModelAdmin):
+    """Admin interface for TestBankRating model."""
+    list_display = ('user', 'test_bank', 'rating', 'created_at', 'updated_at')
+    list_filter = ('rating', 'created_at', 'test_bank')
+    search_fields = ('user__username', 'test_bank__title', 'review')
+    readonly_fields = ('created_at', 'updated_at')
+    ordering = ('-created_at',)
+    
+    fieldsets = (
+        ('Rating Information', {
+            'fields': ('user', 'test_bank', 'rating', 'review')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

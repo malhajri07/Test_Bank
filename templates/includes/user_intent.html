@@ -1,26 +1,26 @@
 {% load i18n %}
 {% comment %}User Intent Section - Usage: {% include 'includes/user_intent.html' %}{% endcomment %}
 <section class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-[#000000] mb-4">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">
                 {% trans "What brings you to Exam Stellar today?" %}
             </h2>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Start Career -->
             <a href="{% url 'catalog:category_list' %}" class="group">
-                <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-[#e28f64] hover:shadow-lg transition-all card-hover h-full">
-                    <div class="w-12 h-12 bg-[#e28f64] bg-opacity-10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
-                        <svg class="w-6 h-6 text-[#e28f64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white border border-gray-200 rounded p-6 hover:shadow-lg transition-all h-full">
+                    <div class="w-10 h-10 bg-[#5624d0] bg-opacity-10 rounded flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
+                        <svg class="w-5 h-5 text-[#5624d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-[#000000] mb-2 group-hover:text-[#e28f64] transition">
+                    <h3 class="text-base font-bold text-gray-900 mb-2 group-hover:text-[#5624d0] transition">
                         {% trans "Start my career" %}
                     </h3>
-                    <p class="text-sm text-[#666666]">
+                    <p class="text-sm text-gray-600">
                         {% trans "Build skills for a new career" %}
                     </p>
                 </div>
@@ -28,16 +28,16 @@
             
             <!-- Change Career -->
             <a href="{% url 'catalog:category_list' %}" class="group">
-                <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-[#e28f64] hover:shadow-lg transition-all card-hover h-full">
-                    <div class="w-12 h-12 bg-[#e28f64] bg-opacity-10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
-                        <svg class="w-6 h-6 text-[#e28f64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white border border-gray-200 rounded p-6 hover:shadow-lg transition-all h-full">
+                    <div class="w-10 h-10 bg-[#5624d0] bg-opacity-10 rounded flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
+                        <svg class="w-5 h-5 text-[#5624d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-[#000000] mb-2 group-hover:text-[#e28f64] transition">
+                    <h3 class="text-base font-bold text-gray-900 mb-2 group-hover:text-[#5624d0] transition">
                         {% trans "Change my career" %}
                     </h3>
-                    <p class="text-sm text-[#666666]">
+                    <p class="text-sm text-gray-600">
                         {% trans "Transition to a new field" %}
                     </p>
                 </div>
@@ -45,16 +45,16 @@
             
             <!-- Grow in Current Role -->
             <a href="{% url 'catalog:category_list' %}" class="group">
-                <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-[#e28f64] hover:shadow-lg transition-all card-hover h-full">
-                    <div class="w-12 h-12 bg-[#e28f64] bg-opacity-10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
-                        <svg class="w-6 h-6 text-[#e28f64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white border border-gray-200 rounded p-6 hover:shadow-lg transition-all h-full">
+                    <div class="w-10 h-10 bg-[#5624d0] bg-opacity-10 rounded flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
+                        <svg class="w-5 h-5 text-[#5624d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-[#000000] mb-2 group-hover:text-[#e28f64] transition">
+                    <h3 class="text-base font-bold text-gray-900 mb-2 group-hover:text-[#5624d0] transition">
                         {% trans "Grow in my current role" %}
                     </h3>
-                    <p class="text-sm text-[#666666]">
+                    <p class="text-sm text-gray-600">
                         {% trans "Advance your skills" %}
                     </p>
                 </div>
@@ -62,16 +62,16 @@
             
             <!-- Explore Topics -->
             <a href="{% url 'catalog:category_list' %}" class="group">
-                <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-[#e28f64] hover:shadow-lg transition-all card-hover h-full">
-                    <div class="w-12 h-12 bg-[#e28f64] bg-opacity-10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
-                        <svg class="w-6 h-6 text-[#e28f64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white border border-gray-200 rounded p-6 hover:shadow-lg transition-all h-full">
+                    <div class="w-10 h-10 bg-[#5624d0] bg-opacity-10 rounded flex items-center justify-center mb-4 group-hover:bg-opacity-20 transition">
+                        <svg class="w-5 h-5 text-[#5624d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-[#000000] mb-2 group-hover:text-[#e28f64] transition">
+                    <h3 class="text-base font-bold text-gray-900 mb-2 group-hover:text-[#5624d0] transition">
                         {% trans "Explore topics outside of work" %}
                     </h3>
-                    <p class="text-sm text-[#666666]">
+                    <p class="text-sm text-gray-600">
                         {% trans "Learn something new" %}
                     </p>
                 </div>

@@ -4,56 +4,12 @@
 {% block title %}{% trans "Practice Session" %} - {{ session.test_bank.title }}{% endblock %}
 
 {% block extra_css %}
-<style>
-    /* Disable text selection on practice session page */
-    .practice-content {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        -webkit-touch-callout: none;
-    }
-    
-    /* Allow selection only for input fields and textareas */
-    .practice-content input, 
-    .practice-content textarea, 
-    .practice-content [contenteditable="true"] {
-        -webkit-user-select: text;
-        -moz-user-select: text;
-        -ms-user-select: text;
-        user-select: text;
-    }
-    
-    /* Disable image dragging in practice content */
-    .practice-content img {
-        -webkit-user-drag: none;
-        -khtml-user-drag: none;
-        -moz-user-drag: none;
-        -o-user-drag: none;
-    }
-    
-    /* Prevent text highlighting */
-    .practice-content p,
-    .practice-content h1,
-    .practice-content h2,
-    .practice-content h3,
-    .practice-content h4,
-    .practice-content h5,
-    .practice-content h6,
-    .practice-content span,
-    .practice-content div:not([contenteditable="true"]) {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
 <!-- Practice Session Header - Apple Style -->
 <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
+    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
         <div class="flex items-center justify-between">
             <div class="flex-1">
                 <h1 class="text-2xl font-semibold text-[#000000] tracking-tight">{{ session.test_bank.title }}</h1>
@@ -64,8 +20,8 @@
             <!-- Progress Bar - Apple Style -->
             <div class="flex flex-col items-end ml-8">
                 <div class="w-48 md:w-64 lg:w-72 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div id="progressBar" class="bg-gradient-to-r from-[#e28f64] to-[#df804f] h-full rounded-full transition-all duration-500 ease-out" 
-                         style="--progress-width: {{ completion_percent }}%; width: var(--progress-width);"></div>
+                    <div id="progressBar" class="bg-gradient-to-r from-[#e28f64] to-[#df804f] h-full rounded-full transition-all duration-500 ease-out w-[var(--progress-width)]" 
+                         style="--progress-width: {{ completion_percent }}%;"></div>
                 </div>
                 <p id="progressText" class="text-xs text-[#666666] mt-2 font-medium hidden sm:block">
                     {{ completion_percent }}% {% trans "complete" %} ({{ answered_count }}/{{ total_questions }})
@@ -76,7 +32,7 @@
 </div>
 
 <!-- Practice Session Content - Apple Style Wide Layout -->
-<div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 practice-content">
+<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12 practice-content select-none">
     <!-- Question Navigation Box - Top, Very Compact -->
     <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-2.5 mb-4">
         <div class="flex items-center justify-between mb-2">
@@ -145,12 +101,12 @@
                                       {% endif %}">
                             {% if current_question.question_type == 'mcq_single' or current_question.question_type == 'true_false' %}
                             <input type="radio" name="selected_options[]" value="{{ option.id }}" 
-                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 cursor-pointer"
+                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 cursor-pointer select-text"
                                    {% if option.id in selected_option_ids %}checked{% endif %}
                                    onchange="saveAnswer()">
                             {% else %}
                             <input type="checkbox" name="selected_options[]" value="{{ option.id }}" 
-                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 rounded-md cursor-pointer"
+                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 rounded-md cursor-pointer select-text"
                                    {% if option.id in selected_option_ids %}checked{% endif %}
                                    onchange="saveAnswer()">
                             {% endif %}
@@ -208,46 +164,6 @@
     </div>
 </div>
 
-<style>
-/* Apple-style smooth animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.practice-content {
-    animation: fadeIn 0.4s ease-out;
-}
-
-/* Smooth radio/checkbox styling */
-input[type="radio"],
-input[type="checkbox"] {
-    accent-color: #8FABD4;
-    cursor: pointer;
-}
-
-/* Enhanced focus states */
-input[type="radio"]:focus,
-input[type="checkbox"]:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(143, 171, 212, 0.5);
-}
-
-/* Option hover effect */
-label.group:hover {
-    transform: translateX(4px);
-}
-
-label.group:has(input:checked) {
-    transform: scale(1.01);
-}
-</style>
 
 <script>
 function saveAnswer() {
