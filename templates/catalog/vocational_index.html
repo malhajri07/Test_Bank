@@ -36,7 +36,7 @@
     
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {% for subcategory in subcategories %}
-        <a href="{% url 'catalog:subcategory_list' subcategory_slug=subcategory.slug %}" class="block">
+        <a href="{% url 'catalog:subcategory_list_full' category_slug=category.slug subcategory_slug=subcategory.slug %}" class="block">
             <div class="bg-white border border-gray-200 rounded p-4 hover:shadow-lg transition-all h-full flex flex-col">
                 <h2 class="text-base font-bold text-gray-900 mb-2">{{ subcategory.name }}</h2>
                 {% if subcategory.description %}

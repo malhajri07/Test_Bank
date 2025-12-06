@@ -56,6 +56,13 @@
                     <span class="text-sm text-gray-600">
                         {% blocktrans count count=question_count %}{{ count }} question{% plural %}{{ count }} questions{% endblocktrans %}
                     </span>
+                    <!-- Difficulty Label -->
+                    <span class="px-3 py-1 text-xs font-bold rounded-lg shadow-sm
+                        {% if test_bank.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
+                        {% elif test_bank.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
+                        {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
                 </div>
             </div>
             {% if test_bank.image %}
@@ -203,10 +210,24 @@
                             {% if related.image %}
                             <div class="h-40 bg-gray-200 relative overflow-hidden">
                                 <img src="{{ related.image.url }}" alt="{{ related.title }}" class="w-full h-full object-cover">
+                                <!-- Difficulty Label -->
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
+                                    {% if related.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
+                                    {% elif related.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
+                                    {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
+                                    {{ related.get_difficulty_level_display }}
+                                </span>
                             </div>
                             {% else %}
                             <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
                                 <div class="text-white text-4xl font-bold opacity-50">{{ related.title|first|upper }}</div>
+                                <!-- Difficulty Label -->
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
+                                    {% if related.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
+                                    {% elif related.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
+                                    {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
+                                    {{ related.get_difficulty_level_display }}
+                                </span>
                             </div>
                             {% endif %}
                             <div class="p-4 flex-1 flex flex-col">

@@ -1,20 +1,21 @@
 {% load static tailwind_tags i18n %}
 <!DOCTYPE html>
-<html lang="{{ USER_LANGUAGE_CODE|default:'en' }}" dir="{% if IS_RTL %}rtl{% else %}ltr{% endif %}">
+<html lang="{{ USER_LANGUAGE_CODE|default:'en' }}" dir="{% if IS_RTL %}rtl{% else %}ltr{% endif %}" class="overflow-x-hidden">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% trans "Exam Stellar" %}{% endblock %}</title>
-    
+
     <!-- Tailwind CSS -->
     {% tailwind_css %}
-    
+
     <!-- Swiper.js CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    
+
     <!-- Swiper.js JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    
+
     <!-- Apple-style Fonts: SF Pro Display/Text -->
     {% if IS_RTL %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,15 +27,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {% endif %}
-    
+
     {% block extra_css %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col bg-white antialiased font-normal tracking-apple text-apple-text bg-apple-bg pt-16 m-0 relative z-0 {% if IS_RTL %}font-arabic{% else %}font-sans{% endif %}">
+
+<body
+    class="min-h-screen flex flex-col bg-white antialiased font-normal tracking-apple text-apple-text bg-apple-bg pt-16 m-0 relative z-0 {% if IS_RTL %}font-arabic{% else %}font-sans{% endif %}" style="padding-top: 64px !important;">
     <!-- Navigation Bar - Udemy Style (Rebuilt) -->
-    <nav class="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-[9999] w-full m-0 p-0">
-        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav class="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-[9999] w-full m-0 p-0 h-16 overflow-hidden" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; scroll-behavior: auto !important; transform: none !important;">
+        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
             <!-- Top Navigation Row -->
-            <div class="flex justify-between items-center h-16">
+            <div class="flex justify-between items-center h-full min-h-0">
                 <!-- Logo/Brand -->
                 <div class="flex-shrink-0 flex items-center">
                     <a href="{% url 'catalog:index' %}" class="flex items-center">
@@ -43,44 +46,44 @@
                         </span>
                     </a>
                 </div>
-                
+
                 <!-- Explore Dropdown Button with Mega Menu -->
                 <div class="hidden lg:block relative explore-menu-container">
-                    <button type="button" 
-                            id="explore-button"
-                            class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors flex items-center">
+                    <button type="button" id="explore-button"
+                        class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors flex items-center">
                         {% trans "Explore" %}
-                        <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %} transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %} transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    
+
                     <!-- Mega Menu Dropdown -->
                     {% if categories %}
-                    <div id="explore-mega-menu" 
-                         class="absolute left-1/2 top-full mt-0 w-screen max-w-6xl bg-white border-t border-gray-200 shadow-xl opacity-0 invisible transition-all duration-200 pointer-events-none -translate-x-1/2 z-[10000]">
+                    <div id="explore-mega-menu"
+                        class="fixed left-0 top-16 w-full bg-white border-t border-gray-200 shadow-xl opacity-0 invisible transition-all duration-200 pointer-events-none z-[10000]">
                         <div class="max-w-9xl mx-auto px-6 py-8">
                             <div class="grid grid-cols-4 gap-8">
                                 {% for category in categories %}
                                 <div class="explore-category-column">
-                                    <a href="{% url 'catalog:testbank_list' category_slug=category.slug %}" 
-                                       class="block text-sm font-semibold text-gray-900 mb-3 hover:text-[#5624d0] transition-colors">
+                                    <a href="{% url 'catalog:category_detail' category_slug=category.slug %}"
+                                        class="block text-sm font-semibold text-gray-900 mb-3 hover:text-[#5624d0] transition-colors">
                                         {{ category.name }}
                                     </a>
                                     {% if category.subcategories.all %}
                                     <ul class="space-y-2">
                                         {% for subcategory in category.subcategories.all %}
                                         <li>
-                                            <a href="{% url 'catalog:subcategory_list_full' category_slug=category.slug subcategory_slug=subcategory.slug %}" 
-                                               class="block text-sm text-gray-600 hover:text-[#5624d0] transition-colors py-1">
+                                            <a href="{% url 'catalog:subcategory_list_full' category_slug=category.slug subcategory_slug=subcategory.slug %}"
+                                                class="block text-sm text-gray-600 hover:text-[#5624d0] transition-colors py-1">
                                                 {{ subcategory.name }}
                                             </a>
                                             {% if subcategory.certifications.all %}
                                             <ul class="ml-4 mt-1 space-y-1">
                                                 {% for certification in subcategory.certifications.all|slice:":3" %}
                                                 <li>
-                                                    <a href="{% url 'catalog:certification_list_full' category_slug=category.slug subcategory_slug=subcategory.slug certification_slug=certification.slug %}" 
-                                                       class="block text-xs text-gray-500 hover:text-[#5624d0] transition-colors">
+                                                    <a href="{% url 'catalog:certification_list_full' category_slug=category.slug subcategory_slug=subcategory.slug certification_slug=certification.slug %}"
+                                                        class="block text-xs text-gray-500 hover:text-[#5624d0] transition-colors">
                                                         {{ certification.name }}
                                                     </a>
                                                 </li>
@@ -98,58 +101,66 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <!-- Search Bar - Center (Udemy Style) -->
                 <div class="flex-1 max-w-2xl mx-4 hidden md:block">
                     <form method="get" action="{% url 'catalog:index' %}" class="relative">
-                        <input type="text" 
-                               name="q" 
-                               placeholder="{% trans 'Search for anything' %}" 
-                               class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:border-transparent"
-                               value="{{ request.GET.q }}">
-                        <button type="submit" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#5624d0] transition-colors">
+                        <input type="text" name="q" placeholder="{% trans 'Search for anything' %}"
+                            class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:border-transparent"
+                            value="{{ request.GET.q }}">
+                        <button type="submit"
+                            class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#5624d0] transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </button>
                     </form>
                 </div>
-                
+
                 <!-- Right Side Actions -->
                 <div class="flex items-center space-x-4 {% if IS_RTL %}space-x-reverse{% endif %}">
                     {% if user.is_authenticated %}
                     <!-- Cart Icon -->
                     <a href="#" class="p-2 text-gray-700 hover:text-[#5624d0] transition-colors relative">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                     </a>
                     <!-- User Menu -->
-                    <div class="relative group">
-                        <button type="button" class="flex items-center px-3 py-1.5 rounded hover:bg-gray-100 transition-all">
+                    <div class="relative group user-menu-container">
+                        <button type="button" id="user-menu-button"
+                            class="flex items-center px-3 py-1.5 rounded hover:bg-gray-100 transition-all">
                             <div class="w-8 h-8 bg-[#5624d0] rounded-full flex items-center justify-center">
                                 <span class="text-white text-xs font-semibold">{{ user.username|first|upper }}</span>
                             </div>
                         </button>
-                        <div class="absolute {% if IS_RTL %}left-0{% else %}right-0{% endif %} mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] pointer-events-none group-hover:pointer-events-auto">
-                            <a href="{% url 'accounts:profile' pk=user.pk %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <div id="user-menu-dropdown"
+                            class="fixed {% if IS_RTL %}left-auto{% else %}right-4{% endif %} w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 opacity-0 invisible transition-all duration-200 z-[10001]" style="top: 64px !important; scroll-behavior: auto !important; position: fixed !important;">
+                            <a href="{% url 'accounts:profile' pk=user.pk %}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                 {% trans "Profile" %}
                             </a>
-                            <a href="{% url 'accounts:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="{% url 'accounts:dashboard' %}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                 {% trans "My Learning" %}
                             </a>
                             <hr class="my-1">
-                            <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="{% url 'accounts:logout' %}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                 {% trans "Logout" %}
                             </a>
                         </div>
                     </div>
                     {% else %}
                     <!-- Login/Register Links -->
-                    <a href="{% url 'accounts:login' %}" class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition">
+                    <a href="{% url 'accounts:login' %}"
+                        class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition">
                         {% trans "Log in" %}
                     </a>
-                    <a href="{% url 'accounts:register' %}" class="px-4 py-2 text-sm font-semibold text-white bg-[#5624d0] hover:bg-[#4a1fb8] rounded transition-all">
+                    <a href="{% url 'accounts:register' %}"
+                        class="px-4 py-2 text-sm font-semibold text-white bg-[#5624d0] hover:bg-[#4a1fb8] rounded transition-all">
                         {% trans "Sign up" %}
                     </a>
                     {% endif %}
@@ -157,18 +168,23 @@
             </div>
         </div>
     </nav>
-    
+
     <!-- Messages (Django messages framework) -->
     {% if messages %}
     <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-50 border-l-4 border-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-500 text-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4 shadow-sm" role="alert">
+        <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-50 border-l-4 border-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-500 text-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4 shadow-sm"
+            role="alert">
             <div class="flex items-center">
                 <svg class="w-5 h-5 mr-2 {% if IS_RTL %}ml-2 mr-0{% endif %}" fill="currentColor" viewBox="0 0 20 20">
                     {% if message.tags == 'success' %}
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"></path>
                     {% else %}
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd"></path>
                     {% endif %}
                 </svg>
                 <span>{{ message }}</span>
@@ -177,33 +193,39 @@
         {% endfor %}
     </div>
     {% endif %}
-    
+
     <!-- CMS Site-Wide Announcements -->
     {% load cms_tags %}
     {% if cms_site_announcements %}
     <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         {% for announcement in cms_site_announcements %}
-            {% render_announcement announcement %}
+        {% render_announcement announcement %}
         {% endfor %}
     </div>
     {% endif %}
-    
+
     <!-- Main Content -->
-    <main class="flex-grow relative z-[1] mt-0 pt-0">
+    <main class="flex-grow relative z-0 mt-0 pt-0">
         {% block content %}{% endblock %}
     </main>
-    
+
     <!-- Footer - Apple Style -->
     <footer class="bg-white border-t border-gray-100 mt-20">
-        <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-16">
+        <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16">
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-8">
                 <!-- Platform -->
                 <div>
                     <h4 class="font-semibold text-[#000000] mb-5 text-sm tracking-tight">{% trans "Platform" %}</h4>
                     <ul class="space-y-3 text-sm">
-                        <li><a href="{% url 'catalog:index' %}" class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans "Home" %}</a></li>
-                        <li><a href="{% url 'catalog:category_list' %}" class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans "Browse" %}</a></li>
-                        <li><a href="{% url 'catalog:category_list' %}" class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans "Categories" %}</a></li>
+                        <li><a href="{% url 'catalog:index' %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans
+                                "Home" %}</a></li>
+                        <li><a href="{% url 'catalog:category_list' %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans
+                                "Browse" %}</a></li>
+                        <li><a href="{% url 'catalog:category_list' %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition-colors font-medium">{% trans
+                                "Categories" %}</a></li>
                     </ul>
                 </div>
                 <!-- Account -->
@@ -211,11 +233,16 @@
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "Account" %}</h4>
                     <ul class="space-y-2 text-sm">
                         {% if user.is_authenticated %}
-                        <li><a href="{% url 'accounts:dashboard' %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "My Learning" %}</a></li>
-                        <li><a href="{% url 'accounts:profile' pk=user.pk %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Profile" %}</a></li>
+                        <li><a href="{% url 'accounts:dashboard' %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition">{% trans "My Learning" %}</a>
+                        </li>
+                        <li><a href="{% url 'accounts:profile' pk=user.pk %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Profile" %}</a></li>
                         {% else %}
-                        <li><a href="{% url 'accounts:login' %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Log in" %}</a></li>
-                        <li><a href="{% url 'accounts:register' %}" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Sign Up" %}</a></li>
+                        <li><a href="{% url 'accounts:login' %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Log in" %}</a></li>
+                        <li><a href="{% url 'accounts:register' %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Sign Up" %}</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -223,12 +250,15 @@
                 <div>
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "Support" %}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Help" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Contact" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Help" %}</a>
+                        </li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Contact" %}</a>
+                        </li>
                         {% load cms_tags %}
                         {% if cms_pages %}
                         {% for page in cms_pages|slice:":3" %}
-                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}" class="text-[#666666] hover:text-[#e28f64] transition">{{ page.title }}</a></li>
+                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition">{{ page.title }}</a></li>
                         {% endfor %}
                         {% endif %}
                     </ul>
@@ -237,16 +267,20 @@
                 <div>
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "Community" %}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Blog" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Forums" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Blog" %}</a>
+                        </li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Forums" %}</a>
+                        </li>
                     </ul>
                 </div>
                 <!-- More -->
                 <div>
                     <h4 class="font-semibold text-[#000000] mb-4 text-sm">{% trans "More" %}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "About" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Careers" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "About" %}</a>
+                        </li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Careers" %}</a>
+                        </li>
                     </ul>
                 </div>
                 <!-- Legal -->
@@ -256,20 +290,26 @@
                         {% load cms_tags %}
                         {% get_cms_pages as all_pages %}
                         {% for page in all_pages %}
-                        {% if 'terms' in page.slug|lower or 'privacy' in page.slug|lower or 'legal' in page.slug|lower %}
-                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}" class="text-[#666666] hover:text-[#e28f64] transition">{{ page.title }}</a></li>
+                        {% if 'terms' in page.slug|lower or 'privacy' in page.slug|lower or 'legal' in page.slug|lower                        %}
+                        <li><a href="{% url 'cms:page_detail' slug=page.slug %}"
+                                class="text-[#666666] hover:text-[#e28f64] transition">{{ page.title }}</a></li>
                         {% endif %}
                         {% empty %}
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Terms" %}</a></li>
-                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Privacy" %}</a></li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Terms" %}</a>
+                        </li>
+                        <li><a href="#" class="text-[#666666] hover:text-[#e28f64] transition">{% trans "Privacy" %}</a>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
             <div class="border-t border-gray-100 pt-10 flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center space-x-3 {% if IS_RTL %}space-x-reverse{% endif %} mb-4 md:mb-0">
-                    <div class="w-7 h-7 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-xl flex items-center justify-center shadow-sm">
-                        <span class="font-semibold text-xs"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
+                    <div
+                        class="w-7 h-7 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-xl flex items-center justify-center shadow-sm">
+                        <span class="font-semibold text-xs"><span class="text-[#666666]">{</span><span
+                                class="text-white">E</span><span class="text-white">S</span><span
+                                class="text-[#666666]">}</span></span>
                     </div>
                     <span class="text-base font-semibold tracking-tight">
                         <span class="text-[#666666]">Exam</span><span class="font-bold text-[#e28f64]">{Stellar}</span>
@@ -281,39 +321,51 @@
             </div>
         </div>
     </footer>
-    
+
     {% block extra_js %}{% endblock %}
-    
+
     <!-- Mega Menu JavaScript - Click Effect -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const exploreButton = document.getElementById('explore-button');
             const megaMenu = document.getElementById('explore-mega-menu');
             const exploreContainer = document.querySelector('.explore-menu-container');
-            
+
+            // User Menu Elements
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenuDropdown = document.getElementById('user-menu-dropdown');
+            const userMenuContainer = document.querySelector('.user-menu-container');
+
             if (exploreButton && megaMenu && exploreContainer) {
                 let isMenuOpen = false;
-                
+
                 // Toggle menu on button click
-                exploreButton.addEventListener('click', function(event) {
+                exploreButton.addEventListener('click', function (event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    
+
                     isMenuOpen = !isMenuOpen;
-                    
+
                     if (isMenuOpen) {
                         exploreContainer.classList.add('menu-open');
                         megaMenu.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
                         megaMenu.classList.add('opacity-100', 'visible', 'pointer-events-auto');
+
+                        // Close user menu if open
+                        if (userMenuDropdown) {
+                            userMenuDropdown.classList.add('opacity-0', 'invisible');
+                            userMenuDropdown.classList.remove('opacity-100', 'visible');
+                            isUserMenuOpen = false;
+                        }
                     } else {
                         exploreContainer.classList.remove('menu-open');
                         megaMenu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
                         megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
                     }
                 });
-                
+
                 // Close menu when clicking outside
-                document.addEventListener('click', function(event) {
+                document.addEventListener('click', function (event) {
                     if (isMenuOpen && !exploreContainer.contains(event.target)) {
                         isMenuOpen = false;
                         exploreContainer.classList.remove('menu-open');
@@ -321,13 +373,119 @@
                         megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
                     }
                 });
-                
+
                 // Prevent menu from closing when clicking inside it
-                megaMenu.addEventListener('click', function(event) {
+                megaMenu.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+            }
+
+            // User Menu Logic
+            let isUserMenuOpen = false;
+            if (userMenuButton && userMenuDropdown && userMenuContainer) {
+                userMenuButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    isUserMenuOpen = !isUserMenuOpen;
+
+                    if (isUserMenuOpen) {
+                        // Calculate position dynamically to prevent scroll issues
+                        const buttonRect = userMenuButton.getBoundingClientRect();
+                        const dropdown = userMenuDropdown;
+                        const isRTL = document.documentElement.dir === 'rtl';
+                        
+                        // Set fixed position based on button position
+                        if (isRTL) {
+                            dropdown.style.left = buttonRect.left + 'px';
+                            dropdown.style.right = 'auto';
+                        } else {
+                            dropdown.style.right = (window.innerWidth - buttonRect.right) + 'px';
+                            dropdown.style.left = 'auto';
+                        }
+                        dropdown.style.top = '64px'; // Below nav bar
+                        dropdown.style.position = 'fixed';
+                        dropdown.style.scrollBehavior = 'auto';
+                        
+                        userMenuDropdown.classList.remove('opacity-0', 'invisible');
+                        userMenuDropdown.classList.add('opacity-100', 'visible');
+
+                        // Close mega menu if open
+                        if (megaMenu && exploreContainer) {
+                            exploreContainer.classList.remove('menu-open');
+                            megaMenu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+                            megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
+                            // We can't easily access isMenuOpen from here scope-wise unless we move it up, 
+                            // but clicking outside handles the state reset mostly.
+                        }
+                    } else {
+                        userMenuDropdown.classList.add('opacity-0', 'invisible');
+                        userMenuDropdown.classList.remove('opacity-100', 'visible');
+                    }
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (isUserMenuOpen && !userMenuContainer.contains(event.target)) {
+                        isUserMenuOpen = false;
+                        userMenuDropdown.classList.add('opacity-0', 'invisible');
+                        userMenuDropdown.classList.remove('opacity-100', 'visible');
+                    }
+                });
+
+                userMenuDropdown.addEventListener('click', function (event) {
                     event.stopPropagation();
                 });
             }
         });
     </script>
+    <script>
+        function rateTestBank(slug, rating) {
+            fetch(`/rate-test-bank/${slug}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ rating: rating })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update UI to reflect new rating
+                        const ratingContainer = document.querySelector(`div[data-testbank-slug="${slug}"]`);
+                        if (ratingContainer) {
+                            const stars = ratingContainer.querySelectorAll('svg');
+                            stars.forEach((star, index) => {
+                                if (index < rating) {
+                                    star.classList.remove('text-gray-300');
+                                    star.classList.add('text-yellow-400');
+                                } else {
+                                    star.classList.remove('text-yellow-400');
+                                    star.classList.add('text-gray-300');
+                                }
+                            });
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Helper to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 </body>
+
 </html>

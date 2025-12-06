@@ -42,9 +42,34 @@ def index(request):
     ).order_by('-user_count', '-average_rating')[:6])
     
     # Get trending test banks (ordered by user count, then rating, then recent)
-    trending_test_banks = list(TestBank.objects.filter(is_active=True).annotate(
+    trending_qs = TestBank.objects.filter(is_active=True).annotate(
         user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
-    ).order_by('-user_count', '-average_rating', '-created_at')[:8])
+    )
+
+    if request.user.is_authenticated:
+        from django.db.models import OuterRef, Subquery, Exists, IntegerField
+        from practice.models import UserTestAccess
+        from .models import TestBankRating
+
+        # Subquery to check if user has access
+        access_subquery = UserTestAccess.objects.filter(
+            user=request.user,
+            test_bank=OuterRef('pk'),
+            is_active=True
+        )
+        
+        # Subquery to get user's rating
+        rating_subquery = TestBankRating.objects.filter(
+            user=request.user,
+            test_bank=OuterRef('pk')
+        ).values('rating')[:1]
+
+        trending_qs = trending_qs.annotate(
+            has_access=Exists(access_subquery),
+            user_rating=Subquery(rating_subquery, output_field=IntegerField())
+        )
+    
+    trending_test_banks = list(trending_qs.order_by('-user_count', '-average_rating', '-created_at')[:10])
     
     # Testimonials are now loaded from CMS via context processor
     
@@ -347,3 +372,48 @@ def testbank_detail(request, slug):
         'related_test_banks': related_test_banks,
         'is_free': is_free,
     })
+
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+import json
+
+@require_POST
+@login_required
+def rate_test_bank(request, slug):
+    """
+    Handle AJAX request to rate a test bank.
+    """
+    try:
+        data = json.loads(request.body)
+        rating_value = int(data.get('rating'))
+        
+        if not 1 <= rating_value <= 5:
+            return JsonResponse({'status': 'error', 'message': 'Invalid rating value'}, status=400)
+            
+        test_bank = get_object_or_404(TestBank, slug=slug, is_active=True)
+        
+        # Check if user has access
+        has_access = UserTestAccess.objects.filter(
+            user=request.user,
+            test_bank=test_bank,
+            is_active=True
+        ).exists()
+        
+        if not has_access:
+            return JsonResponse({'status': 'error', 'message': 'You must have access to rate this test bank'}, status=403)
+            
+        # Create or update rating
+        from .models import TestBankRating
+        TestBankRating.objects.update_or_create(
+            user=request.user,
+            test_bank=test_bank,
+            defaults={'rating': rating_value}
+        )
+        
+        return JsonResponse({'status': 'success'})
+        
+    except (ValueError, json.JSONDecodeError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

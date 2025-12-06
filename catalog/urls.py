@@ -51,5 +51,8 @@ urlpatterns = [
     
     # Test bank detail
     path('test-bank/<slug:slug>/', views.testbank_detail, name='testbank_detail'),
+    
+    # Rate test bank (AJAX)
+    path('rate-test-bank/<slug:slug>/', views.rate_test_bank, name='rate_test_bank'),
 ]
 

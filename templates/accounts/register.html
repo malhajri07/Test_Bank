@@ -8,8 +8,11 @@
     <div class="max-w-md w-full">
         <!-- Logo - Apple Style -->
         <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-3xl mb-6 shadow-xl">
-                <span class="font-semibold text-2xl"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
+            <div
+                class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-3xl mb-6 shadow-xl">
+                <span class="font-semibold text-2xl"><span class="text-[#666666]">{</span><span
+                        class="text-white">E</span><span class="text-white">S</span><span
+                        class="text-[#666666]">}</span></span>
             </div>
             <h2 class="text-4xl font-semibold text-[#000000] tracking-tight mb-2">
                 {% trans "Create your account" %}
@@ -18,113 +21,101 @@
                 {% trans "Start your learning journey" %}
             </p>
         </div>
-        
+
         <!-- Registration Form - Apple Style -->
         <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 p-10">
             <form method="post" class="space-y-5">
                 {% csrf_token %}
-                
+
                 <div>
-                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                    <label for="{{ form.username.id_for_label }}"
+                        class="block text-sm font-semibold text-[#000000] mb-2">
                         {% trans "Username" %}
                     </label>
-                    {{ form.username }}
+                    <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
+                        value="{{ form.username.value|default:'' }}" required
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.username.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.username.errors }}</p>
+                    <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
+
                 <div>
                     <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
                         {% trans "Email" %}
                     </label>
-                    {{ form.email }}
+                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}"
+                        value="{{ form.email.value|default:'' }}" required
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.email.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.email.errors }}</p>
+                    <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
+
                 <div>
-                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                    <label for="{{ form.password1.id_for_label }}"
+                        class="block text-sm font-semibold text-[#000000] mb-2">
                         {% trans "Password" %}
                     </label>
-                    {{ form.password1 }}
+                    <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}"
+                        required
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.password1.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.password1.errors }}</p>
+                    <p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
+
                 <div>
-                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                    <label for="{{ form.password2.id_for_label }}"
+                        class="block text-sm font-semibold text-[#000000] mb-2">
                         {% trans "Confirm Password" %}
                     </label>
-                    {{ form.password2 }}
+                    <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}"
+                        required
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.password2.errors %}
-                    <p class="mt-1 text-sm text-red-600">{{ form.password2.errors }}</p>
+                    <p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
+
                 <div>
-                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                    <label for="{{ form.full_name.id_for_label }}"
+                        class="block text-sm font-semibold text-[#000000] mb-2">
                         {% trans "Full Name" %}
                     </label>
-                    {{ form.full_name }}
+                    <input type="text" name="{{ form.full_name.name }}" id="{{ form.full_name.id_for_label }}"
+                        value="{{ form.full_name.value|default:'' }}"
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                 </div>
-                
+
                 <div>
-                    <label for="{{ form.preferred_language.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
+                    <label for="{{ form.preferred_language.id_for_label }}"
+                        class="block text-sm font-semibold text-[#000000] mb-2">
                         {% trans "Preferred Language" %}
                     </label>
-                    {{ form.preferred_language }}
+                    <select name="{{ form.preferred_language.name }}" id="{{ form.preferred_language.id_for_label }}"
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all bg-white">
+                        {% for x, y in form.fields.preferred_language.choices %}
+                        <option value="{{ x }}" {% if form.preferred_language.value == x %}selected{% endif %}>{{ y }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
-                
-                <button type="submit" class="w-full bg-gradient-to-r from-[#e28f64] to-[#d17a4f] hover:from-[#d17a4f] hover:to-[#c86a3f] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-[#e28f64] to-[#d17a4f] hover:from-[#d17a4f] hover:to-[#c86a3f] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
                     {% trans "Create Account" %}
                 </button>
             </form>
-            
+
             <div class="mt-6 text-center">
                 <p class="text-sm text-[#666666]">
                     {% url 'accounts:login' as login_url %}
-                    {% blocktrans %}Already have an account? <a href="{{ login_url }}" class="text-[#e28f64] hover:text-[#d17a4f] font-semibold">Log in</a>{% endblocktrans %}
+                    {% blocktrans %}Already have an account? <a href="{{ login_url }}"
+                        class="text-[#e28f64] hover:text-[#d17a4f] font-semibold">Log in</a>{% endblocktrans %}
                 </p>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-/* Style form inputs to match Apple style */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-select {
-    width: 100%;
-    padding: 14px 18px;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    font-size: 15px;
-    color: #000000;
-    font-weight: 500;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    background-color: white;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-input[type="text"]:hover,
-input[type="email"]:hover,
-input[type="password"]:hover,
-select:hover {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
-select:focus {
-    outline: none;
-    border-color: #8FABD4;
-    box-shadow: 0 0 0 4px rgba(143, 171, 212, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-</style>
 {% endblock %}
