@@ -98,8 +98,7 @@
                     <!-- Rating - Udemy Style -->
                     <div class="flex items-center mb-2">
                         {% if test_bank.average_rating > 0 %}
-                        <span class="text-sm font-bold text-gray-900 mr-1">{{ test_bank.average_rating|floatformat:1
-                            }}</span>
+                        <span class="text-sm font-bold text-gray-900 mr-1">{{ test_bank.average_rating|floatformat:1 }}</span>
                         <div class="flex items-center mr-1">
                             {% with rating_int=test_bank.average_rating|floatformat:0 %}
                             {% for i in "12345"|make_list %}
