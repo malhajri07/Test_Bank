@@ -135,7 +135,9 @@
                                             {% for i in "12345" %}
                                             <button type="button"
                                                 class="w-5 h-5 focus:outline-none transition-transform hover:scale-110"
-                                                onclick="rateTestBank('{{ test_bank.slug }}', {{ forloop.counter }})">
+                                                data-testbank-slug="{{ test_bank.slug }}"
+                                                data-rating="{{ forloop.counter }}"
+                                                onclick="rateTestBank(this.dataset.testbankSlug, parseInt(this.dataset.rating))">
                                                 <svg class="w-full h-full {% if forloop.counter <= user_rating %}text-yellow-400 fill-current{% else %}text-gray-300 fill-current hover:text-yellow-400{% endif %}"
                                                     viewBox="0 0 20 20">
                                                     <path
