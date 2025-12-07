@@ -600,6 +600,47 @@ class ReviewReply(models.Model):
         return f'{self.user.username} - Reply to {self.review.user.username}\'s review'
 
 
+class ContactMessage(models.Model):
+    """
+    ContactMessage model for storing user contact form submissions.
+    """
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Name',
+        help_text='Name of the person sending the message'
+    )
+    email = models.EmailField(
+        verbose_name='Email',
+        help_text='Email address for response'
+    )
+    subject = models.CharField(
+        max_length=200,
+        verbose_name='Subject',
+        help_text='Subject of the message'
+    )
+    message = models.TextField(
+        verbose_name='Message',
+        help_text='The message content'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At'
+    )
+    is_read = models.BooleanField(
+        default=False,
+        verbose_name='Is Read',
+        help_text='Whether the message has been read by an admin'
+    )
+
+    class Meta:
+        verbose_name = 'Contact Message'
+        verbose_name_plural = 'Contact Messages'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Contact from {self.name} - {self.subject}'
+
+
 class Question(models.Model):
     """
     Question model representing individual questions within a test bank.

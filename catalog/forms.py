@@ -3,7 +3,7 @@ Forms for catalog app, including JSON upload form for test banks.
 """
 
 from django import forms
-from .models import TestBank, Category, SubCategory, Certification, TestBankRating, ReviewReply
+from .models import TestBank, Category, SubCategory, Certification, TestBankRating, ReviewReply, ContactMessage
 
 
 class TestBankJSONUploadForm(forms.Form):
@@ -127,4 +127,47 @@ class ReviewReplyForm(forms.ModelForm):
     class Meta:
         model = ReviewReply
         fields = ['content']
+
+
+class ContactForm(forms.ModelForm):
+    """Form for submitting contact messages."""
+    
+    name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-3 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 bg-transparent',
+            'placeholder': 'Your name'
+        }),
+        required=True,
+        max_length=200
+    )
+    
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full px-4 py-3 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 bg-transparent',
+            'placeholder': 'your.email@example.com'
+        }),
+        required=True
+    )
+    
+    subject = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-3 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 bg-transparent',
+            'placeholder': 'Subject'
+        }),
+        required=True,
+        max_length=200
+    )
+    
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 6,
+            'placeholder': 'Your message...',
+            'class': 'w-full px-4 py-3 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 resize-none bg-transparent'
+        }),
+        required=True
+    )
+    
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'subject', 'message']
 

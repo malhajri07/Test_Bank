@@ -15,8 +15,8 @@ from django.db.models import Count, Q, Avg
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.http import JsonResponse
-from .models import Category, SubCategory, Certification, TestBank, TestBankRating, ReviewReply
-from .forms import TestBankReviewForm, ReviewReplyForm
+from .models import Category, SubCategory, Certification, TestBank, TestBankRating, ReviewReply, ContactMessage
+from .forms import TestBankReviewForm, ReviewReplyForm, ContactForm
 from practice.models import UserTestAccess
 
 
@@ -483,3 +483,23 @@ def rate_test_bank(request, slug):
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+def contact(request):
+    """
+    Contact page view.
+    
+    Displays a contact form for users to send messages.
+    """
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            contact_message = form.save()
+            messages.success(request, _('Thank you for your message! We will get back to you soon.'))
+            return redirect('catalog:contact')
+    else:
+        form = ContactForm()
+    
+    return render(request, 'catalog/contact.html', {
+        'form': form,
+    })

@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.urls import path
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-from .models import Category, SubCategory, Certification, TestBank, TestBankRating, Question, AnswerOption
+from .models import Category, SubCategory, Certification, TestBank, TestBankRating, Question, AnswerOption, ContactMessage
 from .forms import TestBankJSONUploadForm
 from .utils import import_test_bank_from_json, parse_json_file
 
@@ -280,3 +280,34 @@ class AnswerOptionAdmin(admin.ModelAdmin):
     list_filter = ('is_correct', 'created_at')
     search_fields = ('option_text', 'question__question_text')
     readonly_fields = ('created_at',)
+
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    """Admin interface for ContactMessage model."""
+    list_display = ('name', 'email', 'subject', 'is_read', 'created_at')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('name', 'email', 'subject', 'message')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+    
+    fieldsets = (
+        ('Message Information', {
+            'fields': ('name', 'email', 'subject', 'message')
+        }),
+        ('Status', {
+            'fields': ('is_read',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def mark_as_read(self, request, queryset):
+        """Mark selected messages as read."""
+        queryset.update(is_read=True)
+        self.message_user(request, f'{queryset.count()} message(s) marked as read.')
+    mark_as_read.short_description = 'Mark selected messages as read'
+    
+    actions = [mark_as_read]
