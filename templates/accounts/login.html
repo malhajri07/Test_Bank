@@ -6,13 +6,15 @@
 {% block content %}
 <div class="min-h-screen bg-[rgb(245, 245, 247)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full">
-        <!-- Logo - Apple Style -->
+        <!-- Logo - New Purple Style -->
         <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#e59d79] to-[#df804f] rounded-3xl mb-6 shadow-xl">
-                <span class="font-semibold text-2xl"><span class="text-[#666666]">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-[#666666]">}</span></span>
+            <div class="inline-flex items-center justify-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] rounded-xl flex items-center justify-center shadow-sm">
+                    <span class="font-semibold text-xl"><span class="text-white">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-white">}</span></span>
+                </div>
             </div>
-            <h2 class="text-4xl font-semibold text-[#000000] tracking-tight mb-2">
-                {% trans "Log in to your account" %}
+            <h2 class="text-4xl font-semibold tracking-tight mb-2">
+                <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Log in to your account" %}</mark>
             </h2>
         </div>
         
@@ -26,7 +28,7 @@
                         {% trans "Username" %}
                     </label>
                     <input type="text" name="username" id="id_username" required 
-                           class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
+                           class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                 </div>
                 
                 <div>
@@ -34,7 +36,7 @@
                         {% trans "Password" %}
                     </label>
                     <input type="password" name="password" id="id_password" required
-                           class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#8FABD4] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
+                           class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                 </div>
                 
                 {% if form.errors %}
@@ -46,12 +48,12 @@
                 {% endif %}
                 
                 <div class="flex items-center justify-between">
-                    <a href="{% url 'accounts:password_reset' %}" class="text-sm text-[#e28f64] hover:text-[#d17a4f]">
+                    <a href="{% url 'accounts:password_reset' %}" class="text-sm text-[#5624d0] hover:text-[#4a1fb8]">
                         {% trans "Forgot password?" %}
                     </a>
                 </div>
                 
-                <button type="submit" class="w-full bg-gradient-to-r from-[#e28f64] to-[#d17a4f] hover:from-[#d17a4f] hover:to-[#c86a3f] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+                <button type="submit" class="w-full bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
                     {% trans "Log in" %}
                 </button>
             </form>
@@ -59,7 +61,7 @@
             <div class="mt-6 text-center">
                 <p class="text-sm text-[#666666]">
                     {% url 'accounts:register' as register_url %}
-                    {% blocktrans %}Don't have an account? <a href="{{ register_url }}" class="text-[#e28f64] hover:text-[#d17a4f] font-semibold">Sign up</a>{% endblocktrans %}
+                    {% blocktrans %}Don't have an account? <a href="{{ register_url }}" class="text-[#5624d0] hover:text-[#4a1fb8] font-semibold">Sign up</a>{% endblocktrans %}
                 </p>
             </div>
         </div>

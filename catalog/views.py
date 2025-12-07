@@ -8,12 +8,15 @@ This module provides views for:
 - Test bank detail page with purchase/practice options
 """
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db.models import Count, Q, Avg
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from .models import Category, SubCategory, Certification, TestBank
+from django.http import JsonResponse
+from .models import Category, SubCategory, Certification, TestBank, TestBankRating, ReviewReply
+from .forms import TestBankReviewForm, ReviewReplyForm
 from practice.models import UserTestAccess
 
 
@@ -364,6 +367,65 @@ def testbank_detail(request, slug):
     # Check if test bank is free
     is_free = test_bank.price == 0
     
+    # Get all reviews with user information and replies
+    reviews = TestBankRating.objects.filter(test_bank=test_bank).select_related('user').prefetch_related('replies__user').order_by('-created_at')[:10]
+    
+    # Get user's existing review if authenticated
+    user_review = None
+    if request.user.is_authenticated:
+        try:
+            user_review = TestBankRating.objects.get(user=request.user, test_bank=test_bank)
+        except TestBankRating.DoesNotExist:
+            pass
+    
+    # Handle review submission
+    review_form = None
+    reply_form = None
+    
+    if request.method == 'POST' and request.user.is_authenticated:
+        # Check if this is a reply submission
+        reply_to_review_id = request.POST.get('reply_to_review_id')
+        if reply_to_review_id:
+            # Handle reply submission
+            try:
+                parent_review = TestBankRating.objects.get(id=reply_to_review_id, test_bank=test_bank)
+                reply_form = ReviewReplyForm(request.POST)
+                if reply_form.is_valid():
+                    reply = reply_form.save(commit=False)
+                    reply.user = request.user
+                    reply.review = parent_review
+                    reply.save()
+                    messages.success(request, _('Your reply has been posted.'))
+                    return redirect('catalog:testbank_detail', slug=slug)
+            except TestBankRating.DoesNotExist:
+                messages.error(request, _('Review not found.'))
+        elif has_access:
+            # Handle review submission
+            if user_review:
+                review_form = TestBankReviewForm(request.POST, instance=user_review)
+            else:
+                review_form = TestBankReviewForm(request.POST)
+            
+            if review_form.is_valid():
+                review = review_form.save(commit=False)
+                review.user = request.user
+                review.test_bank = test_bank
+                review.save()
+                messages.success(request, _('Thank you for your review!'))
+                return redirect('catalog:testbank_detail', slug=slug)
+        else:
+            messages.error(request, _('You must have access to this test bank to leave a review.'))
+    
+    # Initialize forms for GET request
+    if review_form is None:
+        if user_review:
+            review_form = TestBankReviewForm(instance=user_review)
+        else:
+            review_form = TestBankReviewForm()
+    
+    if reply_form is None:
+        reply_form = ReviewReplyForm()
+    
     return render(request, 'catalog/testbank_detail.html', {
         'test_bank': test_bank,
         'has_access': has_access,
@@ -371,6 +433,10 @@ def testbank_detail(request, slug):
         'recent_sessions': recent_sessions,
         'related_test_banks': related_test_banks,
         'is_free': is_free,
+        'reviews': reviews,
+        'user_review': user_review,
+        'review_form': review_form,
+        'reply_form': reply_form,
     })
 
 

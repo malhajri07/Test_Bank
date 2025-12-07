@@ -71,6 +71,32 @@
     @apply flex-1 flex flex-col justify-center;
   }
 
+  /* Hero Carousel Styles */
+  .hero-carousel-swiper {
+    @apply pb-0;
+  }
+
+  .hero-carousel-swiper .swiper-slide {
+    @apply h-full;
+  }
+
+  .hero-carousel-pagination {
+    @apply bottom-6 !important;
+    position: absolute !important;
+    z-index: 20 !important;
+  }
+
+  .hero-carousel-pagination .swiper-pagination-bullet {
+    @apply w-3 h-3 bg-white/50 opacity-100;
+    margin: 0 6px !important;
+    transition: all 0.3s ease;
+  }
+
+  .hero-carousel-pagination .swiper-pagination-bullet-active {
+    @apply bg-white w-8;
+    border-radius: 4px !important;
+  }
+
   /* Swiper Navigation Buttons */
   .swiper-button-next,
   .swiper-button-prev {

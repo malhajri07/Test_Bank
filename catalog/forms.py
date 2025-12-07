@@ -3,7 +3,7 @@ Forms for catalog app, including JSON upload form for test banks.
 """
 
 from django import forms
-from .models import TestBank, Category, SubCategory, Certification
+from .models import TestBank, Category, SubCategory, Certification, TestBankRating, ReviewReply
 
 
 class TestBankJSONUploadForm(forms.Form):
@@ -74,4 +74,57 @@ class TestBankJSONUploadForm(forms.Form):
                 raise forms.ValidationError('File size must be less than 10MB')
         
         return json_file
+
+
+class TestBankReviewForm(forms.ModelForm):
+    """Form for submitting reviews and ratings for test banks."""
+    
+    rating = forms.IntegerField(
+        min_value=1,
+        max_value=5,
+        widget=forms.HiddenInput(),
+        required=True
+    )
+    
+    title = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Review title...',
+            'class': 'w-full px-3 py-2 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 bg-transparent',
+            'maxlength': '200'
+        }),
+        required=False,
+        max_length=200
+    )
+    
+    review = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'placeholder': 'Write your review...',
+            'class': 'w-full px-3 py-2 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 resize-none bg-transparent'
+        }),
+        required=False,
+        max_length=1000
+    )
+    
+    class Meta:
+        model = TestBankRating
+        fields = ['rating', 'title', 'review']
+
+
+class ReviewReplyForm(forms.ModelForm):
+    """Form for replying to reviews."""
+    
+    content = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 2,
+            'placeholder': 'Write a reply...',
+            'class': 'w-full px-3 py-2 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 resize-none bg-transparent'
+        }),
+        required=True,
+        max_length=1000
+    )
+    
+    class Meta:
+        model = ReviewReply
+        fields = ['content']
 

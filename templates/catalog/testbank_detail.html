@@ -4,180 +4,379 @@
 {% block title %}{{ test_bank.title }} - {% trans "Exam Stellar" %}{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb -->
+<!-- Breadcrumb Navigation -->
 <div class="bg-white border-b border-gray-200">
-    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %}">
-            <a href="{% url 'catalog:index' %}" class="text-[#e28f64] hover:text-[#df804f]">{% trans "Home" %}</a>
-            <span class="text-[#666666]">/</span>
-            <a href="{% url 'catalog:category_list' %}" class="text-[#e28f64] hover:text-[#df804f]">{% trans "Categories" %}</a>
-            <span class="text-[#666666]">/</span>
-            <a href="{% url 'catalog:testbank_list' category_slug=test_bank.category.slug %}" class="text-[#e28f64] hover:text-[#df804f]">{{ test_bank.category.name }}</a>
-            <span class="text-[#666666]">/</span>
-            <span class="text-[#000000]">{{ test_bank.title|truncatewords:5 }}</span>
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <nav aria-label="{% trans 'Breadcrumb' %}" class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %}">
+            <a href="{% url 'catalog:index' %}" class="text-[#5624d0] hover:text-[#4a1fb8] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 rounded">{% trans "Home" %}</a>
+            <span class="text-gray-400" aria-hidden="true">/</span>
+            <a href="{% url 'catalog:category_list' %}" class="text-[#5624d0] hover:text-[#4a1fb8] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 rounded">{% trans "Categories" %}</a>
+            <span class="text-gray-400" aria-hidden="true">/</span>
+            <a href="{% url 'catalog:testbank_list' category_slug=test_bank.category.slug %}" class="text-[#5624d0] hover:text-[#4a1fb8] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 rounded">{{ test_bank.category.name }}</a>
+            <span class="text-gray-400" aria-hidden="true">/</span>
+            <span class="text-gray-900 font-medium" aria-current="page">{{ test_bank.title|truncatewords:5 }}</span>
         </nav>
     </div>
 </div>
 
-<!-- Hero Section - Udemy Style -->
-<div class="bg-white border-b border-gray-200 py-8">
-    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ test_bank.title }}</h1>
-                {% if test_bank.description %}
-                <p class="text-lg text-gray-600 mb-4">{{ test_bank.description|truncatewords:30 }}</p>
-                {% endif %}
-                <div class="flex flex-wrap items-center gap-4 mb-4">
+<!-- Hero Section -->
+<section class="bg-white border-b border-gray-200">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Title -->
+                <div>
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight tracking-tight">{{ test_bank.title }}</h1>
+                </div>
+                
+                <!-- Metadata Bar -->
+                <div class="flex flex-wrap items-center gap-4 sm:gap-6 mb-6">
                     {% if test_bank.average_rating > 0 %}
-                    <div class="flex items-center">
-                        <span class="text-lg font-bold text-gray-900 mr-1">{{ test_bank.average_rating|floatformat:1 }}</span>
-                        <div class="flex items-center mr-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-bold text-gray-900" aria-label="{% trans 'Average rating' %}">{{ test_bank.average_rating|floatformat:1 }}</span>
+                        <div class="flex items-center gap-0.5" role="img" aria-label="{% trans 'Star rating' %}">
                             {% with rating_int=test_bank.average_rating|floatformat:0 %}
                             {% for i in "12345"|make_list %}
                                 {% if forloop.counter <= rating_int|add:"0" %}
-                                    <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20" aria-hidden="true">
                                         <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                                     </svg>
                                 {% else %}
-                                    <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-gray-300 fill-current" viewBox="0 0 20 20" aria-hidden="true">
                                         <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                                     </svg>
                                 {% endif %}
                             {% endfor %}
                             {% endwith %}
                         </div>
-                        <span class="text-sm text-gray-600">({{ test_bank.total_ratings }})</span>
+                        <span class="text-sm text-gray-600">({{ test_bank.total_ratings }} {% trans "reviews" %})</span>
                     </div>
                     {% endif %}
-                    <span class="text-sm text-gray-600">
-                        {{ test_bank.get_user_count }} {% trans "students" %}
-                    </span>
-                    <span class="text-sm text-gray-600">
-                        {% blocktrans count count=question_count %}{{ count }} question{% plural %}{{ count }} questions{% endblocktrans %}
-                    </span>
-                    <!-- Difficulty Label -->
-                    <span class="px-3 py-1 text-xs font-bold rounded-lg shadow-sm
-                        {% if test_bank.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
-                        {% elif test_bank.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
-                        {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
+                    
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <span>{{ test_bank.get_user_count }} {% trans "students" %}</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <span>{% blocktrans count count=question_count %}{{ count }} question{% plural %}{{ count }} questions{% endblocktrans %}</span>
+                    </div>
+                    
+                    <!-- Difficulty Badge -->
+                    <span class="px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm
+                        {% if test_bank.difficulty_level == 'easy' %}bg-green-100 text-green-800 border border-green-200
+                        {% elif test_bank.difficulty_level == 'medium' %}bg-yellow-100 text-yellow-800 border border-yellow-200
+                        {% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
                         {{ test_bank.get_difficulty_level_display }}
                     </span>
                 </div>
+                
+                <!-- Description -->
+                {% if test_bank.description %}
+                <div class="pt-6 border-t border-gray-200">
+                    <p class="text-base sm:text-lg text-gray-700 leading-relaxed">{{ test_bank.description }}</p>
+                </div>
+                {% endif %}
             </div>
+            
+            <!-- Image -->
             {% if test_bank.image %}
             <div class="hidden lg:block">
-                <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-auto rounded-lg shadow-lg">
+                <div class="relative rounded-xl overflow-hidden shadow-lg">
+                    <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-auto object-cover" loading="lazy">
+                </div>
             </div>
             {% endif %}
         </div>
     </div>
-</div>
+</section>
 
-<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Main Content -->
-        <div class="lg:col-span-2">
-            <div class="bg-white border border-gray-200 shadow-sm p-8 mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">{% trans "Description" %}</h2>
-                <div class="prose max-w-none">
-                    <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ test_bank.description }}</p>
-                </div>
-            </div>
-            
+<!-- Main Content Area -->
+<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+        <!-- Main Content Column -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Previous Attempts -->
             {% if recent_sessions %}
-            <div class="bg-white border border-gray-200 shadow-sm p-8">
+            <section class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">{% trans "Previous Attempts" %}</h2>
-                <div class="space-y-4">
+                <div class="space-y-3">
                     {% for session in recent_sessions %}
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded hover:bg-gray-100 transition">
-                        <div>
-                            <p class="text-sm text-gray-600">{{ session.started_at|date:"M d, Y H:i" }}</p>
-                            {% if session.score %}
-                            <p class="text-lg font-semibold text-gray-900 mt-1">{{ session.score|floatformat:1 }}%</p>
-                            {% endif %}
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 border border-transparent hover:border-gray-200">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-[#5624d0] bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-[#5624d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ session.started_at|date:"M d, Y H:i" }}</p>
+                                {% if session.score %}
+                                <p class="text-lg font-bold text-[#5624d0] mt-1">{{ session.score|floatformat:1 }}%</p>
+                                {% endif %}
+                            </div>
                         </div>
                         <a href="{% url 'practice:results' session_id=session.pk %}" 
-                           class="px-4 py-2 bg-[#5624d0] hover:bg-[#4a1fb8] text-white text-sm font-semibold rounded transition">
+                           class="px-5 py-2.5 bg-[#5624d0] hover:bg-[#4a1fb8] text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2">
                             {% trans "View Results" %}
                         </a>
                     </div>
                     {% endfor %}
                 </div>
-            </div>
+            </section>
             {% endif %}
+            
+            <!-- Reviews Section -->
+            <section class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    {% trans "Reviews" %}
+                    {% if test_bank.total_ratings > 0 %}
+                    <span class="text-base font-normal text-gray-500">({{ test_bank.total_ratings }})</span>
+                    {% endif %}
+                </h2>
+                
+                <!-- Review Form (if user has access) -->
+                {% if user.is_authenticated and has_access %}
+                <form method="post" class="mb-8 pb-8 border-b border-gray-100">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-4">
+                        <!-- Star Rating -->
+                        <div>
+                            <div class="flex items-center gap-1" id="rating-stars">
+                                {% for i in "12345"|make_list %}
+                                <button type="button" data-rating="{{ forloop.counter }}" 
+                                    class="star-rating-btn p-0 border-0 bg-transparent cursor-pointer focus:outline-none"
+                                    aria-label="{% trans 'Rate' %} {{ forloop.counter }} {% trans 'stars' %}">
+                                    <svg class="w-6 h-6 {% if user_review and forloop.counter <= user_review.rating %}text-yellow-400{% else %}text-gray-300{% endif %} fill-current transition-colors duration-150 hover:text-yellow-400" 
+                                        viewBox="0 0 20 20">
+                                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                    </svg>
+                                </button>
+                                {% endfor %}
+                            </div>
+                            {{ review_form.rating }}
+                            {% if review_form.rating.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ review_form.rating.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Review Title -->
+                        <div>
+                            {{ review_form.title }}
+                            {% if review_form.title.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ review_form.title.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Review Comment -->
+                        <div>
+                            {{ review_form.review }}
+                            {% if review_form.review.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ review_form.review.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" 
+                            class="px-5 py-2 bg-[#5624d0] hover:bg-[#4a1fb8] text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-1">
+                            {% if user_review %}
+                            {% trans "Update" %}
+                            {% else %}
+                            {% trans "Submit" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+                {% elif user.is_authenticated and not has_access %}
+                <p class="mb-6 text-sm text-gray-600 pb-6 border-b border-gray-100">
+                    {% trans "Purchase this test bank to leave a review." %}
+                </p>
+                {% else %}
+                <p class="mb-6 text-sm text-gray-600 pb-6 border-b border-gray-100">
+                    <a href="{% url 'accounts:login' %}" class="text-[#5624d0] hover:text-[#4a1fb8]">{% trans "Login" %}</a> 
+                    {% trans "to leave a review" %}
+                </p>
+                {% endif %}
+                
+                <!-- Existing Reviews -->
+                {% if reviews %}
+                <div class="space-y-5">
+                    {% for review in reviews %}
+                    <div class="pb-5 border-b border-gray-100 last:border-b-0 last:pb-0">
+                        <div class="flex items-start gap-3 mb-2">
+                            <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-gray-600 font-medium text-xs">{{ review.user.username|first|upper }}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-sm font-medium text-gray-900 truncate">{{ review.user.get_full_name|default:review.user.username }}</p>
+                                    <div class="flex items-center gap-0.5 flex-shrink-0">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <svg class="w-3.5 h-3.5 text-yellow-400 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                </svg>
+                                            {% else %}
+                                                <svg class="w-3.5 h-3.5 text-gray-300 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                </svg>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-2">{{ review.created_at|date:"M d, Y" }}</p>
+                                {% if review.title %}
+                                <h4 class="text-sm font-semibold text-gray-900 mb-1">{{ review.title }}</h4>
+                                {% endif %}
+                                {% if review.review %}
+                                <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-3">{{ review.review }}</p>
+                                {% endif %}
+                                
+                                <!-- Replies -->
+                                {% if review.replies.all %}
+                                <div class="ml-4 pl-4 border-l-2 border-gray-200 space-y-3 mt-3">
+                                    {% for reply in review.replies.all %}
+                                    <div class="flex items-start gap-2">
+                                        <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <span class="text-gray-600 font-medium text-[10px]">{{ reply.user.username|first|upper }}</span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <p class="text-xs font-medium text-gray-900">{{ reply.user.get_full_name|default:reply.user.username }}</p>
+                                                <span class="text-xs text-gray-400">·</span>
+                                                <p class="text-xs text-gray-500">{{ reply.created_at|date:"M d, Y" }}</p>
+                                            </div>
+                                            <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{{ reply.content }}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Reply Button and Form -->
+                                {% if user.is_authenticated %}
+                                <div class="mt-3">
+                                    <button type="button" 
+                                        data-review-id="{{ review.id }}"
+                                        class="reply-toggle-btn text-xs text-[#5624d0] hover:text-[#4a1fb8] font-medium transition-colors duration-200 focus:outline-none"
+                                        id="reply-btn-{{ review.id }}">
+                                        {% trans "Reply" %}
+                                    </button>
+                                    <div id="reply-form-{{ review.id }}" class="hidden mt-3 ml-4 pl-4 border-l-2 border-gray-200">
+                                        <form method="post" class="mt-2">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="reply_to_review_id" value="{{ review.id }}">
+                                            <div class="flex items-start gap-2">
+                                                <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-gray-600 font-medium text-[10px]">{{ user.username|first|upper }}</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    {{ reply_form.content }}
+                                                    {% if reply_form.content.errors %}
+                                                    <p class="mt-1 text-xs text-red-600">{{ reply_form.content.errors.0 }}</p>
+                                                    {% endif %}
+                                                    <div class="flex items-center gap-2 mt-2">
+                                                        <button type="submit" class="px-3 py-1.5 bg-[#5624d0] hover:bg-[#4a1fb8] text-white text-xs font-medium rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-1">
+                                                            {% trans "Post Reply" %}
+                                                        </button>
+                                                        <button type="button" 
+                                                            data-review-id="{{ review.id }}"
+                                                            class="reply-toggle-btn px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200 focus:outline-none">
+                                                            {% trans "Cancel" %}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-500 py-4">{% trans "No reviews yet." %}</p>
+                {% endif %}
+            </section>
         </div>
         
-        <!-- Sidebar - Purchase/Action Card - Udemy Style -->
-        <div class="lg:col-span-1">
-            <div class="bg-white border border-gray-200 shadow-lg sticky top-24 p-6">
+        <!-- Sidebar - Purchase/Action Card -->
+        <aside class="lg:col-span-1">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-lg sticky top-24 p-6">
                 {% if has_access %}
-                <!-- User has access -->
+                <!-- User Has Access -->
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <p class="text-green-600 font-semibold mb-2">{% trans "You have access" %}</p>
+                    <p class="text-green-600 font-semibold text-lg mb-2">{% trans "You have access" %}</p>
+                    <p class="text-sm text-gray-600">{% trans "Unlimited practice sessions" %}</p>
                 </div>
                 
                 <a href="{% url 'practice:start_practice' testbank_slug=test_bank.slug %}" 
-                   class="block w-full text-center px-6 py-3 bg-[#5624d0] hover:bg-[#4a1fb8] text-white font-semibold rounded transition-all mb-4">
+                   class="block w-full text-center px-6 py-4 bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 mb-4">
                     {% trans "Start Practice" %}
                 </a>
-                
-                <div class="text-center text-sm text-[#666666]">
-                    <p>{% trans "Unlimited practice" %}</p>
-                </div>
                 {% else %}
                 <!-- Purchase Card -->
-                <div class="text-center mb-6">
+                <div class="text-center mb-6 pb-6 border-b border-gray-200">
                     {% if is_free %}
                     <div class="text-5xl font-bold text-green-600 mb-2">{% trans "FREE" %}</div>
-                    <p class="text-[#666666] text-sm">{% trans "No payment required" %}</p>
+                    <p class="text-gray-600 text-sm">{% trans "No payment required" %}</p>
                     {% else %}
-                    <div class="text-5xl font-bold text-[#000000] mb-2">${{ test_bank.price }}</div>
-                    <p class="text-[#666666] text-sm">{% trans "One-time payment" %}</p>
+                    <div class="text-5xl font-bold text-gray-900 mb-2">${{ test_bank.price }}</div>
+                    <p class="text-gray-600 text-sm">{% trans "One-time payment" %}</p>
                     {% endif %}
                 </div>
                 
-                <div class="space-y-3 mb-6">
-                    <div class="flex items-start space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
-                        <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                <!-- Features List -->
+                <ul class="space-y-4 mb-6" role="list">
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-[#000000]">{% trans "Unlimited practice" %}</span>
-                    </div>
-                    <div class="flex items-start space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
-                        <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        <span class="text-sm text-gray-700 leading-relaxed">{% trans "Unlimited practice sessions" %}</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-[#000000]">{% blocktrans count count=question_count %}{{ count }} question available{% plural %}{{ count }} questions available{% endblocktrans %}</span>
-                    </div>
-                    <div class="flex items-start space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
-                        <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        <span class="text-sm text-gray-700 leading-relaxed">{% blocktrans count count=question_count %}{{ count }} question available{% plural %}{{ count }} questions available{% endblocktrans %}</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="text-sm text-[#000000]">{% trans "Results review" %}</span>
-                    </div>
-                </div>
+                        <span class="text-sm text-gray-700 leading-relaxed">{% trans "Detailed results review" %}</span>
+                    </li>
+                </ul>
                 
+                <!-- Action Button -->
                 {% if user.is_authenticated %}
                     {% if is_free %}
                     <a href="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}" 
-                       class="block w-full text-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded transition mb-4">
+                       class="block w-full text-center px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 mb-4">
                         {% trans "Get Free Access" %}
                     </a>
                     {% else %}
                     <a href="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}" 
-                       class="block w-full text-center px-6 py-3 bg-[#5624d0] hover:bg-[#4a1fb8] text-white font-semibold rounded transition mb-4">
+                       class="block w-full text-center px-6 py-4 bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 mb-4">
                         {% trans "Buy Now" %}
                     </a>
                     {% endif %}
                 {% else %}
                 <a href="{% url 'accounts:login' %}" 
-                   class="block w-full text-center px-6 py-3 bg-[#5624d0] hover:bg-[#4a1fb8] text-white font-semibold rounded transition mb-4">
+                   class="block w-full text-center px-6 py-4 bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 mb-4">
                     {% if is_free %}
                     {% trans "Login to Get Free Access" %}
                     {% else %}
@@ -187,65 +386,68 @@
                 {% endif %}
                 
                 {% if not is_free %}
-                <p class="text-xs text-center text-[#666666]">
+                <p class="text-xs text-center text-gray-500 mt-4">
                     {% trans "30-day money-back guarantee" %}
                 </p>
                 {% endif %}
                 {% endif %}
             </div>
-        </div>
+        </aside>
     </div>
     
-    <!-- Related Test Banks Carousel - Udemy Style -->
+    <!-- Related Test Banks -->
     {% if related_test_banks %}
-    <div class="mt-12">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">{% trans "Related test banks" %}</h2>
+    <section class="mt-16" aria-labelledby="related-heading">
+        <h2 id="related-heading" class="text-2xl font-bold text-gray-900 mb-6">{% trans "Related test banks" %}</h2>
         <div class="swiper related-swiper relative">
             <div class="swiper-wrapper">
                 {% for related in related_test_banks %}
                 <div class="swiper-slide">
-                    <a href="{% url 'catalog:testbank_detail' slug=related.slug %}" class="block h-full">
-                        <div class="bg-white h-full transition-all duration-200 hover:shadow-lg overflow-hidden flex flex-col">
-                            <!-- Test Bank Image - Udemy Style -->
+                    <a href="{% url 'catalog:testbank_detail' slug=related.slug %}" class="block h-full group focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 rounded-xl">
+                        <article class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col h-full">
+                            <!-- Image -->
                             {% if related.image %}
-                            <div class="h-40 bg-gray-200 relative overflow-hidden">
-                                <img src="{{ related.image.url }}" alt="{{ related.title }}" class="w-full h-full object-cover">
-                                <!-- Difficulty Label -->
-                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
-                                    {% if related.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
-                                    {% elif related.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
-                                    {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
+                            <div class="h-48 bg-gray-100 relative overflow-hidden">
+                                <img src="{{ related.image.url }}" alt="{{ related.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                                <!-- Difficulty Badge -->
+                                <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-lg shadow-md backdrop-blur-sm
+                                    {% if related.difficulty_level == 'easy' %}bg-green-100 text-green-800 border border-green-200
+                                    {% elif related.difficulty_level == 'medium' %}bg-yellow-100 text-yellow-800 border border-yellow-200
+                                    {% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
                                     {{ related.get_difficulty_level_display }}
                                 </span>
                             </div>
                             {% else %}
-                            <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
-                                <div class="text-white text-4xl font-bold opacity-50">{{ related.title|first|upper }}</div>
-                                <!-- Difficulty Label -->
-                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
-                                    {% if related.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
-                                    {% elif related.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
-                                    {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
+                            <div class="h-48 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                                <div class="text-white text-5xl font-bold opacity-50">{{ related.title|first|upper }}</div>
+                                <!-- Difficulty Badge -->
+                                <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-lg shadow-md backdrop-blur-sm
+                                    {% if related.difficulty_level == 'easy' %}bg-green-100 text-green-800 border border-green-200
+                                    {% elif related.difficulty_level == 'medium' %}bg-yellow-100 text-yellow-800 border border-yellow-200
+                                    {% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
                                     {{ related.get_difficulty_level_display }}
                                 </span>
                             </div>
                             {% endif %}
-                            <div class="p-4 flex-1 flex flex-col">
-                                <h3 class="text-sm font-bold text-gray-900 mb-1 line-clamp-2 h-10">
+                            
+                            <!-- Content -->
+                            <div class="p-5 flex-1 flex flex-col">
+                                <h3 class="text-base font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] group-hover:text-[#5624d0] transition-colors duration-200">
                                     {{ related.title }}
                                 </h3>
+                                
                                 {% if related.average_rating > 0 %}
-                                <div class="flex items-center mb-2">
-                                    <span class="text-sm font-bold text-gray-900 mr-1">{{ related.average_rating|floatformat:1 }}</span>
-                                    <div class="flex items-center mr-1">
+                                <div class="flex items-center gap-1.5 mb-3">
+                                    <span class="text-sm font-bold text-gray-900" aria-label="{% trans 'Average rating' %}">{{ related.average_rating|floatformat:1 }}</span>
+                                    <div class="flex items-center gap-0.5" role="img" aria-label="{% trans 'Star rating' %}">
                                         {% with rating_int=related.average_rating|floatformat:0 %}
                                         {% for i in "12345"|make_list %}
                                             {% if forloop.counter <= rating_int|add:"0" %}
-                                                <svg class="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                                <svg class="w-3.5 h-3.5 text-yellow-400 fill-current" viewBox="0 0 20 20" aria-hidden="true">
                                                     <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                                                 </svg>
                                             {% else %}
-                                                <svg class="w-3 h-3 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                                <svg class="w-3.5 h-3.5 text-gray-300 fill-current" viewBox="0 0 20 20" aria-hidden="true">
                                                     <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                                                 </svg>
                                             {% endif %}
@@ -255,27 +457,35 @@
                                     <span class="text-xs text-gray-600">({{ related.total_ratings }})</span>
                                 </div>
                                 {% endif %}
-                                <div class="mt-auto">
-                                    <span class="text-lg font-bold text-gray-900">{% if related.price == 0 %}{% trans "Free" %}{% else %}${{ related.price }}{% endif %}</span>
+                                
+                                <div class="mt-auto pt-3 border-t border-gray-100">
+                                    <span class="text-xl font-bold text-gray-900">
+                                        {% if related.price == 0 %}
+                                        <span class="text-green-600">{% trans "Free" %}</span>
+                                        {% else %}
+                                        ${{ related.price }}
+                                        {% endif %}
+                                    </span>
                                 </div>
                             </div>
-                        </div>
+                        </article>
                     </a>
                 </div>
                 {% endfor %}
             </div>
-            <div class="swiper-button-next related-next"></div>
-            <div class="swiper-button-prev related-prev"></div>
+            <div class="swiper-button-next related-next" aria-label="{% trans 'Next slide' %}"></div>
+            <div class="swiper-button-prev related-prev" aria-label="{% trans 'Previous slide' %}"></div>
         </div>
-    </div>
+    </section>
     {% endif %}
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Related Test Banks Swiper
     const relatedSwiper = new Swiper('.related-swiper', {
         slidesPerView: 1,
-        spaceBetween: 16,
+        spaceBetween: 20,
         loop: true,
         navigation: {
             nextEl: '.related-next',
@@ -293,6 +503,89 @@ document.addEventListener('DOMContentLoaded', function() {
             },
         },
     });
+    
+    // Star Rating Interaction
+    const ratingStars = document.getElementById('rating-stars');
+    const ratingInput = document.querySelector('input[name="rating"]');
+    
+    if (ratingStars && ratingInput) {
+        const stars = ratingStars.querySelectorAll('.star-rating-btn');
+        let currentRating = ratingInput.value ? parseInt(ratingInput.value) : 0;
+        
+        // Update star display
+        function updateStars(rating) {
+            stars.forEach((star, index) => {
+                const svg = star.querySelector('svg');
+                if (index < rating) {
+                    svg.classList.remove('text-gray-300');
+                    svg.classList.add('text-yellow-400');
+                } else {
+                    svg.classList.remove('text-yellow-400');
+                    svg.classList.add('text-gray-300');
+                }
+            });
+        }
+        
+        // Initialize stars
+        updateStars(currentRating);
+        
+        // Handle star clicks
+        stars.forEach((star, index) => {
+            star.addEventListener('click', function() {
+                const rating = index + 1;
+                ratingInput.value = rating;
+                currentRating = rating;
+                updateStars(rating);
+            });
+            
+            star.addEventListener('mouseenter', function() {
+                const rating = index + 1;
+                updateStars(rating);
+            });
+        });
+        
+        // Reset on mouse leave
+        ratingStars.addEventListener('mouseleave', function() {
+            updateStars(currentRating);
+        });
+    }
+    
+    // Initialize reply toggle buttons
+    const replyToggleButtons = document.querySelectorAll('.reply-toggle-btn');
+    replyToggleButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const reviewId = this.getAttribute('data-review-id');
+            if (reviewId) {
+                toggleReplyForm(reviewId);
+            }
+        });
+    });
 });
+
+// Toggle Reply Form
+function toggleReplyForm(reviewId) {
+    const form = document.getElementById('reply-form-' + reviewId);
+    const button = document.getElementById('reply-btn-' + reviewId);
+    
+    if (form && button) {
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+            button.classList.add('hidden');
+            // Focus on textarea
+            const textarea = form.querySelector('textarea');
+            if (textarea) {
+                setTimeout(() => textarea.focus(), 100);
+            }
+        } else {
+            form.classList.add('hidden');
+            button.classList.remove('hidden');
+            // Clear form
+            const textarea = form.querySelector('textarea');
+            if (textarea) {
+                textarea.value = '';
+            }
+        }
+    }
+}
 </script>
 {% endblock %}

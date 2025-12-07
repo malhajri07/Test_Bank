@@ -14,52 +14,94 @@
     </div>
     {% endif %}
 
-    <!-- Hero Section - Udemy Style with Image Support -->
-    <section class="bg-white border-b border-gray-200">
-        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            {% if cms_hero_slides %}
-            {% with slide=cms_hero_slides|first %}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <div class="max-w-2xl">
-                    <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                        {{ slide.title }}
-                    </h1>
-                    {% if slide.description %}
-                    <p class="text-lg text-gray-600 mb-6">
-                        {{ slide.description }}
-                    </p>
-                    {% endif %}
-                    {% if slide.primary_button_text and slide.primary_button_url %}
-                    <a href="{{ slide.primary_button_url }}"
-                        class="inline-block px-6 py-3 bg-[#5624d0] text-white font-semibold rounded hover:bg-[#4a1fb8] transition-colors">
-                        {{ slide.primary_button_text }}
-                    </a>
+    <!-- Hero Section - Full Width Image Carousel with Overlay -->
+    <section class="relative w-full overflow-hidden">
+        {% if cms_hero_slides %}
+        <div class="swiper hero-carousel-swiper relative w-full h-[50vh] min-h-[600px] max-h-[800px]">
+            <div class="swiper-wrapper">
+                {% for slide in cms_hero_slides %}
+                <div class="swiper-slide">
+                    {% if slide.background_image %}
+                    <div class="relative w-full h-full overflow-hidden">
+                        <!-- Background Image with 85% opacity - Showing top half -->
+                        <div class="absolute inset-0 w-full h-full overflow-hidden">
+                            <img src="{{ slide.background_image.url }}" alt="{{ slide.title }}"
+                                class="w-full opacity-[0.85] h-auto min-h-[200%] object-cover object-top -translate-y-[25%]" style="opacity: 0.85 !important;">
+                        </div>
+                        <!-- Purple Overlay -->
+                        <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-[#5624d0]/80 to-[#4a1fb8]/80"></div>
+                        <!-- Content Overlay -->
+                        <div class="absolute inset-0 w-full h-full flex items-center py-20 z-10">
+                            <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                                <div class="max-w-2xl">
+                                    <h1 class="font-bold mb-12 px-4 md:px-6 lg:px-8 text-4xl md:text-5xl lg:text-6xl">
+                                        <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{{ slide.title }}</mark>
+                                    </h1>
+                                    {% if slide.description %}
+                                    <h2 class="mb-10 px-4 md:px-6 lg:px-8 mt-4 text-lg md:text-xl lg:text-2xl font-bold">
+                                        <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{{ slide.description }}</mark>
+                                    </h2>
+                                    {% endif %}
+                                    {% if slide.primary_button_text and slide.primary_button_url %}
+                                    <a href="{{ slide.primary_button_url }}"
+                                        class="inline-block px-10 py-5 bg-white text-[#5624d0] font-semibold rounded hover:bg-gray-100 transition-colors ml-4 md:ml-6 lg:ml-8">
+                                        {{ slide.primary_button_text }}
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Fallback without image -->
+                    <div class="relative w-full h-full bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] flex items-center">
+                        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                            <div class="max-w-2xl">
+                                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                                    {{ slide.title }}
+                                </h1>
+                                {% if slide.description %}
+                                <p class="text-lg text-white/90 mb-6">
+                                    {{ slide.description }}
+                                </p>
+                                {% endif %}
+                                {% if slide.primary_button_text and slide.primary_button_url %}
+                                <a href="{{ slide.primary_button_url }}"
+                                    class="inline-block px-6 py-3 bg-white text-[#5624d0] font-semibold rounded hover:bg-gray-100 transition-colors">
+                                    {{ slide.primary_button_text }}
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
-                {% if slide.background_image %}
-                <div class="hidden lg:block">
-                    <img src="{{ slide.background_image.url }}" alt="{{ slide.title }}"
-                        class="w-full h-auto rounded-lg shadow-lg">
-                </div>
-                {% endif %}
+                {% endfor %}
             </div>
-            {% endwith %}
-            {% else %}
-            <!-- Default hero - Udemy Style -->
-            <div class="max-w-4xl">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                    {% trans "Learn without limits" %}
-                </h1>
-                <p class="text-lg text-gray-600 mb-6">
-                    {% trans "Master your exams with comprehensive practice tests" %}
-                </p>
-                <a href="{% url 'catalog:category_list' %}"
-                    class="inline-block px-6 py-3 bg-[#5624d0] text-white font-semibold rounded hover:bg-[#4a1fb8] transition-colors">
-                    {% trans "Browse Test Banks" %}
-                </a>
-            </div>
-            {% endif %}
+            <!-- Pagination -->
+            <div class="swiper-pagination hero-carousel-pagination"></div>
         </div>
+        {% else %}
+        <!-- Default hero - Full Width with Purple Background -->
+        <div class="relative w-full h-[1200px] md:h-[1400px] lg:h-[1600px] bg-gradient-to-r from-[#5624d0] to-[#4a1fb8]">
+            <div class="relative z-10 h-full flex items-center">
+                <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                    <div class="max-w-2xl">
+                        <h1 class="font-bold mb-12 px-4 md:px-6 lg:px-8 text-4xl md:text-5xl lg:text-6xl">
+                            <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Learn without limits" %}</mark>
+                        </h1>
+                        <h2 class="mb-10 px-4 md:px-6 lg:px-8 mt-4 text-lg md:text-xl lg:text-2xl font-bold">
+                            <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Master your exams with comprehensive practice tests" %}</mark>
+                        </h2>
+                        <a href="{% url 'catalog:category_list' %}"
+                            class="inline-block px-10 py-5 bg-white text-[#5624d0] font-semibold rounded hover:bg-gray-100 transition-colors ml-4 md:ml-6 lg:ml-8">
+                            {% trans "Browse Test Banks" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </section>
 
     <!-- User Intent Section -->
@@ -401,18 +443,25 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Hero Carousel
-            const heroSwiper = new Swiper('.hero-swiper', {
+            const heroCarouselSwiper = new Swiper('.hero-carousel-swiper', {
                 slidesPerView: 1,
                 spaceBetween: 0,
                 loop: true,
                 autoplay: {
-                    delay: 5000,
+                    delay: 15000,
                     disableOnInteraction: false,
                 },
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
+                effect: 'fade',
+                fadeEffect: {
+                    crossFade: true
                 },
+                pagination: {
+                    el: '.hero-carousel-pagination',
+                    clickable: true,
+                    bulletClass: 'swiper-pagination-bullet',
+                    bulletActiveClass: 'swiper-pagination-bullet-active',
+                },
+                speed: 1000,
             });
 
             // Trending Test Banks Carousel

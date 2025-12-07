@@ -504,6 +504,13 @@ class TestBankRating(models.Model):
         help_text='Rating from 1 to 5 stars'
     )
     
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name='Review Title',
+        help_text='Optional title for the review'
+    )
+    
     review = models.TextField(
         blank=True,
         verbose_name='Review',
@@ -541,6 +548,56 @@ class TestBankRating(models.Model):
         test_bank = self.test_bank
         super().delete(*args, **kwargs)
         test_bank.update_rating()
+
+
+class ReviewReply(models.Model):
+    """
+    ReviewReply model for replies to test bank reviews.
+    
+    Users can reply to reviews, creating a discussion thread.
+    """
+    
+    review = models.ForeignKey(
+        TestBankRating,
+        on_delete=models.CASCADE,
+        related_name='replies',
+        verbose_name='Review',
+        help_text='Review being replied to'
+    )
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='review_replies',
+        verbose_name='User',
+        help_text='User who wrote the reply'
+    )
+    
+    content = models.TextField(
+        max_length=1000,
+        verbose_name='Content',
+        help_text='Reply content'
+    )
+    
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At'
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Updated At'
+    )
+    
+    class Meta:
+        """Meta options for ReviewReply model."""
+        verbose_name = 'Review Reply'
+        verbose_name_plural = 'Review Replies'
+        ordering = ['created_at']
+    
+    def __str__(self):
+        """String representation of the reply."""
+        return f'{self.user.username} - Reply to {self.review.user.username}\'s review'
 
 
 class Question(models.Model):
