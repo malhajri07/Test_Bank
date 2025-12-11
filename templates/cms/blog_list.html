@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Blog" %} - {% trans "Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<!-- Featured Posts -->
+{% if featured_posts %}
+<div class="bg-gray-50 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+            <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Featured Posts" %}</mark>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for post in featured_posts %}
+            <article class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                {% if post.featured_image %}
+                <a href="{% url 'cms:blog_detail' slug=post.slug %}" class="block h-48 bg-gray-100 relative overflow-hidden">
+                    <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                </a>
+                {% else %}
+                <a href="{% url 'cms:blog_detail' slug=post.slug %}" class="block h-48 bg-gradient-to-br from-[#5525d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                    <div class="text-white text-5xl font-bold opacity-50">{{ post.title|first|upper }}</div>
+                </a>
+                {% endif %}
+                <div class="p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#5525d0] transition-colors duration-200">
+                        <a href="{% url 'cms:blog_detail' slug=post.slug %}">{{ post.title }}</a>
+                    </h3>
+                    {% if post.excerpt %}
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-3">{{ post.excerpt }}</p>
+                    {% endif %}
+                    <div class="flex items-center justify-between text-xs text-gray-500">
+                        {% if post.author %}
+                        <span>{% trans "By" %} {{ post.author.get_full_name|default:post.author.username }}</span>
+                        {% endif %}
+                        {% if post.published_at %}
+                        <span>{{ post.published_at|date:"M d, Y" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Blog Posts List -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for post in blog_posts %}
+        <article class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group flex flex-col">
+            {% if post.featured_image %}
+            <a href="{% url 'cms:blog_detail' slug=post.slug %}" class="block h-48 bg-gray-100 relative overflow-hidden flex-shrink-0">
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+            </a>
+            {% else %}
+            <a href="{% url 'cms:blog_detail' slug=post.slug %}" class="block h-48 bg-gradient-to-br from-[#5525d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center flex-shrink-0">
+                <div class="text-white text-5xl font-bold opacity-50">{{ post.title|first|upper }}</div>
+            </a>
+            {% endif %}
+            <div class="p-6 flex-1 flex flex-col">
+                <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#5525d0] transition-colors duration-200">
+                    <a href="{% url 'cms:blog_detail' slug=post.slug %}">{{ post.title }}</a>
+                </h3>
+                {% if post.excerpt %}
+                <p class="text-sm text-gray-600 mb-4 line-clamp-3 flex-1">{{ post.excerpt }}</p>
+                {% endif %}
+                <div class="flex items-center justify-between text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100">
+                    {% if post.author %}
+                    <span>{% trans "By" %} {{ post.author.get_full_name|default:post.author.username }}</span>
+                    {% endif %}
+                    {% if post.published_at %}
+                    <span>{{ post.published_at|date:"M d, Y" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <p class="text-gray-600 text-lg">{% trans "No blog posts available yet." %}</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if blog_posts.has_other_pages %}
+    <div class="mt-12 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if blog_posts.has_previous %}
+            <a href="?page={{ blog_posts.previous_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                {% trans "Previous" %}
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 text-gray-700">
+                {% trans "Page" %} {{ blog_posts.number }} {% trans "of" %} {{ blog_posts.paginator.num_pages }}
+            </span>
+            
+            {% if blog_posts.has_next %}
+            <a href="?page={{ blog_posts.next_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                {% trans "Next" %}
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

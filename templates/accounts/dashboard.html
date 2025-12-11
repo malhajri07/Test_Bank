@@ -4,42 +4,42 @@
 {% block title %}{% trans "Dashboard - Exam Stellar" %}{% endblock %}
 
 {% block content %}
-<!-- Dashboard Header -->
-<div class="bg-white border-b border-gray-200">
-    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-4xl font-bold text-[#000000] mb-2">
-            {% trans "My Learning" %}
+<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Dashboard Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3">
+            <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "My Learning" %}</mark>
         </h1>
-        <p class="text-[#666666] text-lg">
-            {% trans "Welcome back, " %}{{ user.first_name|default:user.username }}!
+        <p class="text-base text-gray-600">
+            {% trans "Welcome back, " %}<span class="font-medium text-gray-900">{{ user.first_name|default:user.username }}</span>!
         </p>
     </div>
-</div>
 
-<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-    <!-- Statistics Cards - Apple Style -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-        <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-300">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <!-- Total Sessions Card -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-[#666666] mb-2 font-medium">{% trans "Total Sessions" %}</p>
-                    <p class="text-4xl font-semibold text-[#000000] tracking-tight">{{ total_sessions }}</p>
+                    <p class="text-sm text-gray-600 mb-2 font-medium">{% trans "Total Sessions" %}</p>
+                    <p class="text-3xl font-bold text-gray-900 tracking-tight">{{ total_sessions }}</p>
                 </div>
-                <div class="w-12 h-12 bg-[#e28f64] bg-opacity-10 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-[#e28f64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-12 h-12 bg-[#5624d0] bg-opacity-10 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-[#5624d0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <!-- Completed Sessions Card -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-[#666666] mb-1">{% trans "Completed" %}</p>
-                    <p class="text-3xl font-bold text-[#000000]">{{ completed_sessions }}</p>
+                    <p class="text-sm text-gray-600 mb-2 font-medium">{% trans "Completed" %}</p>
+                    <p class="text-3xl font-bold text-gray-900 tracking-tight">{{ completed_sessions }}</p>
                 </div>
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
@@ -47,16 +47,17 @@
             </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <!-- Average Score Card -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-[#666666] mb-1">{% trans "Average Score" %}</p>
-                    <p class="text-3xl font-bold text-[#000000]">
-                        {% if avg_score %}{{ avg_score|floatformat:1 }}%{% else %}N/A{% endif %}
+                    <p class="text-sm text-gray-600 mb-2 font-medium">{% trans "Average Score" %}</p>
+                    <p class="text-3xl font-bold text-gray-900 tracking-tight">
+                        {% if avg_score %}{{ avg_score|floatformat:1 }}%{% else %}<span class="text-gray-400">N/A</span>{% endif %}
                     </p>
                 </div>
-                <div class="w-12 h-12 bg-[#EFECE3] bg-opacity-10 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-[#EFECE3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                     </svg>
                 </div>
@@ -64,138 +65,174 @@
         </div>
     </div>
     
-    <!-- My Learning Section - Apple Style -->
-    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 mb-8 overflow-hidden">
-        <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
-            <h2 class="text-3xl font-semibold text-[#000000] tracking-tight">
-                {% trans "My Test Banks" %}
+    <!-- My Test Banks Section -->
+    <section class="mb-12">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
+                <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "My Test Banks" %}</mark>
             </h2>
         </div>
-        <div class="p-8">
-            {% if purchased_test_banks %}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% for test_bank in purchased_test_banks %}
-                <div class="bg-white border border-gray-200 rounded overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col h-full">
-                    <!-- Test Bank Image - Udemy Style -->
-                    {% if test_bank.image %}
-                    <div class="h-40 bg-gray-200 relative overflow-hidden">
-                        <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
-                        <!-- Difficulty Label -->
-                        <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
-                            {% if test_bank.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
-                            {% elif test_bank.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
-                            {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
+        
+        {% if purchased_test_banks %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for test_bank in purchased_test_banks %}
+            <article class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col h-full group">
+                <!-- Test Bank Image -->
+                {% if test_bank.image %}
+                <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block h-48 bg-gray-100 relative overflow-hidden flex-shrink-0">
+                    <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <!-- Difficulty Badge -->
+                    <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-lg shadow-md backdrop-blur-sm z-10
+                        {% if test_bank.difficulty_level == 'easy' %}bg-green-100 text-green-800 border border-green-200
+                        {% elif test_bank.difficulty_level == 'medium' %}bg-yellow-100 text-yellow-800 border border-yellow-200
+                        {% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                </a>
+                {% else %}
+                <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block h-48 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div class="text-white text-5xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
+                    <!-- Difficulty Badge -->
+                    <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-lg shadow-md backdrop-blur-sm z-10
+                        {% if test_bank.difficulty_level == 'easy' %}bg-green-100 text-green-800 border border-green-200
+                        {% elif test_bank.difficulty_level == 'medium' %}bg-yellow-100 text-yellow-800 border border-yellow-200
+                        {% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
+                        {{ test_bank.get_difficulty_level_display }}
+                    </span>
+                </a>
+                {% endif %}
+                
+                <!-- Content -->
+                <div class="p-5 flex-1 flex flex-col">
+                    <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block mb-3">
+                        <h3 class="text-base font-bold text-gray-900 line-clamp-2 min-h-[3rem] group-hover:text-[#5624d0] transition-colors duration-200">
+                            {{ test_bank.title }}
+                        </h3>
+                    </a>
+                    
+                    <!-- Rating Section - Fixed Height -->
+                    <div class="mb-4 h-5 flex items-center">
+                        {% if test_bank.average_rating > 0 %}
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-sm font-bold text-gray-900" aria-label="{% trans 'Average rating' %}">{{ test_bank.average_rating|floatformat:1 }}</span>
+                            <div class="flex items-center gap-0.5" role="img" aria-label="{% trans 'Star rating' %}">
+                                {% with rating_int=test_bank.average_rating|floatformat:0 %}
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= rating_int|add:"0" %}
+                                        <svg class="w-3.5 h-3.5 text-yellow-400 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-3.5 h-3.5 text-gray-300 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <span class="text-xs text-gray-600">({{ test_bank.total_ratings }})</span>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
-                        <div class="text-white text-4xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
-                        <!-- Difficulty Label -->
-                        <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
-                            {% if test_bank.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200
-                            {% elif test_bank.difficulty_level == 'medium' %}bg-yellow-100/90 text-yellow-700 border border-yellow-200
-                            {% else %}bg-red-100/90 text-red-700 border border-red-200{% endif %}">
-                            {{ test_bank.get_difficulty_level_display }}
-                        </span>
-                    </div>
-                    {% endif %}
-                    <div class="p-4 flex-1 flex flex-col">
-                        <h3 class="text-sm font-bold text-gray-900 mb-3 line-clamp-2 h-10">{{ test_bank.title }}</h3>
-                        <div class="mt-auto flex space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    
+                    <!-- Action Buttons - Always at Bottom -->
+                    <div class="mt-auto pt-4 border-t border-gray-100">
+                        <div class="flex gap-2">
                             <a href="{% url 'practice:start_practice' testbank_slug=test_bank.slug %}" 
-                               class="flex-1 text-center px-4 py-2 bg-[#5624d0] hover:bg-[#4a1fb8] text-white text-sm font-semibold rounded transition-all">
+                               class="flex-1 text-center px-4 py-2.5 bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-1">
                                 {% trans "Start" %}
                             </a>
                             <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                               class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-semibold rounded transition-all">
+                               class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1">
                                 {% trans "View" %}
                             </a>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="text-center py-12">
-                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                </div>
-                <p class="text-[#666666] mb-4">
-                    {% trans "You haven't purchased any test banks yet" %}
-                </p>
-                <a href="{% url 'catalog:category_list' %}" 
-                   class="inline-block px-6 py-3 bg-[#e28f64] hover:bg-[#df804f] text-white font-semibold rounded-md transition">
-                    {% trans "Browse Test Banks" %}
-                </a>
-            </div>
-            {% endif %}
+            </article>
+            {% endfor %}
         </div>
-    </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <p class="text-gray-600 mb-6 text-base">
+                {% trans "You haven't purchased any test banks yet" %}
+            </p>
+            <a href="{% url 'catalog:category_list' %}" 
+               class="inline-block px-6 py-3 bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2">
+                {% trans "Browse Test Banks" %}
+            </a>
+        </div>
+        {% endif %}
+    </section>
     
-    <!-- Recent Activity - Apple Style -->
-    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-        <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
-            <h2 class="text-3xl font-semibold text-[#000000] tracking-tight">
-                {% trans "Recent Practice Sessions" %}
+    <!-- Recent Practice Sessions Section -->
+    <section>
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
+                <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Recent Practice Sessions" %}</mark>
             </h2>
         </div>
-        <div class="p-6">
-            {% if recent_sessions %}
+        
+        {% if recent_sessions %}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-[rgb(245, 245, 247)]">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 {% trans "Test Bank" %}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 {% trans "Status" %}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 {% trans "Score" %}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 {% trans "Date" %}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-[#666666] uppercase tracking-wider">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 {% trans "Actions" %}
                             </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for session in recent_sessions %}
-                        <tr class="hover:bg-[rgb(245, 245, 247)] transition">
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-[#000000]">{{ session.test_bank.title }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ session.test_bank.title }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                    {% if session.status == 'completed' %}bg-green-100 text-green-800
-                                    {% elif session.status == 'in_progress' %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-lg
+                                    {% if session.status == 'completed' %}bg-green-100 text-green-800 border border-green-200
+                                    {% elif session.status == 'in_progress' %}bg-yellow-100 text-yellow-800 border border-yellow-200
+                                    {% else %}bg-gray-100 text-gray-800 border border-gray-200{% endif %}">
                                     {{ session.get_status_display }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-semibold text-[#000000]">
-                                    {% if session.score %}{{ session.score|floatformat:1 }}%{% else %}--{% endif %}
+                                <div class="text-sm font-semibold text-gray-900">
+                                    {% if session.score %}{{ session.score|floatformat:1 }}%{% else %}<span class="text-gray-400">--</span>{% endif %}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-[#666666]">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ session.started_at|date:"M d, Y" }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 {% if session.status == 'completed' %}
                                 <a href="{% url 'practice:results' session_id=session.pk %}" 
-                                   class="text-[#e28f64] hover:text-[#df804f]">
+                                   class="text-[#5624d0] hover:text-[#4a1fb8] font-semibold transition-colors duration-200">
                                     {% trans "View" %}
                                 </a>
                                 {% else %}
                                 <a href="{% url 'practice:practice_session' session_id=session.pk %}" 
-                                   class="text-[#e28f64] hover:text-[#df804f]">
+                                   class="text-[#5624d0] hover:text-[#4a1fb8] font-semibold transition-colors duration-200">
                                     {% trans "Continue" %}
                                 </a>
                                 {% endif %}
@@ -205,14 +242,20 @@
                     </tbody>
                 </table>
             </div>
-            {% else %}
-            <div class="text-center py-12">
-                <p class="text-[#666666]">
-                    {% trans "No practice sessions yet" %}
-                </p>
-            </div>
-            {% endif %}
         </div>
-    </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </div>
+            <p class="text-gray-600 text-base">
+                {% trans "No practice sessions yet" %}
+            </p>
+        </div>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

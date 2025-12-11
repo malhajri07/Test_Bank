@@ -48,7 +48,7 @@
                                     class="text-white">}</span></span>
                         </div>
                         <span class="text-base font-semibold tracking-tight">
-                            <span class="text-[#666666] font-normal">Exam</span><span class="font-light text-[#5624d0]">{Stellar}</span>
+                            <span class="text-[#666666] font-normal">Exam</span><span class="font-bold text-[#5624d0]">{Stellar}</span>
                         </span>
                     </a>
                 </div>
@@ -228,9 +228,6 @@
                                 "Home" %}</a></li>
                         <li><a href="{% url 'catalog:category_list' %}"
                                 class="text-white/80 hover:text-white transition-colors font-medium">{% trans
-                                "Browse" %}</a></li>
-                        <li><a href="{% url 'catalog:category_list' %}"
-                                class="text-white/80 hover:text-white transition-colors font-medium">{% trans
                                 "Categories" %}</a></li>
                     </ul>
                 </div>
@@ -273,7 +270,7 @@
                 <div>
                     <h4 class="font-semibold text-white mb-4 text-sm">{% trans "Community" %}</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-white/80 hover:text-white transition">{% trans "Blog" %}</a>
+                        <li><a href="{% url 'cms:blog_list' %}" class="text-white/80 hover:text-white transition">{% trans "Blog" %}</a>
                         </li>
                         <li><a href="#" class="text-white/80 hover:text-white transition">{% trans "Forums" %}</a>
                         </li>
@@ -318,9 +315,9 @@
                                     class="text-[#5525d0]">E</span><span class="text-[#5525d0]">S</span><span
                                     class="text-[#5525d0]">}</span></span>
                         </div>
-                        <span class="text-base font-semibold tracking-tight">
-                            <span class="text-white/90 font-normal">Exam</span><span class="font-light text-white">{Stellar}</span>
-                        </span>
+                    <span class="text-base font-semibold tracking-tight">
+                        <span class="text-white/90 font-normal">Exam</span><span class="font-bold text-white">{Stellar}</span>
+                    </span>
                     </div>
                     
                     <!-- Social Media Icons -->

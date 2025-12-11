@@ -15,7 +15,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
-from .models import Page, Announcement, Media, ContentBlock, HeroSlide, Testimonial
+from .models import Page, Announcement, Media, ContentBlock, HeroSlide, Testimonial, BlogPost, BlogComment
 
 
 # Permission mixins for role-based access
@@ -344,3 +344,108 @@ class TestimonialAdmin(CMSAdminMixin, admin.ModelAdmin):
             return format_html('<img src="{}" style="max-width: 200px; max-height: 200px; border-radius: 50%;" />', obj.photo.url)
         return 'No photo uploaded'
     photo_preview_large.short_description = 'Photo Preview'
+
+
+@admin.register(BlogPost)
+class BlogPostAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for BlogPost model with rich text editing."""
+    
+    list_display = ('title', 'slug', 'status', 'is_featured', 'author', 'published_at', 'created_at', 'view_link')
+    list_filter = ('status', 'is_featured', 'created_at', 'published_at', 'author')
+    search_fields = ('title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description')
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields = ('created_at', 'updated_at', 'published_at', 'author', 'featured_image_preview')
+    
+    # Fieldsets for better organization
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'slug', 'excerpt', 'content')
+        }),
+        ('Featured Image', {
+            'fields': ('featured_image', 'featured_image_preview')
+        }),
+        ('SEO Settings', {
+            'fields': ('meta_title', 'meta_description'),
+            'classes': ('collapse',)
+        }),
+        ('Publication', {
+            'fields': ('status', 'is_featured', 'published_at')
+        }),
+        ('Metadata', {
+            'fields': ('author', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    # Admin actions
+    actions = [make_published, make_draft]
+    
+    def featured_image_preview(self, obj):
+        """Display featured image preview."""
+        if obj.featured_image:
+            return format_html('<img src="{}" style="max-width: 300px; max-height: 200px;" />', obj.featured_image.url)
+        return 'No featured image uploaded'
+    featured_image_preview.short_description = 'Featured Image Preview'
+    
+    def view_link(self, obj):
+        """Display link to view blog post on site."""
+        if obj.status == 'published':
+            url = obj.get_absolute_url()
+            return format_html('<a href="{}" target="_blank">View</a>', url)
+        return '-'
+    view_link.short_description = 'View on Site'
+    
+    def save_model(self, request, obj, form, change):
+        """Set author when creating new blog post and check publish permissions."""
+        if not change:  # New object
+            obj.author = request.user
+        
+        # Check publish permission (superusers and staff can always publish)
+        if obj.status == 'published' and not (request.user.is_superuser or request.user.is_staff or request.user.can_publish_content()):
+            obj.status = 'draft'
+        
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(BlogComment)
+class BlogCommentAdmin(CMSAdminMixin, admin.ModelAdmin):
+    """Admin interface for BlogComment model."""
+    
+    list_display = ('user', 'blog_post', 'parent', 'is_approved', 'created_at', 'content_preview')
+    list_filter = ('is_approved', 'created_at', 'blog_post')
+    search_fields = ('content', 'user__username', 'user__email', 'blog_post__title')
+    readonly_fields = ('created_at', 'updated_at', 'user', 'blog_post', 'parent')
+    
+    fieldsets = (
+        ('Comment Information', {
+            'fields': ('blog_post', 'user', 'parent', 'content')
+        }),
+        ('Moderation', {
+            'fields': ('is_approved',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def content_preview(self, obj):
+        """Display preview of comment content."""
+        if len(obj.content) > 100:
+            return obj.content[:100] + '...'
+        return obj.content
+    content_preview.short_description = 'Content Preview'
+    
+    actions = ['approve_comments', 'unapprove_comments']
+    
+    @admin.action(description='Approve selected comments')
+    def approve_comments(self, request, queryset):
+        """Approve selected comments."""
+        queryset.update(is_approved=True)
+        self.message_user(request, f'{queryset.count()} comments approved.')
+    
+    @admin.action(description='Unapprove selected comments')
+    def unapprove_comments(self, request, queryset):
+        """Unapprove selected comments."""
+        queryset.update(is_approved=False)
+        self.message_user(request, f'{queryset.count()} comments unapproved.')
