@@ -37,88 +37,88 @@
 
 {% block content %}
 <div class="results-content">
-<!-- Results Header - Apple Style -->
-<div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white py-16">
-    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
-        <h1 class="text-5xl md:text-6xl font-semibold mb-4 tracking-tight">
-            {% trans "Practice Results" %}
+<!-- Results Header -->
+<div class="bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-3">
+            <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Practice Results" %}</mark>
         </h1>
-        <p class="text-xl md:text-2xl text-white/90 font-medium">{{ session.test_bank.title }}</p>
+        <p class="text-xl text-white/90 font-medium">{{ session.test_bank.title }}</p>
     </div>
 </div>
 
-<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-    <!-- Score Summary Card - Apple Style -->
-    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 p-12 mb-12 text-center">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Score Summary Card -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300 p-8 sm:p-10 lg:p-12 mb-8 text-center">
         <div class="mb-8">
-            <div class="inline-flex items-center justify-center w-40 h-40 bg-gradient-to-br from-[#e28f64]/20 to-[#df804f]/20 rounded-3xl mb-6 shadow-lg">
-                <span class="text-6xl font-semibold bg-gradient-to-r from-[#e28f64] to-[#df804f] bg-clip-text text-transparent tracking-tight">{{ session.score|floatformat:0 }}%</span>
+            <div class="inline-flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-[#5525d0]/10 to-[#4a1fb8]/10 rounded-2xl mb-6 shadow-md">
+                <span class="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] bg-clip-text text-transparent">{{ session.score|floatformat:0 }}%</span>
             </div>
         </div>
-        <div class="grid grid-cols-2 gap-6 max-w-lg mx-auto">
-            <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl p-6 shadow-md">
-                <p class="text-4xl font-semibold text-green-600 tracking-tight">{{ correct_answers }}</p>
-                <p class="text-sm text-[#666666] mt-2 font-medium">{% trans "Correct" %}</p>
+        <div class="grid grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto mb-6">
+            <div class="bg-green-50 border border-green-200 rounded-xl p-5 sm:p-6 shadow-sm">
+                <p class="text-3xl sm:text-4xl font-bold text-green-600">{{ correct_answers }}</p>
+                <p class="text-sm text-gray-600 mt-2 font-medium">{% trans "Correct" %}</p>
             </div>
-            <div class="bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl p-6 shadow-md">
-                <p class="text-4xl font-semibold text-red-600 tracking-tight">{{ incorrect_answers }}</p>
-                <p class="text-sm text-[#666666] mt-2 font-medium">{% trans "Incorrect" %}</p>
+            <div class="bg-red-50 border border-red-200 rounded-xl p-5 sm:p-6 shadow-sm">
+                <p class="text-3xl sm:text-4xl font-bold text-red-600">{{ incorrect_answers }}</p>
+                <p class="text-sm text-gray-600 mt-2 font-medium">{% trans "Incorrect" %}</p>
             </div>
         </div>
-        <p class="text-[#666666] mt-8 text-lg font-medium">
+        <p class="text-gray-600 text-base sm:text-lg font-medium">
             {% blocktrans with correct=correct_answers total=total_questions %}{{ correct }} out of {{ total }} correct{% endblocktrans %}
         </p>
     </div>
     
-    <!-- Question Review - Apple Style -->
-    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10">
-        <h2 class="text-3xl font-semibold text-[#000000] mb-10 tracking-tight">
-            {% trans "Question Review" %}
+    <!-- Question Review -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 p-6 sm:p-8 lg:p-10">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
+            <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Question Review" %}</mark>
         </h2>
         
         <div class="space-y-6">
             {% for review in review_data %}
-            <div class="border-2 rounded-2xl p-8 transition-all duration-300 hover:shadow-lg
-                       {% if review.is_correct %}border-green-200 bg-gradient-to-br from-green-50/50 to-white{% else %}border-red-200 bg-gradient-to-br from-red-50/50 to-white{% endif %}">
+            <div class="border-2 rounded-xl p-6 sm:p-8 transition-all duration-300 hover:shadow-md
+                       {% if review.is_correct %}border-green-200 bg-green-50/30{% else %}border-red-200 bg-red-50/30{% endif %}">
                 <!-- Question Number and Status -->
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center space-x-4 {% if IS_RTL %}space-x-reverse{% endif %}">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-semibold text-lg shadow-md
-                                   {% if review.is_correct %}bg-gradient-to-br from-green-500 to-green-600 text-white{% else %}bg-gradient-to-br from-red-500 to-red-600 text-white{% endif %}">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div class="flex items-center space-x-3 sm:space-x-4 {% if IS_RTL %}space-x-reverse{% endif %}">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-base sm:text-lg shadow-sm
+                                   {% if review.is_correct %}bg-green-500 text-white{% else %}bg-red-500 text-white{% endif %}">
                             {{ forloop.counter }}
                         </div>
-                        <span class="font-semibold text-lg text-[#000000]">
+                        <span class="font-bold text-base sm:text-lg text-gray-900">
                             {% blocktrans with num=forloop.counter %}Question {{ num }}{% endblocktrans %}
                         </span>
                     </div>
                     {% if review.is_correct %}
-                    <span class="px-4 py-2 bg-green-100 text-green-800 text-sm font-semibold rounded-xl shadow-sm">
+                    <span class="px-4 py-2 bg-green-100 text-green-800 text-sm font-semibold rounded-lg shadow-sm border border-green-200">
                         ✓ {% trans "Correct" %}
                     </span>
                     {% else %}
-                    <span class="px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold rounded-xl shadow-sm">
+                    <span class="px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold rounded-lg shadow-sm border border-red-200">
                         ✗ {% trans "Incorrect" %}
                     </span>
                     {% endif %}
                 </div>
                 
                 <!-- Question Text -->
-                <p class="text-lg text-[#000000] font-medium mb-6 leading-relaxed">{{ review.question.question_text }}</p>
+                <p class="text-base sm:text-lg text-gray-900 font-medium mb-6 leading-relaxed">{{ review.question.question_text }}</p>
                 
                 <!-- User's Answer -->
                 <div class="mb-6">
-                    <p class="text-sm font-semibold text-[#000000] mb-3 uppercase tracking-wide">
+                    <p class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">
                         {% trans "Your Answer:" %}
                     </p>
-                    <div class="space-y-3">
+                    <div class="space-y-2">
                         {% for option in review.selected_options %}
-                        <div class="px-5 py-3 bg-white border-2 {% if review.is_correct %}border-green-300{% else %}border-red-300{% endif %} rounded-xl shadow-sm">
-                            <span class="text-base {% if review.is_correct %}text-green-700 font-medium{% else %}text-red-700 font-medium{% endif %}">
+                        <div class="px-4 py-3 bg-white border-2 {% if review.is_correct %}border-green-300{% else %}border-red-300{% endif %} rounded-lg shadow-sm">
+                            <span class="text-sm sm:text-base {% if review.is_correct %}text-green-700 font-medium{% else %}text-red-700 font-medium{% endif %}">
                                 {{ option.option_text }}
                             </span>
                         </div>
                         {% empty %}
-                        <p class="text-sm text-[#666666] italic">{% trans "No answer provided" %}</p>
+                        <p class="text-sm text-gray-500 italic">{% trans "No answer provided" %}</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -126,13 +126,13 @@
                 <!-- Correct Answer (if incorrect) -->
                 {% if not review.is_correct %}
                 <div class="mb-6">
-                    <p class="text-sm font-semibold text-green-700 mb-3 uppercase tracking-wide">
+                    <p class="text-sm font-bold text-green-700 mb-3 uppercase tracking-wide">
                         {% trans "Correct Answer:" %}
                     </p>
-                    <div class="space-y-3">
+                    <div class="space-y-2">
                         {% for option in review.correct_options %}
-                        <div class="px-5 py-3 bg-green-50 border-2 border-green-300 rounded-xl shadow-sm">
-                            <span class="text-base text-green-700 font-medium">{{ option.option_text }}</span>
+                        <div class="px-4 py-3 bg-green-50 border-2 border-green-300 rounded-lg shadow-sm">
+                            <span class="text-sm sm:text-base text-green-700 font-medium">{{ option.option_text }}</span>
                         </div>
                         {% endfor %}
                     </div>
@@ -142,10 +142,10 @@
                 <!-- Explanation -->
                 {% if review.question.explanation %}
                 <div class="mt-6 pt-6 border-t border-gray-200">
-                    <p class="text-sm font-semibold text-[#000000] mb-3 uppercase tracking-wide">
+                    <p class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">
                         {% trans "Explanation:" %}
                     </p>
-                    <p class="text-base text-[#666666] leading-relaxed">{{ review.question.explanation }}</p>
+                    <p class="text-sm sm:text-base text-gray-700 leading-relaxed">{{ review.question.explanation }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -153,18 +153,18 @@
         </div>
     </div>
     
-    <!-- Action Buttons - Apple Style -->
-    <div class="mt-12 flex flex-wrap justify-center gap-4 {% if IS_RTL %}flex-row-reverse{% endif %}">
+    <!-- Action Buttons -->
+    <div class="mt-8 flex flex-wrap justify-center gap-3 sm:gap-4 {% if IS_RTL %}flex-row-reverse{% endif %}">
         <a href="{% url 'practice:start_practice' testbank_slug=session.test_bank.slug %}" 
-           class="inline-flex items-center px-10 py-4 bg-gradient-to-r from-[#e28f64] to-[#df804f] hover:from-[#df804f] hover:to-[#c87850] text-white font-semibold rounded-xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+           class="inline-flex items-center px-6 py-2.5 sm:px-8 sm:py-3 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2">
             {% trans "Try Again" %}
         </a>
         <a href="{% url 'catalog:testbank_detail' slug=session.test_bank.slug %}" 
-           class="inline-flex items-center px-10 py-4 bg-white hover:bg-gray-50 text-[#000000] font-semibold rounded-xl transition-all shadow-md hover:shadow-lg border border-gray-200">
+           class="inline-flex items-center px-6 py-2.5 sm:px-8 sm:py-3 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2">
             {% trans "Back" %}
         </a>
         <a href="{% url 'accounts:dashboard' %}" 
-           class="inline-flex items-center px-10 py-4 bg-white hover:bg-gray-50 text-[#000000] font-semibold rounded-xl transition-all shadow-md hover:shadow-lg border border-gray-200">
+           class="inline-flex items-center px-6 py-2.5 sm:px-8 sm:py-3 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2">
             {% trans "Dashboard" %}
         </a>
     </div>

@@ -7,23 +7,23 @@
 {% endblock %}
 
 {% block content %}
-<!-- Practice Session Header - Apple Style -->
-<div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
-        <div class="flex items-center justify-between">
+<!-- Practice Session Header -->
+<div class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-2xl font-semibold text-[#000000] tracking-tight">{{ session.test_bank.title }}</h1>
-                <p class="text-sm text-[#666666] mt-1.5 font-medium">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{{ session.test_bank.title }}</h1>
+                <p class="text-sm text-gray-600">
                     {% blocktrans with current=current_index|add:1 total=total_questions %}Question {{ current }} of {{ total }}{% endblocktrans %}
                 </p>
             </div>
-            <!-- Progress Bar - Apple Style -->
-            <div class="flex flex-col items-end ml-8">
-                <div class="w-48 md:w-64 lg:w-72 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div id="progressBar" class="bg-gradient-to-r from-[#e28f64] to-[#df804f] h-full rounded-full transition-all duration-500 ease-out w-[var(--progress-width)]" 
-                         style="--progress-width: {{ completion_percent }}%;"></div>
+            <!-- Progress Bar -->
+            <div class="flex flex-col items-start sm:items-end sm:ml-8 min-w-[200px]">
+                <div class="w-full sm:w-64 bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+                    <div id="progressBar" class="bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] h-full rounded-full transition-all duration-500 ease-out shadow-sm" 
+                         style="width: {{ completion_percent }}%;"></div>
                 </div>
-                <p id="progressText" class="text-xs text-[#666666] mt-2 font-medium hidden sm:block">
+                <p id="progressText" class="text-xs text-gray-600 mt-2 font-medium">
                     {{ completion_percent }}% {% trans "complete" %} ({{ answered_count }}/{{ total_questions }})
                 </p>
             </div>
@@ -31,86 +31,48 @@
     </div>
 </div>
 
-<!-- Practice Session Content - Apple Style Wide Layout -->
-<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12 practice-content select-none">
-    <!-- Question Navigation Box - Top, Very Compact -->
-    <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-2.5 mb-4">
-        <div class="flex items-center justify-between mb-2">
-            <h3 class="text-xs font-semibold text-[#000000]">{% trans "Questions" %}</h3>
-            <div class="flex items-center space-x-3 {% if IS_RTL %}space-x-reverse{% endif %} text-xs">
-                <div class="flex items-center space-x-1 {% if IS_RTL %}space-x-reverse{% endif %}">
-                    <div class="w-2 h-2 rounded-full bg-green-300"></div>
-                    <span class="text-[#666666]">{% trans "Answered" %}</span>
-                </div>
-                <div class="flex items-center space-x-1 {% if IS_RTL %}space-x-reverse{% endif %}">
-                    <div class="w-2 h-2 rounded-full bg-gray-300"></div>
-                    <span class="text-[#666666]">{% trans "Not Answered" %}</span>
-                </div>
-                <div class="flex items-center space-x-1 {% if IS_RTL %}space-x-reverse{% endif %}">
-                    <div class="w-2 h-2 rounded-full bg-[#e28f64]"></div>
-                    <span class="text-[#666666]">{% trans "Current" %}</span>
-                </div>
-            </div>
-        </div>
-        <div class="flex flex-wrap gap-1.5">
-            {% for question in questions %}
-            <a href="?q={{ forloop.counter0 }}" 
-               onclick="window.isInternalNavigation = true;"
-               data-question-index="{{ forloop.counter0 }}"
-               data-question-id="{{ question.id }}"
-               class="question-nav-link flex items-center justify-center w-7 h-7 rounded-md font-semibold text-xs transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-110
-                      {% if forloop.counter0 == current_index %}
-                      bg-gradient-to-br from-[#e28f64] to-[#df804f] text-white border border-[#df804f]
-                      {% elif question.id in answered_question_ids %}
-                      bg-green-300 text-white border border-green-400 hover:bg-green-400
-                      {% else %}
-                      bg-gray-100 text-[#666666] border border-gray-300 hover:bg-gray-200 hover:border-gray-400
-                      {% endif %}">
-                {{ forloop.counter }}
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+<!-- Practice Session Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 practice-content select-none">
+    <!-- Main Question Card -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden mb-6">
         <!-- Question Section -->
-        <div class="p-12 lg:p-16">
-            <div class="mb-10">
+        <div class="p-6 sm:p-8 lg:p-10">
+            <div class="mb-6">
                 <!-- Question Number Badge -->
-                <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#e28f64] to-[#df804f] text-white font-semibold text-lg mb-6 shadow-lg">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] text-white font-bold text-lg mb-6 shadow-md">
                     {{ current_index|add:1 }}
                 </div>
                 
                 <!-- Question Text -->
-                <h2 class="text-3xl lg:text-4xl font-semibold text-[#000000] leading-relaxed mb-10 tracking-tight">
+                <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-relaxed mb-8">
                     {{ current_question.question_text }}
                 </h2>
                 
-                <!-- Answer Options - Apple Style -->
+                <!-- Answer Options -->
                 <form id="answerForm" method="post" action="{% url 'practice:save_answer' session_id=session.pk %}">
                     {% csrf_token %}
                     <input type="hidden" name="question_id" value="{{ current_question.id }}">
                     
-                    <div class="space-y-4">
+                    <div class="space-y-3">
                         {% for option in answer_options %}
-                        <label class="group flex items-start p-6 rounded-2xl cursor-pointer transition-all duration-300 ease-out
+                        <label class="group flex items-start p-4 sm:p-5 rounded-xl cursor-pointer transition-all duration-200 border-2
                                       {% if option.id in selected_option_ids %}
-                                      bg-gradient-to-r from-[#e28f64]/10 to-[#df804f]/10 border-2 border-[#e28f64] shadow-md
+                                      bg-purple-50 border-[#5525d0] shadow-sm hover:shadow-md
                                       {% else %}
-                                      bg-gray-50/50 border-2 border-gray-200 hover:border-[#e28f64]/50 hover:bg-gray-50 hover:shadow-md
+                                      bg-white border-gray-200 hover:border-[#5525d0]/50 hover:bg-gray-50 hover:shadow-sm
                                       {% endif %}">
                             {% if current_question.question_type == 'mcq_single' or current_question.question_type == 'true_false' %}
                             <input type="radio" name="selected_options[]" value="{{ option.id }}" 
-                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 cursor-pointer select-text"
+                                   class="mt-1 mr-4 {% if IS_RTL %}ml-4 mr-0{% endif %} w-5 h-5 text-[#5525d0] focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2 cursor-pointer flex-shrink-0"
                                    {% if option.id in selected_option_ids %}checked{% endif %}
                                    onchange="saveAnswer()">
                             {% else %}
                             <input type="checkbox" name="selected_options[]" value="{{ option.id }}" 
-                                   class="mt-1.5 mr-5 {% if IS_RTL %}ml-5 mr-0{% endif %} w-6 h-6 text-[#e28f64] focus:ring-2 focus:ring-[#e28f64] focus:ring-offset-2 rounded-md cursor-pointer select-text"
+                                   class="mt-1 mr-4 {% if IS_RTL %}ml-4 mr-0{% endif %} w-5 h-5 text-[#5525d0] focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2 rounded cursor-pointer flex-shrink-0"
                                    {% if option.id in selected_option_ids %}checked{% endif %}
                                    onchange="saveAnswer()">
                             {% endif %}
-                            <span class="flex-1 text-lg text-[#000000] font-medium leading-relaxed pt-0.5">
+                            <span class="flex-1 text-base sm:text-lg text-gray-900 font-medium leading-relaxed pt-0.5">
                                 {{ option.option_text }}
                             </span>
                         </label>
@@ -120,15 +82,15 @@
             </div>
         </div>
         
-        <!-- Navigation Section - Apple Style -->
-        <div class="px-12 lg:px-16 py-8 bg-gray-50/50 border-t border-gray-100">
-            <div class="flex justify-between items-center">
+        <!-- Navigation Section -->
+        <div class="px-6 sm:px-8 lg:px-10 py-5 bg-gray-50 border-t border-gray-200">
+            <div class="flex justify-between items-center gap-4">
                 <div>
                     {% if current_index > 0 %}
                     <a href="?q={{ current_index|add:-1 }}" 
                        onclick="window.isInternalNavigation = true;"
-                       class="inline-flex items-center px-8 py-3.5 bg-white hover:bg-gray-50 text-[#000000] font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200">
-                        <svg class="w-5 h-5 mr-2.5 {% if IS_RTL %}ml-2.5 mr-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       class="inline-flex items-center px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2">
+                        <svg class="w-5 h-5 mr-2 {% if IS_RTL %}ml-2 mr-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                         </svg>
                         {% trans "Previous" %}
@@ -140,9 +102,9 @@
                     {% if current_index < total_questions|add:-1 %}
                     <a href="?q={{ current_index|add:1 }}" 
                        onclick="window.isInternalNavigation = true;"
-                       class="inline-flex items-center px-10 py-3.5 bg-[#e0875a] hover:bg-[#d17a4f] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                       class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2">
                         {% trans "Next" %}
-                        <svg class="w-5 h-5 ml-2.5 {% if IS_RTL %}mr-2.5 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                     </a>
@@ -150,9 +112,9 @@
                     <form method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="inline" onsubmit="window.isInternalNavigation = true;">
                         {% csrf_token %}
                         <button type="submit" 
-                                class="inline-flex items-center px-12 py-3.5 bg-gradient-to-r from-[#8FABD4] to-[#4A70A9] hover:from-[#4A70A9] hover:to-[#3a5a8a] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2">
                             {% trans "Submit Exam" %}
-                            <svg class="w-5 h-5 ml-2.5 {% if IS_RTL %}mr-2.5 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                         </button>
@@ -160,6 +122,47 @@
                     {% endif %}
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <!-- Question Navigation Box -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 p-5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <h3 class="text-base sm:text-lg font-bold text-gray-900">
+                <mark class="bg-[#fde047] text-gray-900 px-2 rounded-sm">{% trans "Questions" %}</mark>
+            </h3>
+            <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+                <div class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></div>
+                    <span class="text-gray-600 font-medium">{% trans "Answered" %}</span>
+                </div>
+                <div class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+                    <span class="text-gray-600 font-medium">{% trans "Not Answered" %}</span>
+                </div>
+                <div class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="w-2.5 h-2.5 rounded-full bg-[#5525d0] shadow-sm"></div>
+                    <span class="text-gray-600 font-medium">{% trans "Current" %}</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            {% for question in questions %}
+            <a href="?q={{ forloop.counter0 }}" 
+               onclick="window.isInternalNavigation = true;"
+               data-question-index="{{ forloop.counter0 }}"
+               data-question-id="{{ question.id }}"
+               class="question-nav-link flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105
+                      {% if forloop.counter0 == current_index %}
+                      bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] text-white border-2 border-[#4a1fb8]
+                      {% elif question.id in answered_question_ids %}
+                      bg-green-500 text-white border-2 border-green-600 hover:bg-green-600
+                      {% else %}
+                      bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50
+                      {% endif %}">
+                {{ forloop.counter }}
+            </a>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -186,18 +189,18 @@ function saveAnswer() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Apple-style success animation
+            // Success animation
             const form = document.getElementById('answerForm');
             form.style.transition = 'all 0.3s ease';
-            form.style.boxShadow = '0 0 0 4px rgba(143, 171, 212, 0.2)';
+            form.style.boxShadow = '0 0 0 4px rgba(85, 37, 208, 0.2)';
             
             // Update navigation box - mark current question as answered
             const currentIndex = parseInt('{{ current_index }}', 10);
             const currentQuestionLink = document.querySelector('a[data-question-index="' + currentIndex + '"]');
-            if (currentQuestionLink && !currentQuestionLink.classList.contains('bg-gradient-to-br')) {
+            if (currentQuestionLink && !currentQuestionLink.classList.contains('bg-gradient-to-r')) {
                 // Only update if it's not the current question (which has gradient background)
-                currentQuestionLink.classList.remove('bg-gray-100', 'text-[#666666]', 'border-gray-300', 'hover:bg-gray-200', 'hover:border-gray-400');
-                currentQuestionLink.classList.add('bg-green-300', 'text-white', 'border-green-400', 'hover:bg-green-400');
+                currentQuestionLink.classList.remove('bg-gray-100', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-200');
+                currentQuestionLink.classList.add('bg-green-500', 'text-white', 'hover:bg-green-600');
             }
             
             // Update progress bar
