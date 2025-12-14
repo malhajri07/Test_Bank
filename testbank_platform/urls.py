@@ -38,6 +38,9 @@ urlpatterns = [
     # CMS app URLs (content management)
     path('cms/', include('cms.urls')),
     
+    # Forum app URLs (discussion boards)
+    path('forum/', include('forum.urls')),
+    
     # CKEditor file upload URLs
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ]

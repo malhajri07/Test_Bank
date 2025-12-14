@@ -11,6 +11,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404, JsonResponse
 from django.utils import timezone
 from django.db import models
+from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -75,19 +76,23 @@ def blog_list(request):
     
     Shows paginated list of published blog posts, ordered by published date.
     """
-    # Get published blog posts
-    blog_posts = BlogPost.objects.filter(status='published').order_by('-published_at', '-created_at')
+    # Get published blog posts with comment counts
+    blog_posts = BlogPost.objects.filter(status='published').annotate(
+        comment_count=Count('comments', filter=Q(comments__is_approved=True))
+    ).order_by('-published_at', '-created_at')
     
     # If user is staff, show all posts including drafts
     if request.user.is_staff:
-        blog_posts = BlogPost.objects.all().order_by('-published_at', '-created_at')
+        blog_posts = BlogPost.objects.all().annotate(
+            comment_count=Count('comments', filter=Q(comments__is_approved=True))
+        ).order_by('-published_at', '-created_at')
     
     # Pagination
     paginator = Paginator(blog_posts, 10)  # Show 10 posts per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get featured posts
+    # Get featured posts with comment counts
     featured_posts = blog_posts.filter(is_featured=True)[:3]
     
     return render(request, 'cms/blog_list.html', {

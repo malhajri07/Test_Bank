@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ topic.title }} - {% trans "Forum" %} - {% trans "Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
+            <li><a href="{% url 'forum:index' %}" class="hover:text-[#5525d0] transition-colors">{% trans "Forum" %}</a></li>
+            <li><span>/</span></li>
+            <li><a href="{{ category.get_absolute_url }}" class="hover:text-[#5525d0] transition-colors">{{ category.name }}</a></li>
+            <li><span>/</span></li>
+            <li class="text-gray-900 font-medium">{{ topic.title|truncatewords:5 }}</li>
+        </ol>
+    </nav>
+
+    <!-- Topic Header -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    {% if topic.is_pinned %}
+                    <span class="px-2 py-1 bg-[#5525d0] text-white text-xs font-semibold rounded">{% trans "Pinned" %}</span>
+                    {% endif %}
+                    <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded">{{ category.name }}</span>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ topic.title }}</h1>
+                <div class="flex items-center gap-4 text-sm text-gray-500">
+                    <span>{% trans "by" %} <span class="font-semibold text-gray-900">{{ topic.author.get_full_name|default:topic.author.username }}</span></span>
+                    <span>{{ topic.created_at|date:"M d, Y" }}</span>
+                    <span>{{ topic.views_count }} {% trans "views" %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Posts -->
+    <div class="space-y-6 mb-6">
+        {% for post in posts %}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6" id="post-{{ post.id }}">
+            <div class="flex items-start gap-4">
+                <!-- Author Avatar -->
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-gradient-to-br from-[#5525d0] to-[#4a1fb8] rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                        {{ post.author.get_full_name|first|default:post.author.username|first|upper }}
+                    </div>
+                </div>
+                
+                <!-- Post Content -->
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <div class="font-semibold text-gray-900">{{ post.author.get_full_name|default:post.author.username }}</div>
+                            <div class="text-sm text-gray-500">
+                                {{ post.created_at|date:"M d, Y, g:i A" }}
+                                {% if post.is_edited %}
+                                <span class="text-gray-400">• {% trans "edited" %} {{ post.edited_at|date:"M d, Y, g:i A" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if user == post.author %}
+                        <a href="{% url 'forum:post_edit' post_id=post.id %}" class="text-sm text-[#5525d0] hover:text-[#4a1fb8] font-medium">
+                            {% trans "Edit" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="prose max-w-none text-gray-700">
+                        {{ post.content|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if posts.has_other_pages %}
+    <div class="mb-6 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if posts.has_previous %}
+            <a href="?page={{ posts.previous_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                {% trans "Previous" %}
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 text-gray-700">
+                {% trans "Page" %} {{ posts.number }} {% trans "of" %} {{ posts.paginator.num_pages }}
+            </span>
+            
+            {% if posts.has_next %}
+            <a href="?page={{ posts.next_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                {% trans "Next" %}
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+
+    <!-- Reply Form -->
+    {% if user.is_authenticated %}
+    {% if not topic.is_locked %}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">
+            <mark class="bg-[#fde047] text-gray-900 px-2 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Reply to Topic" %}</mark>
+        </h2>
+        <form method="post" action="{% url 'forum:topic_reply' category_slug=category.slug topic_slug=topic.slug %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                {{ reply_form.content }}
+                {% if reply_form.content.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ reply_form.content.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-200">
+                {% trans "Post Reply" %}
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <div class="bg-gray-50 rounded-xl border border-gray-200 p-6 text-center">
+        <p class="text-gray-600">{% trans "This topic is locked and no longer accepts replies." %}</p>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="bg-gray-50 rounded-xl border border-gray-200 p-6 text-center">
+        <p class="text-gray-600 mb-4">{% trans "Please log in to reply to this topic." %}</p>
+        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="inline-block px-6 py-3 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-200">
+            {% trans "Log In" %}
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

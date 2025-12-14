@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "payments",  # Purchase and Stripe integration
     "practice",  # User test sessions and results
     "cms",       # Content Management System
+    "forum",     # Forum and discussion boards
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ category.name }} - {% trans "Forum" %} - {% trans "Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
+            <li><a href="{% url 'forum:index' %}" class="hover:text-[#5525d0] transition-colors">{% trans "Forum" %}</a></li>
+            <li><span>/</span></li>
+            <li class="text-gray-900 font-medium">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    {% if category.icon %}<span class="mr-2">{{ category.icon }}</span>{% endif %}
+                    {{ category.name }}
+                </h1>
+                {% if category.description %}
+                <p class="text-gray-600">{{ category.description }}</p>
+                {% endif %}
+            </div>
+            {% if user.is_authenticated %}
+            <a href="{% url 'forum:topic_create' category_slug=category.slug %}" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                {% trans "New Topic" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Topics List -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">{% trans "Topic" %}</th>
+                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">{% trans "Replies" %}</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">{% trans "Last Activity" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for topic in topics %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-start gap-3">
+                                {% if topic.is_pinned %}
+                                <svg class="w-5 h-5 text-[#5525d0] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M5.5 17.5a.5.5 0 01-1 0V.5a.5.5 0 011 0v17zM3 2.5a.5.5 0 01.5-.5h13a.5.5 0 01.5.5v15a.5.5 0 01-.5.5h-13a.5.5 0 01-.5-.5v-15z"></path>
+                                </svg>
+                                {% else %}
+                                <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                                </svg>
+                                {% endif %}
+                                <div class="flex-1">
+                                    <a href="{{ topic.get_absolute_url }}" class="text-lg font-semibold text-gray-900 hover:text-[#5525d0] transition-colors">
+                                        {{ topic.title }}
+                                    </a>
+                                    <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                        <span>{% trans "by" %} <span class="font-medium">{{ topic.author.get_full_name|default:topic.author.username }}</span></span>
+                                        <span>•</span>
+                                        <span>{{ topic.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-gray-700 font-medium">{{ topic.reply_count|default:0 }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-600">
+                                {% if topic.get_last_post %}
+                                <div>{% trans "by" %} {{ topic.get_last_post.author.get_full_name|default:topic.get_last_post.author.username }}</div>
+                                <div class="text-gray-500">{{ topic.last_activity_at|timesince }} {% trans "ago" %}</div>
+                                {% else %}
+                                <div class="text-gray-500">{{ topic.created_at|timesince }} {% trans "ago" %}</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-12 text-center text-gray-500">
+                            {% trans "No topics yet. Be the first to start a discussion!" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if topics.has_other_pages %}
+    <div class="mt-6 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if topics.has_previous %}
+            <a href="?page={{ topics.previous_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                {% trans "Previous" %}
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 text-gray-700">
+                {% trans "Page" %} {{ topics.number }} {% trans "of" %} {{ topics.paginator.num_pages }}
+            </span>
+            
+            {% if topics.has_next %}
+            <a href="?page={{ topics.next_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                {% trans "Next" %}
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
