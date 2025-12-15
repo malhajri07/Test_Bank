@@ -58,3 +58,6 @@ class BlogCommentReplyForm(forms.ModelForm):
         model = BlogComment
         fields = ['content']
 
+
+
+
