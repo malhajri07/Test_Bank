@@ -154,3 +154,63 @@ class UserProfile(models.Model):
     def get_absolute_url(self):
         """Get URL for profile detail page."""
         return reverse('accounts:profile', kwargs={'pk': self.user.pk})
+
+
+class EmailVerificationToken(models.Model):
+    """
+    Email verification token model.
+    
+    Stores verification tokens for email activation.
+    Each user gets a unique token that expires after a certain time.
+    """
+    
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='email_verification',
+        verbose_name='User'
+    )
+    
+    token = models.CharField(
+        max_length=64,
+        unique=True,
+        verbose_name='Verification Token',
+        help_text='Unique token for email verification'
+    )
+    
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Created At'
+    )
+    
+    expires_at = models.DateTimeField(
+        verbose_name='Expires At',
+        help_text='Token expiration time (default: 7 days)'
+    )
+    
+    is_used = models.BooleanField(
+        default=False,
+        verbose_name='Is Used',
+        help_text='Whether this token has been used'
+    )
+    
+    class Meta:
+        """Meta options for EmailVerificationToken model."""
+        verbose_name = 'Email Verification Token'
+        verbose_name_plural = 'Email Verification Tokens'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        """String representation of the token."""
+        return f"Verification token for {self.user.username}"
+    
+    def is_valid(self):
+        """Check if token is valid (not used and not expired)."""
+        from django.utils import timezone
+        return not self.is_used and timezone.now() < self.expires_at
+    
+    @staticmethod
+    def generate_token():
+        """Generate a secure random token."""
+        import secrets
+        return secrets.token_urlsafe(32)

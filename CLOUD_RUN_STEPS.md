@@ -278,3 +278,4 @@ gcloud run services update exam-stellar \
 6. Configure CDN for static files
 7. Set up staging environment
 
+

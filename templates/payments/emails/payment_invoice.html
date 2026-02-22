@@ -1,0 +1,208 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Payment Invoice" %} - {{ payment.test_bank.title }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #000000;
+            background-color: #f5f5f7;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background: linear-gradient(to right, #5624d0, #4a1fb8);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .email-content {
+            padding: 40px 30px;
+        }
+        .invoice-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+        .invoice-number {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .invoice-details {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #666666;
+            font-size: 14px;
+        }
+        .detail-value {
+            color: #000000;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+            margin-top: 20px;
+            border-top: 2px solid #000000;
+        }
+        .total-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #000000;
+        }
+        .total-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #5624d0;
+        }
+        .test-bank-info {
+            background-color: #f0f4ff;
+            border-left: 4px solid #5624d0;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        .test-bank-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+        .test-bank-description {
+            color: #666666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(to right, #5624d0, #4a1fb8);
+            color: #ffffff;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666666;
+            font-size: 12px;
+        }
+        .footer a {
+            color: #5624d0;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1 class="logo">{% trans "Exam Stellar" %}</h1>
+        </div>
+        
+        <div class="email-content">
+            <h2 class="invoice-title">{% trans "Payment Invoice" %}</h2>
+            <p class="invoice-number">{% trans "Invoice #" %}{{ payment.id }} | {% trans "Date:" %} {{ payment.created_at|date:"F d, Y" }}</p>
+            
+            <p>{% trans "Dear" %} {{ payment.user.get_full_name|default:payment.user.username }},</p>
+            
+            <p>{% trans "Thank you for your purchase! This email confirms your payment and serves as your invoice." %}</p>
+            
+            <div class="invoice-details">
+                <div class="detail-row">
+                    <span class="detail-label">{% trans "Payment ID:" %}</span>
+                    <span class="detail-value">#{{ payment.id }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">{% trans "Transaction ID:" %}</span>
+                    <span class="detail-value">{{ payment.provider_payment_id|default:"N/A" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">{% trans "Payment Date:" %}</span>
+                    <span class="detail-value">{{ payment.created_at|date:"F d, Y g:i A" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">{% trans "Payment Method:" %}</span>
+                    <span class="detail-value">{{ payment.get_payment_provider_display }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">{% trans "Status:" %}</span>
+                    <span class="detail-value" style="color: #10b981;">{% trans "Paid" %}</span>
+                </div>
+            </div>
+            
+            <div class="test-bank-info">
+                <div class="test-bank-title">{{ payment.test_bank.title }}</div>
+                {% if payment.test_bank.description %}
+                <div class="test-bank-description">{{ payment.test_bank.description|truncatewords:30 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="total-row">
+                <span class="total-label">{% trans "Total Paid:" %}</span>
+                <span class="total-value">${{ payment.amount|floatformat:2 }} {{ payment.currency|upper }}</span>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{ site_url }}{% url 'catalog:testbank_detail' slug=payment.test_bank.slug %}" class="cta-button">
+                    {% trans "Access Your Test Bank" %}
+                </a>
+            </div>
+            
+            <p style="margin-top: 30px; color: #666666; font-size: 14px;">
+                {% trans "You now have full access to this test bank. You can start practicing immediately from your dashboard." %}
+            </p>
+            
+            <p style="color: #666666; font-size: 14px;">
+                {% trans "If you have any questions or need assistance, please don't hesitate to contact our support team." %}
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>{% trans "This is an automated invoice from Exam Stellar." %}</p>
+            <p>
+                <a href="{{ site_url }}">{% trans "Visit our website" %}</a> | 
+                <a href="{{ site_url }}{% url 'catalog:contact' %}">{% trans "Contact Support" %}</a>
+            </p>
+            <p style="margin-top: 20px;">&copy; {% now "Y" %} Exam Stellar. {% trans "All rights reserved." %}</p>
+        </div>
+    </div>
+</body>
+</html>

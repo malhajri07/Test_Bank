@@ -36,8 +36,11 @@ Your JSON file should follow this structure:
     "title": "Your Test Bank Title",
     "description": "Description of the test bank",
     "category": "category-slug",
-    "subcategory": "subcategory-slug",
     "certification": "certification-slug",
+    "certification_domain": "Information Technology",
+    "organization": "CompTIA",
+    "official_url": "https://www.example.com/certification",
+    "certification_details": "Additional details about the certification",
     "difficulty_level": "easy",
     "price": 0.00,
     "is_active": true
@@ -72,13 +75,18 @@ Your JSON file should follow this structure:
 - **title** (required): The title of the test bank
 - **description** (required): Description of the test bank
 - **category**: Name or slug of category (will be created if doesn't exist)
-- **subcategory**: Name or slug of subcategory (optional, requires category, will be created if doesn't exist)
-- **certification**: Name or slug of certification (optional, requires subcategory, will be created if doesn't exist)
+- **certification**: Name or slug of certification (optional, requires category, will be created if doesn't exist). **Note:** The same certification name can exist multiple times under the same category, but each must have a different `difficulty_level`. For example, "PMP" can exist as both "PMP (Easy)" and "PMP (Advanced)" under the same category.
+- **certification_domain** (optional, metadata field): Subject area text field for certification metadata (e.g., "Information Technology", "Healthcare", "Finance")
+- **organization** (optional): Organization or body that issues the certification (e.g., "CompTIA", "Microsoft", "PMI")
+- **official_url** (optional): Official website URL for the certification or organization
+- **certification_details** (optional): Additional details about the certification, requirements, or exam information
 - **difficulty_level**: "easy", "medium", or "advanced" (default: "easy"). Also accepts "beginner" (maps to "easy"), "intermediate" (maps to "medium"), or "hard" (maps to "advanced")
 - **price**: Price in decimal format (default: 0.00)
 - **is_active**: true or false (default: true)
 
-**Note:** Categories, subcategories, and certifications are automatically created if they don't exist. You can use either the name (e.g., "Vocational") or slug (e.g., "vocational").
+**Note:** Categories and certifications are automatically created if they don't exist. You can use either the name (e.g., "Vocational") or slug (e.g., "vocational").
+
+**Important:** When creating certifications, the `difficulty_level` field determines uniqueness. The same certification name (e.g., "PMP") can exist multiple times under the same category, but each instance must have a different difficulty level. The system will automatically create separate certification entries for "PMP (Easy)", "PMP (Medium)", and "PMP (Advanced)" if you upload test banks with the same certification name but different difficulty levels.
 
 #### Question Section:
 - **question_text** (required): The question content
@@ -155,11 +163,11 @@ Example:
 
 ## Important Notes
 
-1. **Hierarchy Requirements**: At least one of `category`, `subcategory`, or `certification` must be specified. They will be automatically created if they don't exist.
+1. **Hierarchy Requirements**: At least one of `category` or `certification` must be specified. They will be automatically created if they don't exist.
 
-2. **Name or Slug**: You can use either the name (e.g., "Vocational") or slug (e.g., "vocational") for category, subcategory, and certification. The system will find existing ones or create new ones automatically.
+2. **Name or Slug**: You can use either the name (e.g., "Vocational") or slug (e.g., "vocational") for category and certification. The system will find existing ones or create new ones automatically.
 
-3. **Auto-Creation**: Categories, subcategories, and certifications are automatically created if they don't exist. This makes it easy to import test banks without pre-creating the hierarchy.
+3. **Auto-Creation**: Categories and certifications are automatically created if they don't exist. This makes it easy to import test banks without pre-creating the hierarchy.
 
 4. **Updating Existing Test Banks**: If you select an existing test bank to update, all existing questions will be deleted and replaced with the new ones from the JSON file.
 

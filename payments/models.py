@@ -144,6 +144,48 @@ class Payment(models.Model):
         """Check if payment was successful."""
         return self.status == 'succeeded'
     
+    def get_vat_rate(self):
+        """Get VAT rate (15% default)."""
+        from django.conf import settings
+        return getattr(settings, 'VAT_RATE', 0.15)  # 15% VAT
+    
+    def get_net_price(self):
+        """
+        Get net price (VAT exclusive).
+        
+        The amount stored is the net price (VAT exclusive).
+        For free items (amount = 0), returns 0.
+        """
+        return self.amount
+    
+    def get_vat_amount(self):
+        """
+        Calculate VAT amount (15% of net price).
+        
+        Returns 0 for free items (amount = 0).
+        Example: Net price $5.00, VAT = $5.00 * 0.15 = $0.75
+        """
+        if self.amount == 0:
+            return 0
+        net_price = self.get_net_price()
+        vat_rate = self.get_vat_rate()
+        from decimal import Decimal
+        return (Decimal(str(net_price)) * Decimal(str(vat_rate))).quantize(Decimal('0.01'))
+    
+    def get_total_amount(self):
+        """
+        Calculate total amount (net price + VAT).
+        
+        For free items, returns 0.
+        Example: Net price $5.00, VAT $0.75, Total = $5.75
+        """
+        if self.amount == 0:
+            return 0
+        from decimal import Decimal
+        net_price = Decimal(str(self.get_net_price()))
+        vat_amount = Decimal(str(self.get_vat_amount()))
+        return (net_price + vat_amount).quantize(Decimal('0.01'))
+    
     def get_absolute_url(self):
         """Get URL for payment detail page."""
         return reverse('payments:payment_detail', kwargs={'pk': self.pk})

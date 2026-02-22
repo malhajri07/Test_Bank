@@ -1,8 +1,8 @@
 """
 Admin configuration for catalog app.
 
-Registers Category, SubCategory, Certification, TestBank, Question, and AnswerOption models with Django admin.
-Includes inline admin for AnswerOptions within Questions and Certifications within SubCategories.
+Registers Category, Certification, TestBank, Question, and AnswerOption models with Django admin.
+Includes inline admin for AnswerOptions within Questions and Certifications within Categories.
 Includes JSON upload functionality for importing test banks with questions and answers.
 """
 
@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.urls import path
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-from .models import Category, SubCategory, Certification, TestBank, TestBankRating, Question, AnswerOption, ContactMessage
+from .models import Category, Certification, TestBank, TestBankRating, Question, AnswerOption, ContactMessage
 from .forms import TestBankJSONUploadForm
 from .utils import import_test_bank_from_json, parse_json_file
 
@@ -25,6 +25,15 @@ class AnswerOptionInline(admin.TabularInline):
     fields = ('option_text', 'is_correct', 'order')
 
 
+# Inline admin for Certifications (shown within Category admin page)
+class CertificationInline(admin.TabularInline):
+    """Inline admin for Certifications, displayed within Category admin."""
+    model = Certification
+    extra = 1  # Show 1 extra empty form by default
+    fields = ('name', 'slug', 'difficulty_level', 'description', 'order')
+    readonly_fields = ('slug',)  # Slug is auto-generated with difficulty level
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """Admin interface for Category model."""
@@ -33,6 +42,7 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}  # Auto-generate slug from name
     readonly_fields = ('created_at', 'updated_at')
+    inlines = [CertificationInline]  # Show certifications inline
     fieldsets = (
         ('Basic Information', {
             'fields': ('name', 'slug', 'description', 'image')
@@ -48,24 +58,14 @@ class CategoryAdmin(admin.ModelAdmin):
     )
 
 
-# Inline admin for Certifications (shown within SubCategory admin page)
-class CertificationInline(admin.TabularInline):
-    """Inline admin for Certifications, displayed within SubCategory admin."""
-    model = Certification
-    extra = 1  # Show 1 extra empty form by default
-    fields = ('name', 'slug', 'description', 'order')
-    prepopulated_fields = {'slug': ('name',)}
-
-
-@admin.register(SubCategory)
-class SubCategoryAdmin(admin.ModelAdmin):
-    """Admin interface for SubCategory model."""
-    list_display = ('name', 'category', 'order', 'created_at')
-    list_filter = ('category', 'created_at')
+@admin.register(Certification)
+class CertificationAdmin(admin.ModelAdmin):
+    """Admin interface for Certification model."""
+    list_display = ('name', 'category', 'difficulty_level', 'order', 'created_at')
+    list_filter = ('category', 'difficulty_level', 'created_at')
     search_fields = ('name', 'description', 'category__name')
-    prepopulated_fields = {'slug': ('name',)}  # Auto-generate slug from name
-    readonly_fields = ('created_at', 'updated_at')
-    inlines = [CertificationInline]  # Show certifications inline
+    prepopulated_fields = {}  # Slug is auto-generated with difficulty level
+    readonly_fields = ('created_at', 'updated_at', 'slug')
     ordering = ('category', 'order', 'name')
     
     # Fieldsets for better organization
@@ -74,32 +74,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
             'fields': ('category', 'name', 'slug', 'description')
         }),
         ('Settings', {
-            'fields': ('order',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-
-@admin.register(Certification)
-class CertificationAdmin(admin.ModelAdmin):
-    """Admin interface for Certification model."""
-    list_display = ('name', 'subcategory', 'order', 'created_at')
-    list_filter = ('subcategory__category', 'subcategory', 'created_at')
-    search_fields = ('name', 'description', 'subcategory__name')
-    prepopulated_fields = {'slug': ('name',)}  # Auto-generate slug from name
-    readonly_fields = ('created_at', 'updated_at')
-    ordering = ('subcategory', 'order', 'name')
-    
-    # Fieldsets for better organization
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('subcategory', 'name', 'slug', 'description')
-        }),
-        ('Settings', {
-            'fields': ('order',)
+            'fields': ('difficulty_level', 'order')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -111,8 +86,8 @@ class CertificationAdmin(admin.ModelAdmin):
 @admin.register(TestBank)
 class TestBankAdmin(admin.ModelAdmin):
     """Admin interface for TestBank model with JSON upload functionality."""
-    list_display = ('title', 'category', 'subcategory', 'certification', 'difficulty_level', 'price', 'average_rating', 'total_ratings', 'user_count', 'is_active', 'question_count', 'created_at')
-    list_filter = ('category', 'subcategory', 'certification', 'difficulty_level', 'is_active', 'created_at')
+    list_display = ('title', 'category', 'certification', 'difficulty_level', 'price', 'average_rating', 'total_ratings', 'user_count', 'is_active', 'question_count', 'created_at')
+    list_filter = ('category', 'certification', 'difficulty_level', 'is_active', 'created_at')
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}  # Auto-generate slug from title
     readonly_fields = ('created_at', 'updated_at', 'question_count', 'user_count', 'average_rating', 'total_ratings')
@@ -131,11 +106,16 @@ class TestBankAdmin(admin.ModelAdmin):
     # Fieldsets for better organization in admin
     fieldsets = (
         ('Hierarchy', {
-            'fields': ('category', 'subcategory', 'certification'),
-            'description': 'Test bank can belong to category, subcategory, or certification. At least one must be selected.'
+            'fields': ('category', 'certification'),
+            'description': 'Test bank can belong to category or certification. At least one must be selected.'
         }),
         ('Basic Information', {
             'fields': ('title', 'slug', 'description', 'image')
+        }),
+        ('Certification Metadata', {
+            'fields': ('certification_domain', 'organization', 'official_url', 'certification_details'),
+            'description': 'Additional information about the certification (optional)',
+            'classes': ('collapse',)
         }),
         ('Details', {
             'fields': ('difficulty_level', 'price', 'is_active')

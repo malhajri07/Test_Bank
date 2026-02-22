@@ -135,21 +135,51 @@
   .trending-swiper .swiper-button-next,
   .categories-swiper .swiper-button-next,
   .testimonials-swiper .swiper-button-next {
-    @apply -right-14;
-    right: -56px !important;
+    right: 0px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    z-index: 30 !important;
+    width: 48px !important;
+    height: 48px !important;
+    margin-top: 0 !important;
   }
 
   .trending-swiper .swiper-button-prev,
   .categories-swiper .swiper-button-prev,
   .testimonials-swiper .swiper-button-prev {
-    @apply -left-14;
-    left: -56px !important;
+    left: 0px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    z-index: 30 !important;
+    width: 48px !important;
+    height: 48px !important;
+    margin-top: 0 !important;
   }
 
-  /* Hide buttons on mobile */
+  /* Hide buttons on mobile for general swipers */
   @media (max-width: 768px) {
-    .swiper-button-next,
-    .swiper-button-prev {
+    .swiper-button-next:not(.trending-next):not(.trending-prev),
+    .swiper-button-prev:not(.trending-next):not(.trending-prev) {
+      @apply hidden;
+    }
+  }
+  
+  /* Always show trending swiper buttons on desktop */
+  .trending-swiper .swiper-button-next,
+  .trending-swiper .swiper-button-prev {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  @media (max-width: 768px) {
+    .trending-swiper .swiper-button-next,
+    .trending-swiper .swiper-button-prev {
       @apply hidden;
     }
   }
@@ -166,6 +196,12 @@
   .categories-swiper,
   .testimonials-swiper {
     @apply overflow-visible w-full relative;
+    overflow: visible !important;
+  }
+  
+  /* Ensure parent containers allow overflow */
+  .trending-swiper {
+    overflow: visible !important;
   }
 
   /* Swiper Slide Styles */
@@ -195,6 +231,49 @@
   .trending-swiper .swiper-slide,
   .categories-swiper .swiper-slide {
     @apply w-[280px] flex-shrink-0;
+  }
+
+  /* Fixed Height for Trending Swiper Slides */
+  .trending-swiper .swiper-slide {
+    height: 28rem !important;
+    min-height: 28rem !important;
+    max-height: 28rem !important;
+  }
+
+  /* Ensure inner card respects height */
+  .trending-swiper .swiper-slide > a {
+    height: 100% !important;
+    display: flex !important;
+  }
+
+  .trending-swiper .swiper-slide > a > div {
+    height: 100% !important;
+    max-height: 100% !important;
+  }
+
+  /* Fixed height for content area in trending cards */
+  /* Slide: 28rem, padding: 2rem (p-4 top+bottom), card: 26rem, image: 13rem (h-52), content: 13rem */
+  .trending-card-content {
+    height: 13rem !important;
+    min-height: 13rem !important;
+    max-height: 13rem !important;
+    flex: 0 0 13rem !important;
+  }
+
+  /* Fixed height for title wrapper in trending cards */
+  .trending-card-content > div:first-child {
+    height: 3.5rem !important;
+    min-height: 3.5rem !important;
+    max-height: 3.5rem !important;
+  }
+
+  /* Account for slide padding */
+  .trending-swiper .swiper-slide {
+    box-sizing: border-box !important;
+  }
+
+  .trending-swiper .swiper-slide > a > div {
+    box-sizing: border-box !important;
   }
 
   .trending-swiper .swiper-slide > div,

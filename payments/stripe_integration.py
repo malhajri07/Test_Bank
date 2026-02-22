@@ -18,13 +18,17 @@ from django.conf import settings
 from django.urls import reverse
 from .models import Payment, Purchase
 from practice.models import UserTestAccess
+from .email_utils import send_payment_invoice
 
 
 # Initialize Stripe with secret key from settings
+if not settings.STRIPE_SECRET_KEY:
+    raise ValueError('STRIPE_SECRET_KEY is not configured. Please set it in your .env file.')
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-def create_checkout_session(test_bank, user, request):
+def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
     """
     Create a Stripe Checkout session for purchasing a test bank.
     
@@ -32,15 +36,16 @@ def create_checkout_session(test_bank, user, request):
     1. Creates a Payment record with status='created'
     2. Creates a Stripe Checkout session
     3. Updates Payment with Stripe session ID
-    4. Returns the checkout session URL
+    4. Returns the checkout session URL or client_secret depending on ui_mode
     
     Args:
         test_bank: TestBank instance to purchase
         user: User instance making the purchase
         request: Django HttpRequest object (for building absolute URLs)
+        ui_mode: 'hosted' for redirect-based checkout, 'embedded' for Payment Element
     
     Returns:
-        str: Stripe Checkout session URL to redirect user to
+        str: Stripe Checkout session URL (hosted) or dict with client_secret (embedded)
     
     Raises:
         stripe.error.StripeError: If Stripe API call fails
@@ -55,8 +60,7 @@ def create_checkout_session(test_bank, user, request):
         status='created'
     )
     
-    # Build success and cancel URLs
-    # These URLs will be called by Stripe after payment completion
+    # Build URLs based on checkout mode
     success_url = request.build_absolute_uri(
         reverse('payments:payment_success')
     ) + f'?session_id={{CHECKOUT_SESSION_ID}}'
@@ -66,37 +70,64 @@ def create_checkout_session(test_bank, user, request):
     )
     
     try:
+        # Validate test bank price
+        if test_bank.price <= 0:
+            raise ValueError('Test bank price must be greater than 0')
+        
+        # Validate description (handle None case)
+        description = test_bank.description or ''
+        if len(description) > 500:
+            description = description[:500]
+        
         # Create Stripe Checkout session
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
+        session_params = {
+            'payment_method_types': ['card'],
+            'line_items': [{
                 'price_data': {
                     'currency': settings.STRIPE_CURRENCY,
                     'product_data': {
                         'name': test_bank.title,
-                        'description': test_bank.description[:500],  # Limit description length
+                        'description': description,
                     },
                     'unit_amount': int(test_bank.price * 100),  # Convert to cents
                 },
                 'quantity': 1,
             }],
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-            client_reference_id=str(payment.id),  # Store payment ID for reference
-            metadata={
+            'mode': 'payment',
+            'client_reference_id': str(payment.id),  # Store payment ID for reference
+            'metadata': {
                 'payment_id': str(payment.id),
                 'test_bank_id': str(test_bank.id),
                 'user_id': str(user.id),
             }
-        )
+        }
+        
+        # Add ui_mode and URLs based on checkout mode
+        if ui_mode == 'embedded' or ui_mode == 'custom':
+            # For embedded/custom checkout, use return_url instead of success_url/cancel_url
+            session_params['ui_mode'] = 'custom'  # Use 'custom' for Payment Element
+            session_params['return_url'] = success_url
+        else:
+            # For hosted checkout, use success_url and cancel_url
+            session_params['success_url'] = success_url
+            session_params['cancel_url'] = cancel_url
+        
+        checkout_session = stripe.checkout.Session.create(**session_params)
         
         # Update Payment with Stripe session ID
         payment.provider_session_id = checkout_session.id
         payment.status = 'pending'
         payment.save()
         
-        return checkout_session.url
+        if ui_mode == 'embedded' or ui_mode == 'custom':
+            # Return client_secret for embedded/custom checkout
+            return {
+                'client_secret': checkout_session.client_secret,
+                'session_id': checkout_session.id
+            }
+        else:
+            # Return URL for hosted checkout
+            return checkout_session.url
         
     except stripe.error.StripeError as e:
         # Update payment status to failed if Stripe error occurs
@@ -200,6 +231,15 @@ def handle_payment_success(session_id):
             if created:
                 purchase.create_user_access()
             
+            # Send payment invoice email to customer
+            try:
+                send_payment_invoice(payment)
+            except Exception as e:
+                # Log error but don't fail the payment processing
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f'Failed to send payment invoice email: {str(e)}')
+            
             return payment, purchase
         else:
             # Payment already processed
@@ -254,6 +294,15 @@ def handle_webhook_event(event):
                 
                 if created:
                     purchase.create_user_access()
+                
+                # Send payment invoice email to customer
+                try:
+                    send_payment_invoice(payment)
+                except Exception as e:
+                    # Log error but don't fail the payment processing
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f'Failed to send payment invoice email: {str(e)}')
                 
                 return payment, purchase
         except Payment.DoesNotExist:

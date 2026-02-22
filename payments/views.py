@@ -25,6 +25,7 @@ from .stripe_integration import (
 )
 import json
 import logging
+import stripe
 
 logger = logging.getLogger(__name__)
 
@@ -125,15 +126,59 @@ def create_checkout(request, testbank_slug):
     
     # For paid test banks, proceed with Stripe checkout
     try:
-        # Create Stripe Checkout session
-        checkout_url = create_checkout_session(test_bank, user, request)
+        # Validate Stripe configuration
+        if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_PUBLIC_KEY:
+            logger.error('Stripe keys not configured')
+            messages.error(request, 'Payment processing is not configured. Please contact support.')
+            return redirect('catalog:testbank_detail', slug=testbank_slug)
         
-        # Redirect to Stripe Checkout
-        return redirect(checkout_url)
+        # Check if using custom checkout (default) or hosted
+        ui_mode = request.GET.get('ui_mode', 'custom')
         
+        # If user explicitly requests hosted checkout, use that
+        if ui_mode == 'hosted':
+            checkout_url = create_checkout_session(test_bank, user, request, ui_mode='hosted')
+            return redirect(checkout_url)
+        
+        # Try custom/embedded checkout first
+        try:
+            checkout_result = create_checkout_session(test_bank, user, request, ui_mode='custom')
+            
+            # Render embedded payment form
+            return render(request, 'payments/checkout.html', {
+                'test_bank': test_bank,
+                'client_secret': checkout_result['client_secret'],
+                'session_id': checkout_result['session_id'],
+                'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+                'fallback_url': request.build_absolute_uri(
+                    reverse('payments:create_checkout', kwargs={'testbank_slug': testbank_slug})
+                ) + '?ui_mode=hosted',
+            })
+        except Exception as e:
+            # If custom checkout fails, fall back to hosted
+            logger.warning(f'Custom checkout failed, falling back to hosted: {str(e)}')
+            checkout_url = create_checkout_session(test_bank, user, request, ui_mode='hosted')
+            return redirect(checkout_url)
+        
+    except ValueError as e:
+        # Validation errors
+        logger.error(f'Validation error creating checkout session: {str(e)}')
+        messages.error(request, f'Invalid payment configuration: {str(e)}')
+        return redirect('catalog:testbank_detail', slug=testbank_slug)
     except Exception as e:
-        # Log error and show user-friendly message
-        logger.error(f'Error creating checkout session: {str(e)}')
+        # Stripe API errors and other exceptions
+        error_msg = str(e)
+        if hasattr(e, 'user_message'):
+            error_msg = e.user_message
+        elif hasattr(e, 'message'):
+            error_msg = e.message
+        
+        logger.error(f'Stripe API error: {error_msg}', exc_info=True)
+        messages.error(request, f'Payment processing error: {error_msg}')
+        return redirect('catalog:testbank_detail', slug=testbank_slug)
+    except Exception as e:
+        # Other errors
+        logger.error(f'Error creating checkout session: {str(e)}', exc_info=True)
         messages.error(request, 'An error occurred while processing your payment. Please try again.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
 

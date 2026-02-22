@@ -19,10 +19,17 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseRedirect
-from .models import CustomUser, UserProfile
+import logging
+
+logger = logging.getLogger(__name__)
+from .models import CustomUser, UserProfile, EmailVerificationToken
 from .forms import UserRegistrationForm, UserProfileForm
 from practice.models import UserTestAccess, UserTestSession
 from catalog.models import TestBank
+from .email_utils import send_verification_email
+from payments.models import Payment, Purchase
+from django.utils import timezone
+from datetime import timedelta
 
 
 def register(request):
@@ -31,10 +38,11 @@ def register(request):
     
     Handles both GET (show form) and POST (process registration).
     On successful registration:
-    - Creates new user account
+    - Creates new user account (set as inactive)
     - Creates user profile
-    - Logs user in automatically
-    - Redirects to dashboard
+    - Creates email verification token
+    - Sends verification email
+    - Shows message to check email (does NOT log user in)
     """
     if request.user.is_authenticated:
         # Redirect authenticated users to dashboard
@@ -45,8 +53,10 @@ def register(request):
         if form.is_valid():
             # Use transaction to ensure atomicity
             with transaction.atomic():
-                # Create user
-                user = form.save()
+                # Create user but set as inactive until email is verified
+                user = form.save(commit=False)
+                user.is_active = False  # User must verify email before account is active
+                user.save()
                 
                 # Create user profile with additional info
                 UserProfile.objects.create(
@@ -57,23 +67,131 @@ def register(request):
                     preferred_language=form.cleaned_data.get('preferred_language', 'en'),
                 )
                 
-                # Set user's language preference
+                # Create email verification token
+                token = EmailVerificationToken.generate_token()
+                expires_at = timezone.now() + timedelta(days=7)  # Token expires in 7 days
+                
+                verification_token = EmailVerificationToken.objects.create(
+                    user=user,
+                    token=token,
+                    expires_at=expires_at,
+                )
+                
+                # Send verification email
+                try:
+                    send_verification_email(user, verification_token)
+                    messages.success(
+                        request,
+                        _('Registration successful! Please check your email to activate your account. The activation link will expire in 7 days.')
+                    )
+                except Exception as e:
+                    logger.error(f'Error sending verification email: {str(e)}')
+                    messages.warning(
+                        request,
+                        _('Account created but verification email failed to send. Please contact support.')
+                    )
+                
+                # Set user's language preference in session (for after activation)
                 if form.cleaned_data.get('preferred_language'):
-                    translation.activate(form.cleaned_data.get('preferred_language'))
                     request.session['django_language'] = form.cleaned_data.get('preferred_language')
                 
-                # Log user in automatically after registration
-                username = form.cleaned_data.get('username')
-                password = form.cleaned_data.get('password1')
-                user = authenticate(username=username, password=password)
-                if user:
-                    login(request, user)
-                    messages.success(request, _('Registration successful! Welcome to Exam Stellar.'))
-                    return redirect('accounts:dashboard')
+                # Redirect to login page with message
+                return redirect('accounts:login')
     else:
         form = UserRegistrationForm()
     
     return render(request, 'accounts/register.html', {'form': form})
+
+
+def custom_login(request):
+    """
+    Custom login view that checks if account is activated.
+    
+    Shows appropriate message if account is not activated.
+    """
+    if request.user.is_authenticated:
+        return redirect('accounts:dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if username and password:
+            # Try to authenticate
+            user = authenticate(request, username=username, password=password)
+            
+            if user is not None:
+                # Check if account is active
+                if not user.is_active:
+                    messages.error(
+                        request,
+                        _('Your account is not activated. Please check your email and click the activation link to activate your account.')
+                    )
+                    return render(request, 'accounts/login.html')
+                
+                # Account is active, log them in
+                login(request, user)
+                messages.success(request, _('Welcome back!'))
+                
+                # Redirect to next page or dashboard
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('accounts:dashboard')
+            else:
+                messages.error(request, _('Invalid username or password.'))
+        else:
+            messages.error(request, _('Please enter both username and password.'))
+    
+    return render(request, 'accounts/login.html')
+
+
+def verify_email(request, token):
+    """
+    Email verification view.
+    
+    Activates user account when they click the verification link in their email.
+    
+    Args:
+        token: Verification token from email link
+    """
+    try:
+        verification_token = EmailVerificationToken.objects.get(token=token)
+        
+        # Check if token is valid
+        if not verification_token.is_valid():
+            if verification_token.is_used:
+                messages.error(request, _('This verification link has already been used.'))
+            else:
+                messages.error(request, _('This verification link has expired. Please request a new one.'))
+            return redirect('accounts:login')
+        
+        # Activate user account
+        user = verification_token.user
+        user.is_active = True
+        user.save()
+        
+        # Mark token as used
+        verification_token.is_used = True
+        verification_token.save()
+        
+        # Log user in automatically after verification
+        login(request, user)
+        
+        messages.success(
+            request,
+            _('Email verified successfully! Your account has been activated. Welcome to Exam Stellar!')
+        )
+        
+        return redirect('accounts:dashboard')
+        
+    except EmailVerificationToken.DoesNotExist:
+        messages.error(request, _('Invalid verification link. Please check your email and try again.'))
+        return redirect('accounts:login')
+    except Exception as e:
+        logger.error(f'Error verifying email: {str(e)}')
+        messages.error(request, _('An error occurred while verifying your email. Please try again or contact support.'))
+        return redirect('accounts:login')
 
 
 @login_required
@@ -97,6 +215,18 @@ def profile_view(request, pk):
     # Get or create profile
     profile, created = UserProfile.objects.get_or_create(user=user)
     
+    # Get all invoices (payments) for this user - both free and paid
+    invoices = Payment.objects.filter(
+        user=user,
+        status='succeeded'  # Only show successful payments
+    ).select_related('test_bank').order_by('-created_at')
+    
+    # Calculate totals for invoice summary
+    from decimal import Decimal
+    total_net = sum(Decimal(str(invoice.get_net_price())) for invoice in invoices)
+    total_vat = sum(Decimal(str(invoice.get_vat_amount())) for invoice in invoices)
+    total_amount = sum(Decimal(str(invoice.get_total_amount())) for invoice in invoices)
+    
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=profile)
         if form.is_valid():
@@ -117,6 +247,10 @@ def profile_view(request, pk):
         'user': user,
         'profile': profile,
         'form': form,
+        'invoices': invoices,
+        'total_net': total_net,
+        'total_vat': total_vat,
+        'total_amount': total_amount,
     })
 
 

@@ -100,100 +100,12 @@ class Category(models.Model):
         return reverse('catalog:testbank_list', kwargs={'category_slug': self.slug})
 
 
-class SubCategory(models.Model):
-    """
-    SubCategory model for organizing test banks within a category.
-    
-    SubCategories represent specialized areas within a main category.
-    For example, under "Vocational" category, we might have:
-    - Information Technology & Computer Skills
-    - Business, Management & Office Skills
-    - Finance, Accounting & Banking
-    etc.
-    
-    Uses slug field for clean URL routing.
-    """
-    
-    name = models.CharField(
-        max_length=200,
-        verbose_name='SubCategory Name',
-        help_text='Name of the subcategory'
-    )
-    
-    # Slug for URL-friendly routing
-    slug = models.SlugField(
-        max_length=200,
-        verbose_name='Slug',
-        help_text='URL-friendly version of the name'
-    )
-    
-    # ForeignKey to Category - each subcategory belongs to one category
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.CASCADE,
-        related_name='subcategories',
-        verbose_name='Category',
-        help_text='Category this subcategory belongs to'
-    )
-    
-    description = models.TextField(
-        blank=True,
-        verbose_name='Description',
-        help_text='Detailed description of the subcategory'
-    )
-    
-    # Order field for custom ordering within category
-    order = models.PositiveIntegerField(
-        default=0,
-        verbose_name='Order',
-        help_text='Order of this subcategory within the category'
-    )
-    
-    # Timestamps
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Created At'
-    )
-    
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name='Updated At'
-    )
-    
-    class Meta:
-        """Meta options for SubCategory model."""
-        verbose_name = 'SubCategory'
-        verbose_name_plural = 'SubCategories'
-        ordering = ['order', 'name']
-        unique_together = [['category', 'slug']]  # Slug unique within category
-        indexes = [
-            models.Index(fields=['category', 'order']),
-        ]
-    
-    def __str__(self):
-        """String representation of the subcategory."""
-        return f"{self.category.name} - {self.name}"
-    
-    def save(self, *args, **kwargs):
-        """Auto-generate slug from name if not provided."""
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-    
-    def get_absolute_url(self):
-        """Get URL for subcategory's certifications list page."""
-        return reverse('catalog:subcategory_list', kwargs={
-            'category_slug': self.category.slug,
-            'subcategory_slug': self.slug
-        })
-
-
 class Certification(models.Model):
     """
-    Certification model for organizing test banks within a subcategory.
+    Certification model for organizing test banks within a category.
     
     Certifications represent specific professional certifications or exams.
-    For example, under "IT Fundamentals / Support" subcategory, we might have:
+    For example, under "Vocational" category, we might have:
     - CompTIA IT Fundamentals (ITF+)
     - CompTIA A+
     - CompTIA Network+
@@ -215,13 +127,13 @@ class Certification(models.Model):
         help_text='URL-friendly version of the name'
     )
     
-    # ForeignKey to SubCategory - each certification belongs to one subcategory
-    subcategory = models.ForeignKey(
-        SubCategory,
+    # ForeignKey to Category - each certification belongs to one category
+    category = models.ForeignKey(
+        Category,
         on_delete=models.CASCADE,
         related_name='certifications',
-        verbose_name='SubCategory',
-        help_text='SubCategory this certification belongs to'
+        verbose_name='Category',
+        help_text='Category this certification belongs to'
     )
     
     description = models.TextField(
@@ -230,11 +142,26 @@ class Certification(models.Model):
         help_text='Detailed description of the certification'
     )
     
-    # Order field for custom ordering within subcategory
+    # Order field for custom ordering within category
     order = models.PositiveIntegerField(
         default=0,
         verbose_name='Order',
-        help_text='Order of this certification within the subcategory'
+        help_text='Order of this certification within the category'
+    )
+    
+    # Difficulty level choices
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('advanced', 'Advanced'),
+    ]
+    
+    difficulty_level = models.CharField(
+        max_length=20,
+        choices=DIFFICULTY_CHOICES,
+        default='easy',
+        verbose_name='Difficulty Level',
+        help_text='Difficulty level of the certification'
     )
     
     # Timestamps
@@ -253,26 +180,34 @@ class Certification(models.Model):
         verbose_name = 'Certification'
         verbose_name_plural = 'Certifications'
         ordering = ['order', 'name']
-        unique_together = [['subcategory', 'slug']]  # Slug unique within subcategory
+        unique_together = [['category', 'slug', 'difficulty_level']]  # Same certification can exist with different difficulty levels
         indexes = [
-            models.Index(fields=['subcategory', 'order']),
+            models.Index(fields=['category', 'order']),
+            models.Index(fields=['category', 'difficulty_level']),
         ]
     
     def __str__(self):
         """String representation of the certification."""
-        return f"{self.subcategory.category.name} - {self.subcategory.name} - {self.name}"
+        return f"{self.category.name} - {self.name} ({self.get_difficulty_level_display()})"
     
     def save(self, *args, **kwargs):
-        """Auto-generate slug from name if not provided."""
+        """Auto-generate slug from name if not provided, including difficulty level for uniqueness."""
         if not self.slug:
-            self.slug = slugify(self.name)
+            base_slug = slugify(self.name)
+            # Include difficulty level in slug to ensure uniqueness
+            self.slug = f"{base_slug}-{self.difficulty_level}"
+        else:
+            # Ensure slug includes difficulty level even if manually set
+            base_slug = slugify(self.name)
+            expected_slug = f"{base_slug}-{self.difficulty_level}"
+            if not self.slug.endswith(f"-{self.difficulty_level}"):
+                self.slug = expected_slug
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         """Get URL for certification's test banks list page."""
         return reverse('catalog:certification_list', kwargs={
-            'category_slug': self.subcategory.category.slug,
-            'subcategory_slug': self.subcategory.slug,
+            'category_slug': self.category.slug,
             'certification_slug': self.slug
         })
 
@@ -284,10 +219,9 @@ class TestBank(models.Model):
     A TestBank is a collection of questions that users can purchase and practice.
     Each TestBank can belong to:
     - A Category (top level)
-    - A SubCategory (within a category)
-    - A Certification (within a subcategory)
+    - A Certification (within a category)
     
-    At least one of category, subcategory, or certification must be assigned.
+    At least one of category or certification must be assigned.
     
     Users purchase access to a TestBank, which grants them the ability to:
     - Practice questions multiple times
@@ -302,17 +236,6 @@ class TestBank(models.Model):
         related_name='test_banks',
         verbose_name='Category',
         help_text='Category this test bank belongs to',
-        null=True,
-        blank=True
-    )
-    
-    # ForeignKey to SubCategory - optional, for hierarchical organization
-    subcategory = models.ForeignKey(
-        SubCategory,
-        on_delete=models.CASCADE,
-        related_name='test_banks',
-        verbose_name='SubCategory',
-        help_text='SubCategory this test bank belongs to (optional)',
         null=True,
         blank=True
     )
@@ -345,6 +268,38 @@ class TestBank(models.Model):
     description = models.TextField(
         verbose_name='Description',
         help_text='Detailed description of the test bank content'
+    )
+    
+    # Certification metadata fields
+    certification_domain = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Certification Domain',
+        help_text='Subject area or domain of the certification (e.g., Information Technology, Healthcare) - metadata field'
+    )
+    
+    organization = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Organization',
+        help_text='Organization or body that issues the certification (e.g., CompTIA, Microsoft, PMI)'
+    )
+    
+    official_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name='Official URL',
+        help_text='Official website URL for the certification or organization'
+    )
+    
+    certification_details = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Certification Details',
+        help_text='Additional details about the certification, requirements, or exam information'
     )
     
     # Test bank image/thumbnail
@@ -419,27 +374,24 @@ class TestBank(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['category', 'is_active']),
-            models.Index(fields=['subcategory', 'is_active']),
             models.Index(fields=['certification', 'is_active']),
             models.Index(fields=['slug']),
         ]
     
     def clean(self):
-        """Validate that at least one level (category, subcategory, or certification) is assigned."""
+        """Validate that at least one level (category or certification) is assigned."""
         from django.core.exceptions import ValidationError
-        if not self.category and not self.subcategory and not self.certification:
-            raise ValidationError('Test bank must belong to at least one level: category, subcategory, or certification.')
+        if not self.category and not self.certification:
+            raise ValidationError('Test bank must belong to at least one level: category or certification.')
     
     def save(self, *args, **kwargs):
         """Auto-generate slug from title if not provided and validate."""
         if not self.slug:
             self.slug = slugify(self.title)
-        # Auto-set category from subcategory or certification if not set
+        # Auto-set category from certification if not set
         if not self.category:
             if self.certification:
-                self.category = self.certification.subcategory.category
-            elif self.subcategory:
-                self.category = self.subcategory.category
+                self.category = self.certification.category
         self.full_clean()  # Run validation
         super().save(*args, **kwargs)
     

@@ -6,7 +6,7 @@ Registers CustomUser and UserProfile models with Django admin interface.
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import CustomUser, UserProfile
+from .models import CustomUser, UserProfile, EmailVerificationToken
 
 
 # Inline admin for UserProfile (shown within User admin page)
@@ -44,3 +44,16 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_filter = ('country', 'preferred_language', 'created_at')
     search_fields = ('user__username', 'full_name', 'phone_number', 'country')
     readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(EmailVerificationToken)
+class EmailVerificationTokenAdmin(admin.ModelAdmin):
+    """Admin interface for EmailVerificationToken model."""
+    list_display = ('user', 'token', 'is_used', 'created_at', 'expires_at')
+    list_filter = ('is_used', 'created_at', 'expires_at')
+    search_fields = ('user__username', 'user__email', 'token')
+    readonly_fields = ('token', 'created_at')
+    
+    def has_add_permission(self, request):
+        """Prevent manual creation of tokens (they should be created programmatically)."""
+        return False

@@ -17,7 +17,7 @@
 </div>
 
 <div class="bg-[rgb(245, 245, 247)] min-h-screen">
-    <div class="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
         <!-- User Information Card - Apple Style -->
         <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 mb-8">
             <h2 class="text-2xl font-semibold text-[#000000] mb-6 tracking-tight">
@@ -115,11 +115,129 @@
                 
                 <!-- Submit Button -->
                 <div class="pt-4">
-                    <button type="submit" class="bg-gradient-to-r from-[#e28f64] to-[#df804f] hover:from-[#df804f] hover:to-[#c87850] text-white font-semibold py-4 px-8 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+                    <button type="submit" class="bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold py-4 px-8 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
                         {% trans "Save Changes" %}
                     </button>
                 </div>
             </form>
+        </div>
+        
+        <!-- Invoice History Section -->
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 mt-8">
+            <h2 class="text-2xl font-semibold text-[#000000] mb-8 tracking-tight">
+                {% trans "Invoice History" %}
+            </h2>
+            
+            {% if invoices %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                {% trans "Invoice #" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                {% trans "Purchase Date" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                {% trans "Product Name" %}
+                            </th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                {% trans "Net Price" %}
+                            </th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                {% trans "VAT (15%)" %}
+                            </th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                {% trans "Total Amount" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                {% trans "Status" %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for invoice in invoices %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                #{{ invoice.id }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {{ invoice.created_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <a href="{% url 'catalog:testbank_detail' slug=invoice.test_bank.slug %}" 
+                                   class="text-[#5624d0] hover:text-[#4a1fb8] font-medium">
+                                    {{ invoice.test_bank.title }}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-medium">
+                                {% if invoice.amount == 0 %}
+                                    <span class="text-green-600 font-semibold">{% trans "FREE" %}</span>
+                                {% else %}
+                                    ${{ invoice.get_net_price|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
+                                {% if invoice.amount == 0 %}
+                                    $0.00
+                                {% else %}
+                                    ${{ invoice.get_vat_amount|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-semibold">
+                                {% if invoice.amount == 0 %}
+                                    <span class="text-green-600 font-semibold">{% trans "FREE" %}</span>
+                                {% else %}
+                                    ${{ invoice.get_total_amount|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if invoice.status == 'succeeded' %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    {% trans "Paid" %}
+                                </span>
+                                {% elif invoice.status == 'pending' %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    {% trans "Pending" %}
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    {{ invoice.get_status_display }}
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-gray-50 border-t-2 border-gray-300">
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+                                {% trans "Grand Total:" %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                                ${{ total_net|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                                ${{ total_vat|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#5624d0] text-right text-lg">
+                                ${{ total_amount|floatformat:2 }}
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-semibold text-gray-900">{% trans "No invoices yet" %}</h3>
+                <p class="mt-1 text-sm text-gray-500">{% trans "Your purchase invoices will appear here." %}</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

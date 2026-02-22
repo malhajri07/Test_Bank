@@ -86,3 +86,4 @@ gcloud run services update exam-stellar --region us-central1 --update-env-vars K
 gcloud run services describe exam-stellar --region us-central1 --format="value(status.url)"
 ```
 
+

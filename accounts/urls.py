@@ -17,9 +17,10 @@ app_name = 'accounts'
 urlpatterns = [
     # Registration
     path('register/', views.register, name='register'),
+    path('verify-email/<str:token>/', views.verify_email, name='verify_email'),
     
-    # Login/Logout (using Django's built-in views)
-    path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
+    # Login/Logout (using custom login view to check activation)
+    path('login/', views.custom_login, name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     
     # Password reset flow (using Django's built-in views)

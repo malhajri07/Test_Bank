@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Checkout" %} - {{ test_bank.title }}{% endblock %}
+
+{% block extra_head %}
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    #payment-element {
+        margin: 2rem 0;
+    }
+    
+    .checkout-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+    
+    .checkout-summary {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .checkout-summary h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .checkout-summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+    
+    .checkout-summary-total {
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        font-size: 1.25rem;
+        padding-top: 1rem;
+        border-top: 2px solid #dee2e6;
+        margin-top: 1rem;
+    }
+    
+    #submit {
+        width: 100%;
+        padding: 1rem;
+        background: #5624d0;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    #submit:hover {
+        background: #4a1fb8;
+    }
+    
+    #submit:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    
+    #payment-message {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        display: none;
+    }
+    
+    #payment-message.error {
+        background: #fee;
+        color: #c33;
+        border: 1px solid #fcc;
+    }
+    
+    #payment-message.success {
+        background: #efe;
+        color: #3c3;
+        border: 1px solid #cfc;
+    }
+    
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <h1>{% trans "Complete Your Purchase" %}</h1>
+    
+    <div class="checkout-summary">
+        <h3>{% trans "Order Summary" %}</h3>
+        <div class="checkout-summary-item">
+            <span>{{ test_bank.title }}</span>
+            <span>${{ test_bank.price|floatformat:2 }}</span>
+        </div>
+        <div class="checkout-summary-total">
+            <span>{% trans "Total" %}</span>
+            <span>${{ test_bank.price|floatformat:2 }}</span>
+        </div>
+    </div>
+    
+    <form id="payment-form">
+        <div id="payment-element">
+            <!-- Stripe Elements will create form elements here -->
+        </div>
+        
+        <button id="submit" disabled>
+            <span id="button-text">{% trans "Loading payment form..." %}</span>
+            <span id="spinner" class="spinner" style="display: none;"></span>
+        </button>
+        
+        <div id="payment-message" class="hidden"></div>
+    </form>
+</div>
+
+<!-- Stripe.js - Force latest version with aggressive cache busting -->
+<script>
+    (function() {
+        // Remove ALL existing Stripe.js scripts
+        const existingScripts = document.querySelectorAll('script[src*="stripe"], script[src*="Stripe"]');
+        existingScripts.forEach(script => {
+            console.log('Removing old Stripe script:', script.src);
+            script.remove();
+        });
+        
+        // Clear any Stripe global if it exists
+        if (typeof window.Stripe !== 'undefined') {
+            delete window.Stripe;
+        }
+        
+        // Load latest Stripe.js synchronously to ensure it loads before our code runs
+        const script = document.createElement('script');
+        const timestamp = Date.now();
+        script.src = 'https://js.stripe.com/v3/?nocache=' + timestamp + '&v=' + timestamp;
+        script.crossOrigin = 'anonymous';
+        script.async = false; // Load synchronously
+        script.onerror = function() {
+            console.error('Failed to load Stripe.js');
+            const paymentElementDiv = document.getElementById('payment-element');
+            if (paymentElementDiv) {
+                paymentElementDiv.innerHTML = '<p style="color: red;">Failed to load payment library. Please refresh the page.</p>';
+            }
+        };
+        document.head.insertBefore(script, document.head.firstChild);
+        console.log('Loading Stripe.js from:', script.src);
+    })();
+</script>
+
+<script>
+    // Global variables for checkout and payment element
+    let checkout;
+    let paymentElement;
+    
+    // Wait for Stripe.js to load and DOM to be ready
+    let retryCount = 0;
+    const maxRetries = 20; // Try for up to 10 seconds
+    
+    function initializeStripeCheckout() {
+        // Check if Stripe is loaded
+        if (typeof Stripe === 'undefined') {
+            retryCount++;
+            if (retryCount < maxRetries) {
+                console.log('Stripe.js not loaded yet, retrying... (' + retryCount + '/' + maxRetries + ')');
+                setTimeout(initializeStripeCheckout, 500);
+            } else {
+                console.error('Stripe.js failed to load after ' + maxRetries + ' attempts');
+                const paymentElementDiv = document.getElementById('payment-element');
+                if (paymentElementDiv) {
+                    paymentElementDiv.innerHTML = '<p style="color: red;">Payment library failed to load. Please refresh the page.</p>';
+                }
+            }
+            return;
+        }
+        
+        console.log('Stripe.js loaded, version check:', typeof Stripe.prototype.initCheckout);
+        
+        // Wait a bit more to ensure Stripe is fully initialized
+        setTimeout(function() {
+            checkAndInitialize();
+        }, 200);
+    }
+    
+    function checkAndInitialize() {
+        // Check if Stripe is loaded
+        if (typeof Stripe === 'undefined') {
+            console.error('Stripe.js is not loaded');
+            const paymentElementDiv = document.getElementById('payment-element');
+            if (paymentElementDiv) {
+                paymentElementDiv.innerHTML = '<p style="color: red;">Payment library failed to load. Please refresh the page.</p>';
+            }
+            return;
+        }
+        
+        // Check if Stripe public key is available
+        {% if not stripe_public_key %}
+        console.error('Stripe public key is not configured');
+        const paymentElementDiv = document.getElementById('payment-element');
+        if (paymentElementDiv) {
+            paymentElementDiv.innerHTML = '<p style="color: red;">Payment processing is not configured. Please contact support.</p>';
+        }
+        {% else %}
+        
+        // Initialize Stripe
+        const stripe = Stripe('{{ stripe_public_key }}');
+        
+        console.log('Stripe instance created. Checking for initCheckout...');
+        console.log('Stripe object keys:', Object.keys(stripe));
+        console.log('initCheckout type:', typeof stripe.initCheckout);
+        
+        // Check if initCheckout is available (Basil release or higher)
+        if (typeof stripe.initCheckout !== 'function') {
+            console.error('initCheckout is not available. Stripe.js version is too old.');
+            console.error('Trying to reload Stripe.js...');
+            
+            // Try to force reload Stripe.js one more time
+            const script = document.createElement('script');
+            script.src = 'https://js.stripe.com/v3/?force=' + Date.now();
+            script.crossOrigin = 'anonymous';
+            script.async = false;
+            script.onload = function() {
+                console.log('Stripe.js reloaded, retrying initialization...');
+                setTimeout(checkAndInitialize, 500);
+            };
+            document.head.appendChild(script);
+            
+            const paymentElementDiv = document.getElementById('payment-element');
+            if (paymentElementDiv) {
+                paymentElementDiv.innerHTML = '<div style="color: red; padding: 1rem; background: #fee; border-radius: 8px;">' +
+                    '<p><strong>Stripe.js version error</strong></p>' +
+                    '<p>Reloading latest version... Please wait.</p>' +
+                    '<p>If this persists, you can use the hosted checkout instead:</p>' +
+                    '<p><a href="{% if fallback_url %}{{ fallback_url }}{% else %}{% url "payments:create_checkout" testbank_slug=test_bank.slug %}?ui_mode=hosted{% endif %}" ' +
+                    'style="display: inline-block; padding: 0.75rem 1.5rem; background: #5624d0; color: white; text-decoration: none; border-radius: 8px; margin-top: 1rem;">' +
+                    'Use Hosted Checkout Instead</a></p>' +
+                    '<p style="margin-top: 1rem; font-size: 0.9rem;">Or try:</p>' +
+                    '<ol style="text-align: left; margin-left: 2rem; font-size: 0.9rem;">' +
+                    '<li>Hard refresh: <strong>Ctrl+Shift+R</strong> (Windows/Linux) or <strong>Cmd+Shift+R</strong> (Mac)</li>' +
+                    '<li>Or clear your browser cache completely</li>' +
+                    '<li>Or try in an incognito/private window</li>' +
+                    '</ol>' +
+                    '</div>';
+            }
+            return;
+        }
+        
+        console.log('initCheckout is available! Proceeding with initialization...');
+        
+        try {
+            console.log('Initializing Stripe Checkout with client secret...');
+            checkout = stripe.initCheckout({
+                clientSecret: '{{ client_secret }}'
+            });
+            
+            if (!checkout) {
+                throw new Error('Failed to initialize checkout');
+            }
+            
+            console.log('Checkout initialized successfully');
+            
+            console.log('Creating Payment Element...');
+            // Create Payment Element
+            paymentElement = checkout.createPaymentElement();
+            
+            // Mount Payment Element
+            const paymentElementDiv = document.getElementById('payment-element');
+            if (paymentElementDiv) {
+                console.log('Mounting Payment Element...');
+                paymentElement.mount('#payment-element').then(() => {
+                    console.log('Payment Element mounted successfully');
+                    // Enable submit button now that element is ready
+                    const submitButton = document.getElementById('submit');
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                }).catch((error) => {
+                    console.error('Error mounting Payment Element:', error);
+                    paymentElementDiv.innerHTML = 
+                        '<p style="color: red;">Error loading payment form: ' + (error.message || 'Unknown error') + '. Please refresh the page.</p>';
+                });
+            } else {
+                console.error('Payment element container not found');
+            }
+            
+            // Setup form handler after initialization
+            setupFormHandler();
+            
+        } catch (error) {
+            console.error('Error initializing Stripe Checkout:', error);
+            const paymentElementDiv = document.getElementById('payment-element');
+            if (paymentElementDiv) {
+                paymentElementDiv.innerHTML = 
+                    '<p style="color: red;">Error initializing payment: ' + (error.message || 'Unknown error') + '. Please refresh the page.</p>';
+            }
+        }
+        {% endif %}
+    }
+    
+    function setupFormHandler() {
+        // Handle form submission
+        const form = document.getElementById('payment-form');
+        const submitButton = document.getElementById('submit');
+        const buttonText = document.getElementById('button-text');
+        const spinner = document.getElementById('spinner');
+        const paymentMessage = document.getElementById('payment-message');
+        
+        if (!form) {
+            console.error('Payment form not found');
+            return;
+        }
+        
+        // Remove any existing listeners to avoid duplicates
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        
+        newForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            console.log('Form submitted. Checkout:', checkout, 'PaymentElement:', paymentElement);
+            
+            if (!checkout || !paymentElement) {
+                console.error('Checkout or PaymentElement not initialized');
+                if (paymentMessage) {
+                    paymentMessage.textContent = '{% trans "Payment form is not ready. Please wait a moment and try again." %}';
+                    paymentMessage.classList.add('error');
+                    paymentMessage.style.display = 'block';
+                }
+                return;
+            }
+            
+            // Disable submit button
+            if (submitButton) submitButton.disabled = true;
+            if (buttonText) buttonText.style.display = 'none';
+            if (spinner) spinner.style.display = 'inline-block';
+            if (paymentMessage) {
+                paymentMessage.classList.remove('error', 'success');
+                paymentMessage.style.display = 'none';
+            }
+            
+            try {
+                // Load actions and confirm payment
+                const loadActionsResult = await checkout.loadActions();
+                const actions = loadActionsResult.actions;
+                const { error } = await actions.confirm();
+                
+                if (error) {
+                    // Show error message
+                    if (paymentMessage) {
+                        paymentMessage.textContent = error.message || '{% trans "Payment failed. Please try again." %}';
+                        paymentMessage.classList.add('error');
+                        paymentMessage.style.display = 'block';
+                    }
+                    
+                    // Re-enable submit button
+                    if (submitButton) submitButton.disabled = false;
+                    if (buttonText) buttonText.style.display = 'inline';
+                    if (spinner) spinner.style.display = 'none';
+                } else {
+                    // Payment succeeded - redirect to success page
+                    window.location.href = '{% url "payments:payment_success" %}?session_id={{ session_id }}';
+                }
+            } catch (err) {
+                // Handle unexpected errors
+                console.error('Payment error:', err);
+                if (paymentMessage) {
+                    paymentMessage.textContent = err.message || '{% trans "An unexpected error occurred. Please try again." %}';
+                    paymentMessage.classList.add('error');
+                    paymentMessage.style.display = 'block';
+                }
+                
+                // Re-enable submit button
+                if (submitButton) submitButton.disabled = false;
+                if (buttonText) buttonText.style.display = 'inline';
+                if (spinner) spinner.style.display = 'none';
+            }
+        });
+    }
+    
+    // Wait for DOM and Stripe.js to be ready
+    function waitForStripe() {
+        if (typeof Stripe !== 'undefined') {
+            // Stripe is loaded, wait for DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeStripeCheckout);
+            } else {
+                initializeStripeCheckout();
+            }
+        } else {
+            // Stripe not loaded yet, check again
+            setTimeout(waitForStripe, 100);
+        }
+    }
+    
+    // Start waiting for Stripe.js
+    waitForStripe();
+</script>
+{% endblock %}

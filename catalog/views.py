@@ -15,7 +15,7 @@ from django.db.models import Count, Q, Avg
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.http import JsonResponse
-from .models import Category, SubCategory, Certification, TestBank, TestBankRating, ReviewReply, ContactMessage
+from .models import Category, Certification, TestBank, TestBankRating, ReviewReply, ContactMessage
 from .forms import TestBankReviewForm, ReviewReplyForm, ContactForm
 from practice.models import UserTestAccess
 
@@ -32,11 +32,11 @@ def index(request):
     - Partner logos
     - Trending test banks
     """
-    # Get featured categories with test bank counts and subcategory counts
+    # Get featured categories with test bank counts and certification counts
     # Convert to list immediately to avoid lazy evaluation issues
     categories = list(Category.objects.annotate(
         test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True)),
-        subcategory_count=Count('subcategories')
+        certification_count=Count('certifications')
     ).filter(test_bank_count__gt=0)[:8])
     
     # Get featured test banks with user counts
@@ -104,13 +104,13 @@ def category_list(request):
     Each category shows:
     - Name and description
     - Number of test banks
-    - Number of subcategories (if any)
-    - Link to appropriate page (vocational_index, subcategory list, or test bank list)
+    - Number of certifications (if any)
+    - Link to appropriate page (vocational_index, certification list, or test bank list)
     """
-    # Get all categories with test bank counts and subcategory counts
+    # Get all categories with test bank counts and certification counts
     categories = Category.objects.annotate(
         test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True)),
-        subcategory_count=Count('subcategories')
+        certification_count=Count('certifications')
     ).order_by('name')
     
     return render(request, 'catalog/category_list.html', {
@@ -120,22 +120,22 @@ def category_list(request):
 
 def category_detail(request, category_slug):
     """
-    Category detail page showing subcategories.
+    Category detail page showing certifications.
     
-    Displays all subcategories under a category.
-    If category has no subcategories, redirects to test bank list.
+    Displays all certifications under a category.
+    If category has no certifications, redirects to test bank list.
     """
     category = get_object_or_404(Category, slug=category_slug)
     
-    # Get all subcategories with certification counts
-    subcategories = SubCategory.objects.filter(
+    # Get all certifications with test bank counts
+    certifications = Certification.objects.filter(
         category=category
     ).annotate(
-        certification_count=Count('certifications')
+        test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True))
     ).order_by('order', 'name')
     
-    # If no subcategories, redirect to test bank list
-    if not subcategories.exists():
+    # If no certifications, redirect to test bank list
+    if not certifications.exists():
         from django.shortcuts import redirect
         return redirect('catalog:testbank_list', category_slug=category.slug)
     
@@ -147,7 +147,7 @@ def category_detail(request, category_slug):
     
     return render(request, 'catalog/vocational_index.html', {
         'category': category,
-        'subcategories': subcategories,
+        'certifications': certifications,
         'breadcrumbs': breadcrumbs,
     })
 
@@ -156,70 +156,22 @@ def vocational_index(request):
     """
     Vocational category landing page.
     
-    Displays all subcategories under the Vocational category.
+    Displays all certifications under the Vocational category.
     This is a convenience view that redirects to category_detail.
     """
     return category_detail(request, 'vocational')
 
 
-def subcategory_list(request, subcategory_slug, category_slug=None):
-    """
-    Subcategory listing view showing certifications.
-    
-    Displays all certifications under a subcategory.
-    Can be accessed via:
-    - /vocational/<subcategory_slug>/ (category_slug is None, assumes vocational)
-    - /categories/<category_slug>/<subcategory_slug>/ (full path)
-    
-    Args:
-        subcategory_slug: Slug of the subcategory
-        category_slug: Optional slug of the category (if None, assumes vocational)
-    """
-    # Extract category_slug from URL kwargs if not provided as argument
-    if not category_slug:
-        category_slug = request.resolver_match.kwargs.get('category_slug')
-    
-    if category_slug:
-        category = get_object_or_404(Category, slug=category_slug)
-    else:
-        # Default to vocational category for vocational routes
-        category = get_object_or_404(Category, slug='vocational')
-    
-    subcategory = get_object_or_404(SubCategory, category=category, slug=subcategory_slug)
-    
-    # Get all certifications with test bank counts
-    certifications = Certification.objects.filter(
-        subcategory=subcategory
-    ).annotate(
-        test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True))
-    ).order_by('order', 'name')
-    
-    # Build breadcrumbs
-    breadcrumbs = [
-        {'label': _('Home'), 'url': reverse('catalog:index')},
-        {'label': category.name, 'url': reverse('catalog:vocational_index') if category.slug == 'vocational' else reverse('catalog:category_detail', kwargs={'category_slug': category.slug})},
-        {'label': subcategory.name, 'url': ''},
-    ]
-    
-    return render(request, 'catalog/subcategory_list.html', {
-        'category': category,
-        'subcategory': subcategory,
-        'certifications': certifications,
-        'breadcrumbs': breadcrumbs,
-    })
-
-
-def certification_list(request, subcategory_slug, certification_slug, category_slug=None):
+def certification_list(request, certification_slug, category_slug=None):
     """
     Certification listing view showing test banks.
     
     Displays all test banks for a specific certification.
     Can be accessed via:
-    - /vocational/<subcategory_slug>/<certification_slug>/ (category_slug is None, assumes vocational)
-    - /categories/<category_slug>/<subcategory_slug>/<certification_slug>/ (full path)
+    - /vocational/<certification_slug>/ (category_slug is None, assumes vocational)
+    - /categories/<category_slug>/<certification_slug>/ (full path)
     
     Args:
-        subcategory_slug: Slug of the subcategory
         certification_slug: Slug of the certification
         category_slug: Optional slug of the category (if None, assumes vocational)
     """
@@ -233,8 +185,7 @@ def certification_list(request, subcategory_slug, certification_slug, category_s
         # Default to vocational category for vocational routes
         category = get_object_or_404(Category, slug='vocational')
     
-    subcategory = get_object_or_404(SubCategory, category=category, slug=subcategory_slug)
-    certification = get_object_or_404(Certification, subcategory=subcategory, slug=certification_slug)
+    certification = get_object_or_404(Certification, category=category, slug=certification_slug)
     
     # Get active test banks for this certification
     test_banks = TestBank.objects.filter(
@@ -246,47 +197,38 @@ def certification_list(request, subcategory_slug, certification_slug, category_s
     breadcrumbs = [
         {'label': _('Home'), 'url': reverse('catalog:index')},
         {'label': category.name, 'url': reverse('catalog:vocational_index') if category.slug == 'vocational' else reverse('catalog:category_detail', kwargs={'category_slug': category.slug})},
-        {'label': subcategory.name, 'url': reverse('catalog:subcategory_list', kwargs={'subcategory_slug': subcategory.slug})},
         {'label': certification.name, 'url': ''},
     ]
     
     return render(request, 'catalog/certification_list.html', {
         'category': category,
-        'subcategory': subcategory,
         'certification': certification,
         'test_banks': test_banks,
         'breadcrumbs': breadcrumbs,
     })
 
 
-def testbank_list(request, category_slug, subcategory_slug=None, certification_slug=None):
+def testbank_list(request, category_slug, certification_slug=None):
     """
-    Test bank listing view for a category, subcategory, or certification.
+    Test bank listing view for a category or certification.
     
     Displays all active test banks filtered by:
-    - Category only (if subcategory_slug is None)
-    - Subcategory (if certification_slug is None)
-    - Certification (if all parameters provided)
+    - Category only (if certification_slug is None)
+    - Certification (if certification_slug is provided)
     
     Args:
         category_slug: Slug of the category
-        subcategory_slug: Optional slug of the subcategory
         certification_slug: Optional slug of the certification
     """
     category = get_object_or_404(Category, slug=category_slug)
-    subcategory = None
     certification = None
     
     # Build filter query
     filter_q = Q(category=category, is_active=True)
     
     if certification_slug:
-        subcategory = get_object_or_404(SubCategory, category=category, slug=subcategory_slug)
-        certification = get_object_or_404(Certification, subcategory=subcategory, slug=certification_slug)
+        certification = get_object_or_404(Certification, category=category, slug=certification_slug)
         filter_q = Q(certification=certification, is_active=True)
-    elif subcategory_slug:
-        subcategory = get_object_or_404(SubCategory, category=category, slug=subcategory_slug)
-        filter_q = Q(subcategory=subcategory, is_active=True)
     
     # Get active test banks with user counts
     test_banks = TestBank.objects.filter(filter_q).annotate(
@@ -301,14 +243,7 @@ def testbank_list(request, category_slug, subcategory_slug=None, certification_s
     if certification:
         breadcrumbs.extend([
             {'label': category.name, 'url': reverse('catalog:vocational_index') if category.slug == 'vocational' else reverse('catalog:category_detail', kwargs={'category_slug': category.slug})},
-            {'label': subcategory.name, 'url': reverse('catalog:subcategory_list', kwargs={'subcategory_slug': subcategory.slug})},
-            {'label': certification.name, 'url': reverse('catalog:certification_list', kwargs={'subcategory_slug': subcategory.slug, 'certification_slug': certification.slug})},
-            {'label': _('Test Banks'), 'url': ''},
-        ])
-    elif subcategory:
-        breadcrumbs.extend([
-            {'label': category.name, 'url': reverse('catalog:vocational_index') if category.slug == 'vocational' else reverse('catalog:category_detail', kwargs={'category_slug': category.slug})},
-            {'label': subcategory.name, 'url': reverse('catalog:subcategory_list', kwargs={'subcategory_slug': subcategory.slug})},
+            {'label': certification.name, 'url': reverse('catalog:certification_list', kwargs={'certification_slug': certification.slug})},
             {'label': _('Test Banks'), 'url': ''},
         ])
     else:
@@ -319,7 +254,6 @@ def testbank_list(request, category_slug, subcategory_slug=None, certification_s
     
     return render(request, 'catalog/testbank_list.html', {
         'category': category,
-        'subcategory': subcategory,
         'certification': certification,
         'test_banks': test_banks,
         'breadcrumbs': breadcrumbs,
@@ -502,4 +436,74 @@ def contact(request):
     
     return render(request, 'catalog/contact.html', {
         'form': form,
+    })
+
+
+def search(request):
+    """
+    Search view that searches across multiple models.
+    
+    Searches:
+    - TestBank (title, description)
+    - Category (name, description)
+    - BlogPost (title, content, excerpt) - from CMS
+    - ForumTopic (title, content) - from Forum
+    
+    Returns results categorized by type.
+    """
+    query = request.GET.get('q', '').strip()
+    results = {
+        'test_banks': [],
+        'categories': [],
+        'blog_posts': [],
+        'forum_topics': [],
+    }
+    
+    if query:
+        # Search TestBanks
+        test_banks = TestBank.objects.filter(
+            Q(title__icontains=query) | Q(description__icontains=query),
+            is_active=True
+        ).annotate(
+            user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
+        ).order_by('-user_count', '-average_rating')[:10]
+        results['test_banks'] = list(test_banks)
+        
+        # Search Categories
+        categories = Category.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        ).annotate(
+            test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True))
+        ).order_by('name')[:10]
+        results['categories'] = list(categories)
+        
+        # Search Blog Posts (from CMS)
+        try:
+            from cms.models import BlogPost
+            blog_posts = BlogPost.objects.filter(
+                Q(title__icontains=query) | Q(excerpt__icontains=query) | Q(content__icontains=query),
+                status='published'
+            ).order_by('-published_at', '-created_at')[:10]
+            results['blog_posts'] = list(blog_posts)
+        except ImportError:
+            pass
+        
+        # Search Forum Topics
+        try:
+            from forum.models import ForumTopic
+            forum_topics = ForumTopic.objects.filter(
+                Q(title__icontains=query) | Q(content__icontains=query),
+                is_locked=False
+            ).select_related('author', 'category').order_by('-last_activity_at', '-created_at')[:10]
+            results['forum_topics'] = list(forum_topics)
+        except ImportError:
+            pass
+    
+    # Calculate total results count
+    total_results = sum(len(results[key]) for key in results)
+    
+    return render(request, 'catalog/search_results.html', {
+        'query': query,
+        'results': results,
+        'total_results': total_results,
     })

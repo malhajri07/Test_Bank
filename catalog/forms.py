@@ -3,7 +3,7 @@ Forms for catalog app, including JSON upload form for test banks.
 """
 
 from django import forms
-from .models import TestBank, Category, SubCategory, Certification, TestBankRating, ReviewReply, ContactMessage
+from .models import TestBank, Category, Certification, TestBankRating, ReviewReply, ContactMessage
 
 
 class TestBankJSONUploadForm(forms.Form):
@@ -16,8 +16,10 @@ class TestBankJSONUploadForm(forms.Form):
             "title": "Test Bank Title",
             "description": "Description of the test bank",
             "category": "category-slug",
-            "subcategory": "subcategory-slug",  # optional
-            "certification": "certification-slug",  # optional
+            "certification": "certification-slug",  # optional, requires category
+            "organization": "CompTIA",  # optional
+            "official_url": "https://www.example.com",  # optional
+            "certification_details": "Additional details",  # optional
             "difficulty_level": "easy|medium|advanced",
             "price": 0.00,
             "is_active": true

@@ -69,39 +69,77 @@
                     <div id="explore-mega-menu"
                         class="fixed left-0 top-16 w-full bg-white border-t border-gray-200 shadow-xl opacity-0 invisible transition-all duration-200 pointer-events-none z-[10000]">
                         <div class="max-w-9xl mx-auto px-6 py-8">
-                            <div class="grid grid-cols-4 gap-8">
-                                {% for category in categories %}
-                                <div class="explore-category-column">
-                                    <a href="{% url 'catalog:category_detail' category_slug=category.slug %}"
-                                        class="block text-sm font-semibold text-gray-900 mb-3 hover:text-[#5624d0] transition-colors">
-                                        {{ category.name }}
-                                    </a>
-                                    {% if category.subcategories.all %}
-                                    <ul class="space-y-2">
-                                        {% for subcategory in category.subcategories.all %}
-                                        <li>
-                                            <a href="{% url 'catalog:subcategory_list_full' category_slug=category.slug subcategory_slug=subcategory.slug %}"
-                                                class="block text-sm text-gray-600 hover:text-[#5624d0] transition-colors py-1">
-                                                {{ subcategory.name }}
+                            <div class="flex gap-8 relative">
+                                <!-- Categories Column (Left) -->
+                                <div class="w-64 flex-shrink-0 border-r border-gray-200 pr-8">
+                                    <ul class="space-y-1">
+                                        {% for category in categories %}
+                                        <li class="category-menu-item group">
+                                            <a href="{% url 'catalog:category_detail' category_slug=category.slug %}"
+                                                class="block px-4 py-3 text-sm font-semibold text-gray-900 hover:text-[#5624d0] hover:bg-gray-50 rounded-lg transition-all duration-200"
+                                                data-category-id="category-{{ category.id }}">
+                                                {{ category.name }}
                                             </a>
-                                            {% if subcategory.certifications.all %}
-                                            <ul class="ml-4 mt-1 space-y-1">
-                                                {% for certification in subcategory.certifications.all|slice:":3" %}
-                                                <li>
-                                                    <a href="{% url 'catalog:certification_list_full' category_slug=category.slug subcategory_slug=subcategory.slug certification_slug=certification.slug %}"
-                                                        class="block text-xs text-gray-500 hover:text-[#5624d0] transition-colors">
-                                                        {{ certification.name }}
-                                                    </a>
-                                                </li>
-                                                {% endfor %}
-                                            </ul>
-                                            {% endif %}
                                         </li>
                                         {% endfor %}
                                     </ul>
-                                    {% endif %}
                                 </div>
-                                {% endfor %}
+                                
+                                <!-- Certifications Column (Right) - Appears on hover -->
+                                <div class="flex-1 relative pl-8">
+                                    {% for category in categories %}
+                                    <div id="category-{{ category.id }}-certifications" 
+                                         class="certifications-panel hidden absolute left-0 top-0 right-0 bg-white pl-4 transition-opacity duration-200">
+                                        {% if category.certifications.all %}
+                                        {% with certifications_list=category.certifications.all|slice:":10" %}
+                                        <div class="grid grid-cols-2 gap-4">
+                                            {% for certification in certifications_list %}
+                                            {% with first_testbank=certification.test_banks.first %}
+                                            <a href="{% url 'catalog:certification_list_full' category_slug=category.slug certification_slug=certification.slug %}"
+                                               class="block px-3 py-2 text-sm text-gray-700 hover:text-[#5624d0] hover:bg-gray-50 rounded-lg transition-all duration-200 border border-gray-100 hover:border-gray-200">
+                                                <div class="flex gap-4">
+                                                    <!-- Left side: Title and Difficulty -->
+                                                    <div class="flex-shrink-0 w-32">
+                                                        <div class="font-semibold text-gray-900 mb-2">{{ certification.name }}</div>
+                                                        {% if certification.difficulty_level %}
+                                                        <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap inline-block
+                                                            {% if certification.difficulty_level == 'easy' %}bg-green-100 text-green-700{% endif %}
+                                                            {% if certification.difficulty_level == 'medium' %}bg-yellow-100 text-yellow-700{% endif %}
+                                                            {% if certification.difficulty_level == 'advanced' %}bg-red-100 text-red-700{% endif %}">
+                                                            {{ certification.get_difficulty_level_display }}
+                                                        </span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <!-- Middle/Right side: Details text from test bank description -->
+                                                    <div class="flex-1 min-w-0">
+                                                        {% if first_testbank.description %}
+                                                        <div class="text-[10px] text-gray-600 leading-relaxed">
+                                                            {{ first_testbank.description|truncatechars:300 }}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                            {% endwith %}
+                                            {% endfor %}
+                                        </div>
+                                        {% if category.certifications.all|length > 10 %}
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <a href="{% url 'catalog:category_detail' category_slug=category.slug %}" 
+                                               class="text-sm text-[#5624d0] hover:text-[#4a1fb8] font-medium hover:underline">
+                                                {% trans "For more, click this link" %}
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        {% endwith %}
+                                        {% else %}
+                                        <div class="text-sm text-gray-500 py-4">
+                                            {% trans "No certifications available" %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -110,7 +148,7 @@
 
                 <!-- Search Bar - Center (Udemy Style) -->
                 <div class="flex-1 max-w-2xl mx-4 hidden md:block">
-                    <form method="get" action="{% url 'catalog:index' %}" class="relative">
+                    <form method="get" action="{% url 'catalog:search' %}" class="relative">
                         <input type="text" name="q" placeholder="{% trans 'Search for anything' %}"
                             class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:border-transparent"
                             value="{{ request.GET.q }}">
@@ -223,12 +261,8 @@
                 <div>
                     <h4 class="font-semibold text-white mb-5 text-sm tracking-tight">{% trans "Platform" %}</h4>
                     <ul class="space-y-3 text-sm">
-                        <li><a href="{% url 'catalog:index' %}"
-                                class="text-white/80 hover:text-white transition-colors font-medium">{% trans
-                                "Home" %}</a></li>
-                        <li><a href="{% url 'catalog:category_list' %}"
-                                class="text-white/80 hover:text-white transition-colors font-medium">{% trans
-                                "Categories" %}</a></li>
+                        <li><a href="{% url 'catalog:index' %}" class="text-white/80 hover:text-white transition-colors font-medium">{% trans "Home" %}</a></li>
+                        <li><a href="{% url 'catalog:category_list' %}" class="text-white/80 hover:text-white transition-colors font-medium">{% trans "Categories" %}</a></li>
                     </ul>
                 </div>
                 <!-- Account -->
@@ -423,6 +457,74 @@
                 megaMenu.addEventListener('click', function (event) {
                     event.stopPropagation();
                 });
+
+                // Category hover functionality - Show certifications on the right
+                const categoryLinks = document.querySelectorAll('.category-menu-item a[data-category-id]');
+                const certificationPanels = document.querySelectorAll('.certifications-panel');
+                let hoverTimeout = null;
+                
+                categoryLinks.forEach(function(categoryLink) {
+                    const categoryId = categoryLink.getAttribute('data-category-id');
+                    const certificationPanel = document.getElementById(categoryId + '-certifications');
+                    
+                    if (certificationPanel) {
+                        // Show certifications on hover
+                        categoryLink.addEventListener('mouseenter', function() {
+                            // Clear any pending hide timeout
+                            if (hoverTimeout) {
+                                clearTimeout(hoverTimeout);
+                                hoverTimeout = null;
+                            }
+                            
+                            // Remove active state from all other category links
+                            categoryLinks.forEach(function(link) {
+                                link.classList.remove('bg-gray-50', 'text-[#5624d0]');
+                                link.classList.add('text-gray-900');
+                            });
+                            
+                            // Hide all other panels
+                            certificationPanels.forEach(function(panel) {
+                                panel.classList.add('hidden');
+                            });
+                            
+                            // Show this category's certifications
+                            certificationPanel.classList.remove('hidden');
+                            categoryLink.classList.remove('text-gray-900');
+                            categoryLink.classList.add('bg-gray-50', 'text-[#5624d0]');
+                        });
+                        
+                        // Keep panel visible when hovering over it
+                        certificationPanel.addEventListener('mouseenter', function() {
+                            if (hoverTimeout) {
+                                clearTimeout(hoverTimeout);
+                                hoverTimeout = null;
+                            }
+                            certificationPanel.classList.remove('hidden');
+                            categoryLink.classList.remove('text-gray-900');
+                            categoryLink.classList.add('bg-gray-50', 'text-[#5624d0]');
+                        });
+                        
+                        // Hide panel when mouse leaves category link
+                        categoryLink.addEventListener('mouseleave', function() {
+                            hoverTimeout = setTimeout(function() {
+                                if (!certificationPanel.matches(':hover')) {
+                                    certificationPanel.classList.add('hidden');
+                                    categoryLink.classList.remove('bg-gray-50', 'text-[#5624d0]');
+                                    categoryLink.classList.add('text-gray-900');
+                                }
+                            }, 150);
+                        });
+                        
+                        // Hide panel when mouse leaves certifications panel
+                        certificationPanel.addEventListener('mouseleave', function() {
+                            hoverTimeout = setTimeout(function() {
+                                certificationPanel.classList.add('hidden');
+                                categoryLink.classList.remove('bg-gray-50', 'text-[#5624d0]');
+                                categoryLink.classList.add('text-gray-900');
+                            }, 150);
+                        });
+                    }
+                });
             }
 
             // User Menu Logic
@@ -485,34 +587,70 @@
     </script>
     <script>
         function rateTestBank(slug, rating) {
+            // Get CSRF token
+            const csrftoken = getCookie('csrftoken');
+            if (!csrftoken) {
+                console.error('CSRF token not found');
+                return;
+            }
+
+            // Find the rating container
+            const ratingContainer = document.querySelector(`div[data-testbank-slug="${slug}"]`);
+            if (!ratingContainer) {
+                console.error('Rating container not found');
+                return;
+            }
+
+            // Update UI immediately for better UX
+            const stars = ratingContainer.querySelectorAll('button svg');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400', 'fill-current');
+                } else {
+                    star.classList.remove('text-yellow-400', 'fill-current');
+                    star.classList.add('text-gray-300', 'fill-current');
+                }
+            });
+
+            // Send rating to server
             fetch(`/rate-test-bank/${slug}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': csrftoken
                 },
                 body: JSON.stringify({ rating: rating })
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Failed to submit rating');
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.status === 'success') {
-                        // Update UI to reflect new rating
-                        const ratingContainer = document.querySelector(`div[data-testbank-slug="${slug}"]`);
-                        if (ratingContainer) {
-                            const stars = ratingContainer.querySelectorAll('svg');
-                            stars.forEach((star, index) => {
-                                if (index < rating) {
-                                    star.classList.remove('text-gray-300');
-                                    star.classList.add('text-yellow-400');
-                                } else {
-                                    star.classList.remove('text-yellow-400');
-                                    star.classList.add('text-gray-300');
-                                }
-                            });
-                        }
+                        // Rating saved successfully - UI already updated
+                        console.log('Rating saved successfully');
+                    } else {
+                        throw new Error(data.message || 'Failed to save rating');
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error rating test bank:', error);
+                    // Revert UI changes on error
+                    const ratingContainer = document.querySelector(`div[data-testbank-slug="${slug}"]`);
+                    if (ratingContainer) {
+                        const stars = ratingContainer.querySelectorAll('button svg');
+                        stars.forEach((star) => {
+                            star.classList.remove('text-yellow-400');
+                            star.classList.add('text-gray-300', 'fill-current');
+                        });
+                    }
+                    alert('Failed to save rating. Please try again.');
+                });
         }
 
         // Helper to get CSRF token

@@ -4,7 +4,7 @@
 {% block title %}{% trans "Exam Stellar - Practice Tests for School, College & Professional" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+<div class="w-full">
     <!-- CMS Homepage Announcements -->
     {% if cms_homepage_announcements %}
     <div class="pt-4">
@@ -109,31 +109,33 @@
 
     <!-- Partner/Institution Logos -->
     {% include 'includes/partners.html' %}
+</div>
 
     <!-- Trending Test Banks Carousel - Udemy Style -->
     {% if trending_test_banks %}
-    <section class="py-12 bg-white">
-        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-6">
+    <section class="w-full overflow-visible" style="background-color: #f5f5f7;">
+        <div class="py-12 w-full">
+            <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-6 text-center">
                 <h2 class="text-2xl font-bold text-gray-900">
-                    <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Trending test banks" %}</mark>
+                    {% trans "Trending test banks" %}
                 </h2>
             </div>
 
             <div class="swiper trending-swiper relative group/swiper px-4 md:px-12">
                 <div class="swiper-wrapper trending-swiper-wrapper">
                     {% for test_bank in trending_test_banks %}
-                    <div class="swiper-slide w-80 h-[28rem] p-4">
-                        <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block h-full group">
+                    <div class="swiper-slide w-80 h-[28rem] min-h-[28rem] max-h-[28rem] p-4 flex">
+                        <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" class="block h-full w-full group flex-shrink-0">
                             <div
-                                class="bg-white h-full rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1 overflow-hidden flex flex-col">
+                                class="bg-white h-full w-full rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1 overflow-hidden flex flex-col">
                                 <!-- Test Bank Image - Premium Style -->
                                 {% if test_bank.image %}
-                                <div class="h-52 bg-gray-50 relative overflow-hidden">
+                                <div class="h-52 bg-gray-50 relative overflow-hidden flex items-center justify-center p-4">
                                     <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}"
-                                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                                        class="max-w-full max-h-full object-contain transition-transform duration-700 group-hover:scale-105">
                                     <div
-                                        class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500">
+                                        class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500 pointer-events-none">
                                     </div>
                                     <!-- Difficulty Label -->
                                     <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-bold rounded-lg shadow-sm backdrop-blur-sm z-20
@@ -161,11 +163,13 @@
                                 </div>
                                 {% endif %}
 
-                                <div class="p-6 flex-1 flex flex-col">
-                                    <h3
-                                        class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug tracking-tight group-hover:text-[#5624d0] transition-colors">
-                                        {{ test_bank.title }}
-                                    </h3>
+                                <div class="p-6 flex-1 flex flex-col min-h-0 overflow-hidden trending-card-content">
+                                    <div class="h-14 mb-2 flex items-start">
+                                        <h3
+                                            class="text-lg font-semibold text-gray-900 line-clamp-2 leading-snug tracking-tight group-hover:text-[#5624d0] transition-colors">
+                                            {{ test_bank.title }}
+                                        </h3>
+                                    </div>
 
                                     <!-- Rating - Premium Style -->
                                     <div class="flex items-center mb-4 min-h-[20px]">
@@ -189,7 +193,7 @@
                                             {% endfor %}
                                             {% endwith %}
                                             <span
-                                                class="text-xs text-gray-400 ml-2 opacity-0 group-hover/rating:opacity-100 transition-opacity">{%
+                                                class="text-xs text-gray-500 ml-2">{%
                                                 trans "Rate" %}</span>
                                         </div>
                                         {% else %}
@@ -242,16 +246,17 @@
                 </div>
                 <!-- Navigation Arrows -->
                 <div
-                    class="swiper-button-next trending-next !w-10 !h-10 !bg-white !rounded-full !shadow-lg !text-gray-800 !after:text-lg hover:!bg-gray-50 transition-all opacity-0 group-hover/swiper:opacity-100">
+                    class="swiper-button-next trending-next !w-12 !h-12 !bg-white !rounded-full !shadow-lg !text-gray-800 !after:text-xl hover:!bg-gray-50 hover:!shadow-xl transition-all !z-20 !opacity-100 !visible !flex">
                 </div>
                 <div
-                    class="swiper-button-prev trending-prev !w-10 !h-10 !bg-white !rounded-full !shadow-lg !text-gray-800 !after:text-lg hover:!bg-gray-50 transition-all opacity-0 group-hover/swiper:opacity-100">
+                    class="swiper-button-prev trending-prev !w-12 !h-12 !bg-white !rounded-full !shadow-lg !text-gray-800 !after:text-xl hover:!bg-gray-50 hover:!shadow-xl transition-all !z-20 !opacity-100 !visible !flex">
                 </div>
             </div>
         </div>
     </section>
     {% endif %}
 
+<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
     <!-- Explore Categories - Udemy Style -->
     {% if categories %}
     <section class="py-12 bg-white">
@@ -325,7 +330,7 @@
         <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-6">
                 <h2 class="text-2xl font-bold text-gray-900">
-                    <mark class="bg-[#fde047] text-gray-900 px-3 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Most popular by category" %}</mark>
+                    {% trans "Most popular by category" %}
                 </h2>
             </div>
 
