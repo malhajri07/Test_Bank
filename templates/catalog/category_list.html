@@ -24,7 +24,7 @@
 <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for category in categories %}
-        <a href="{% if category.subcategory_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block">
+        <a href="{% if category.certification_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block">
             <div class="bg-white border border-gray-200 rounded overflow-hidden hover:shadow-lg transition-all h-full flex flex-col">
                 <!-- Category Image - Udemy Style -->
                 {% if category.image %}

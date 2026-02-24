@@ -11,7 +11,7 @@ This module provides views for:
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Q, Avg
+from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.http import JsonResponse
@@ -39,13 +39,18 @@ def index(request):
         certification_count=Count('certifications')
     ).filter(test_bank_count__gt=0)[:8])
     
-    # Get featured test banks with user counts
-    featured_test_banks = list(TestBank.objects.filter(is_active=True).annotate(
+    # Get featured test banks with user counts (optimized with select_related)
+    featured_test_banks = list(TestBank.objects.filter(is_active=True).select_related(
+        'category', 'certification'
+    ).annotate(
         user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
     ).order_by('-user_count', '-average_rating')[:6])
     
     # Get trending test banks (ordered by user count, then rating, then recent)
-    trending_qs = TestBank.objects.filter(is_active=True).annotate(
+    # Optimized with select_related to avoid N+1 queries
+    trending_qs = TestBank.objects.filter(is_active=True).select_related(
+        'category', 'certification'
+    ).annotate(
         user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
     )
 
@@ -285,17 +290,20 @@ def testbank_detail(request, slug):
     # Get question count
     question_count = test_bank.get_question_count()
     
-    # Get recent sessions if user has access
+    # Get recent sessions if user has access (optimized with select_related)
     recent_sessions = None
     if request.user.is_authenticated and has_access:
         recent_sessions = test_bank.user_sessions.filter(
             user=request.user
-        ).order_by('-started_at')[:5]
+        ).select_related('user', 'test_bank').order_by('-started_at')[:5]
     
     # Get related test banks (same category, exclude current)
+    # Optimized with select_related and prefetch_related for ratings
     related_test_banks = TestBank.objects.filter(
         category=test_bank.category,
         is_active=True
+    ).select_related('category', 'certification').prefetch_related(
+        'ratings'
     ).exclude(id=test_bank.id)[:6]
     
     # Check if test bank is free
@@ -374,7 +382,6 @@ def testbank_detail(request, slug):
     })
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
 
@@ -384,6 +391,11 @@ def rate_test_bank(request, slug):
     """
     Handle AJAX request to rate a test bank.
     """
+    # Validate JSON size to prevent DoS attacks
+    MAX_JSON_SIZE = 1024 * 1024  # 1MB
+    if len(request.body) > MAX_JSON_SIZE:
+        return JsonResponse({'status': 'error', 'message': 'Payload too large'}, status=413)
+    
     try:
         data = json.loads(request.body)
         rating_value = int(data.get('rating'))
@@ -451,6 +463,8 @@ def search(request):
     
     Returns results categorized by type.
     """
+    from django.db import DatabaseError
+    
     query = request.GET.get('q', '').strip()
     results = {
         'test_banks': [],
@@ -459,12 +473,27 @@ def search(request):
         'forum_topics': [],
     }
     
-    if query:
+    # Validate query - must be at least 2 characters
+    if not query:
+        return render(request, 'catalog/search_results.html', {
+            'query': '',
+            'results': results,
+            'error': None,
+        })
+    
+    if len(query) < 2:
+        return render(request, 'catalog/search_results.html', {
+            'query': query,
+            'results': results,
+            'error': 'Search query must be at least 2 characters long.',
+        })
+    
+    try:
         # Search TestBanks
         test_banks = TestBank.objects.filter(
             Q(title__icontains=query) | Q(description__icontains=query),
             is_active=True
-        ).annotate(
+        ).select_related('category', 'certification').annotate(
             user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
         ).order_by('-user_count', '-average_rating')[:10]
         results['test_banks'] = list(test_banks)
@@ -485,8 +514,11 @@ def search(request):
                 status='published'
             ).order_by('-published_at', '-created_at')[:10]
             results['blog_posts'] = list(blog_posts)
-        except ImportError:
-            pass
+        except (ImportError, DatabaseError) as e:
+            # Log error but don't fail the entire search
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f'Error searching blog posts: {str(e)}')
         
         # Search Forum Topics
         try:
@@ -496,8 +528,22 @@ def search(request):
                 is_locked=False
             ).select_related('author', 'category').order_by('-last_activity_at', '-created_at')[:10]
             results['forum_topics'] = list(forum_topics)
-        except ImportError:
-            pass
+        except (ImportError, DatabaseError) as e:
+            # Log error but don't fail the entire search
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f'Error searching forum topics: {str(e)}')
+            
+    except DatabaseError as e:
+        # Handle database errors gracefully
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f'Database error in search: {str(e)}')
+        return render(request, 'catalog/search_results.html', {
+            'query': query,
+            'results': results,
+            'error': 'An error occurred while searching. Please try again.',
+        })
     
     # Calculate total results count
     total_results = sum(len(results[key]) for key in results)
@@ -505,5 +551,6 @@ def search(request):
     return render(request, 'catalog/search_results.html', {
         'query': query,
         'results': results,
+        'error': None,
         'total_results': total_results,
     })

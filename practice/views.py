@@ -14,9 +14,10 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
 from django.http import JsonResponse
-from .models import UserTestSession, UserAnswer, UserTestAccess
+from .models import UserTestSession, UserAnswer, UserTestAccess, Certificate
 from catalog.models import TestBank, Question
 import random
+from django.db.models import Count, Q, Avg
 
 
 @login_required
@@ -58,6 +59,11 @@ def start_practice(request, testbank_slug):
     question_ids = [q.id for q in questions]
     random.shuffle(question_ids)
     
+    # Initialize time remaining if test bank has time limit
+    time_remaining = None
+    if test_bank.time_limit_minutes:
+        time_remaining = test_bank.time_limit_minutes * 60  # Convert to seconds
+    
     # Create new practice session with randomized question order
     with transaction.atomic():
         session = UserTestSession.objects.create(
@@ -65,7 +71,8 @@ def start_practice(request, testbank_slug):
             test_bank=test_bank,
             status='in_progress',
             total_questions=len(questions),
-            question_order=question_ids
+            question_order=question_ids,
+            time_remaining_seconds=time_remaining
         )
     
     # Redirect to practice session page
@@ -150,6 +157,16 @@ def practice_session(request, session_id):
     total_questions_count = len(questions)
     completion_percent = int((answered_count / total_questions_count * 100)) if total_questions_count > 0 else 0
     
+    # Get marked for review question IDs
+    marked_question_ids = set(
+        UserAnswer.objects.filter(session=session, marked_for_review=True)
+        .values_list('question_id', flat=True)
+    )
+    
+    # Timer data
+    has_timer = session.test_bank.time_limit_minutes is not None
+    time_remaining = session.time_remaining_seconds if has_timer else None
+    
     return render(request, 'practice/practice_session.html', {
         'session': session,
         'questions': questions,
@@ -160,8 +177,12 @@ def practice_session(request, session_id):
         'existing_answer': existing_answer,
         'total_questions': total_questions_count,
         'answered_question_ids': answered_question_ids,
+        'marked_question_ids': marked_question_ids,
         'answered_count': answered_count,
         'completion_percent': completion_percent,
+        'has_timer': has_timer,
+        'time_remaining': time_remaining,
+        'time_limit_minutes': session.test_bank.time_limit_minutes,
     })
 
 
@@ -193,6 +214,10 @@ def save_answer(request, session_id):
     
     question = get_object_or_404(Question, pk=question_id, test_bank=session.test_bank)
     
+    # Validate that question belongs to session's test bank (security check)
+    if question.test_bank != session.test_bank:
+        return JsonResponse({'error': 'Question does not belong to this session'}, status=400)
+    
     # Get selected answer options
     selected_options = question.answer_options.filter(pk__in=selected_option_ids)
     
@@ -220,6 +245,87 @@ def save_answer(request, session_id):
         'success': True,
         'is_correct': answer.is_correct,
     })
+
+
+@login_required
+def save_time(request, session_id):
+    """
+    Save time remaining for a practice session (AJAX endpoint).
+    
+    Args:
+        session_id: Primary key of the UserTestSession
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    session = get_object_or_404(UserTestSession, pk=session_id, user=request.user)
+    
+    # Prevent saving to completed sessions
+    if session.status == 'completed':
+        return JsonResponse({'error': 'Session already completed'}, status=400)
+    
+    try:
+        import json
+        data = json.loads(request.body)
+        time_remaining = data.get('time_remaining')
+        
+        if time_remaining is None:
+            return JsonResponse({'error': 'Missing time_remaining'}, status=400)
+        
+        # Update time remaining
+        session.time_remaining_seconds = int(time_remaining)
+        session.save(update_fields=['time_remaining_seconds'])
+        
+        return JsonResponse({'success': True})
+    except (ValueError, KeyError) as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def mark_for_review(request, session_id):
+    """
+    Mark or unmark a question for review (AJAX endpoint).
+    
+    Args:
+        session_id: Primary key of the UserTestSession
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    session = get_object_or_404(UserTestSession, pk=session_id, user=request.user)
+    
+    # Prevent marking in completed sessions
+    if session.status == 'completed':
+        return JsonResponse({'error': 'Session already completed'}, status=400)
+    
+    try:
+        import json
+        data = json.loads(request.body)
+        question_id = data.get('question_id')
+        marked = data.get('marked', False)
+        
+        if not question_id:
+            return JsonResponse({'error': 'Missing question_id'}, status=400)
+        
+        question = get_object_or_404(Question, pk=question_id, test_bank=session.test_bank)
+        
+        # Get or create answer
+        answer, created = UserAnswer.objects.get_or_create(
+            session=session,
+            question=question,
+            defaults={
+                'is_correct': False,
+                'marked_for_review': marked,
+            }
+        )
+        
+        # Update mark for review status
+        answer.marked_for_review = marked
+        answer.save(update_fields=['marked_for_review'])
+        
+        return JsonResponse({'success': True, 'marked': marked})
+    except (ValueError, KeyError) as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 @login_required
@@ -276,6 +382,21 @@ def submit_practice(request, session_id):
             session.duration_seconds = int(duration.total_seconds())
         
         session.save()
+        
+        # Generate certificate if score meets passing threshold (default 70%)
+        passing_threshold = 70.00  # Can be made configurable per test bank
+        if session.score and session.score >= passing_threshold:
+            # Check if certificate already exists for this session
+            if not Certificate.objects.filter(session=session).exists():
+                certificate_number = Certificate.generate_certificate_number(session.user, session.test_bank)
+                Certificate.objects.create(
+                    user=session.user,
+                    test_bank=session.test_bank,
+                    session=session,
+                    certificate_number=certificate_number,
+                    score=session.score,
+                    passing_threshold=passing_threshold
+                )
     
     messages.success(request, 'Practice session completed! View your results below.')
     return redirect('practice:results', session_id=session_id)
@@ -326,6 +447,7 @@ def practice_results(request, session_id):
                     'selected_options': answer.selected_options.all(),
                     'correct_options': correct_options,
                     'is_correct': answer.is_correct,
+                    'marked_for_review': answer.marked_for_review,
                 })
     else:
         # Fallback: use answers in their natural order
@@ -337,7 +459,46 @@ def practice_results(request, session_id):
                 'selected_options': answer.selected_options.all(),
                 'correct_options': correct_options,
                 'is_correct': answer.is_correct,
+                'marked_for_review': answer.marked_for_review,
             })
+    
+    # Calculate weak area insights based on question categories
+    # Group answers by test bank category to identify weak areas
+    weak_areas = []
+    if review_data:
+        # Group by category (using test bank's category)
+        category_performance = {}
+        for review in review_data:
+            category = review['question'].test_bank.category
+            if category:
+                category_name = category.name
+                if category_name not in category_performance:
+                    category_performance[category_name] = {'correct': 0, 'total': 0}
+                category_performance[category_name]['total'] += 1
+                if review['is_correct']:
+                    category_performance[category_name]['correct'] += 1
+        
+        # Calculate percentage for each category and identify weak areas (< 60%)
+        for category_name, stats in category_performance.items():
+            if stats['total'] > 0:
+                percentage = (stats['correct'] / stats['total']) * 100
+                if percentage < 60:  # Weak area threshold
+                    weak_areas.append({
+                        'category': category_name,
+                        'percentage': round(percentage, 1),
+                        'correct': stats['correct'],
+                        'total': stats['total']
+                    })
+        
+        # Sort by percentage (lowest first)
+        weak_areas.sort(key=lambda x: x['percentage'])
+    
+    # Check if certificate was generated
+    certificate = None
+    try:
+        certificate = Certificate.objects.get(session=session)
+    except Certificate.DoesNotExist:
+        pass
     
     return render(request, 'practice/practice_results.html', {
         'session': session,
@@ -345,4 +506,33 @@ def practice_results(request, session_id):
         'total_questions': session.total_questions,
         'correct_answers': session.correct_answers,
         'incorrect_answers': session.total_questions - session.correct_answers,
+        'weak_areas': weak_areas,
+        'certificate': certificate,
+    })
+
+
+@login_required
+def certificate_view(request, certificate_id):
+    """
+    Display certificate view page.
+    
+    Shows:
+    - Certificate details
+    - Certificate number
+    - Score achieved
+    - Issue date
+    - Download option (if PDF available)
+    
+    Args:
+        certificate_id: Primary key of the Certificate
+    """
+    certificate = get_object_or_404(Certificate, pk=certificate_id, user=request.user)
+    
+    # Ensure certificate belongs to current user
+    if certificate.user != request.user:
+        messages.error(request, 'You do not have permission to view this certificate.')
+        return redirect('accounts:dashboard')
+    
+    return render(request, 'practice/certificate_view.html', {
+        'certificate': certificate,
     })

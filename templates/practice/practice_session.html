@@ -7,8 +7,14 @@
 {% endblock %}
 
 {% block content %}
+<!-- Timer Component -->
+{% include 'components/timer.html' %}
+
+<!-- Modal Component -->
+{% include 'components/modal.html' %}
+
 <!-- Practice Session Header -->
-<div class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+<div class="bg-white border-b border-gray-200 {% if has_timer %}sticky top-[73px]{% else %}sticky top-0{% endif %} z-50 shadow-sm">
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
@@ -45,9 +51,19 @@
                 </div>
                 
                 <!-- Question Text -->
-                <h2 class="text-base sm:text-lg lg:text-xl text-gray-900 leading-relaxed mb-8">
-                    {{ current_question.question_text }}
-                </h2>
+                <div class="flex items-start justify-between gap-4 mb-8">
+                    <h2 class="text-base sm:text-lg lg:text-xl text-gray-900 leading-relaxed flex-1">
+                        {{ current_question.question_text }}
+                    </h2>
+                    <!-- Mark for Review Checkbox -->
+                    <label class="flex items-center gap-2 cursor-pointer flex-shrink-0">
+                        <input type="checkbox" id="markForReview" 
+                               class="w-5 h-5 text-[#5525d0] focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2 rounded cursor-pointer"
+                               {% if current_question.id in marked_question_ids %}checked{% endif %}
+                               onchange="toggleMarkForReview()">
+                        <span class="text-sm font-medium text-gray-700">{% trans "Mark for Review" %}</span>
+                    </label>
+                </div>
                 
                 <!-- Answer Options -->
                 <form id="answerForm" method="post" action="{% url 'practice:save_answer' session_id=session.pk %}">
@@ -110,15 +126,17 @@
                         </svg>
                     </a>
                     {% else %}
-                    <form method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="inline" onsubmit="window.isInternalNavigation = true;">
+                    <button type="button" 
+                            onclick="showSubmitConfirmation()"
+                            class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2">
+                        {% trans "Submit Exam" %}
+                        <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </button>
+                    <!-- Hidden form for actual submission -->
+                    <form id="submitForm" method="post" action="{% url 'practice:submit_practice' session_id=session.pk %}" class="hidden" onsubmit="window.isInternalNavigation = true;">
                         {% csrf_token %}
-                        <button type="submit" 
-                                class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2">
-                            {% trans "Submit Exam" %}
-                            <svg class="w-5 h-5 ml-2 {% if IS_RTL %}mr-2 ml-0{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                        </button>
                     </form>
                     {% endif %}
                 </div>
@@ -132,12 +150,15 @@
                 id="questionsToggleBtn"
                 onclick="toggleQuestionsPanel()"
                 type="button"
+                aria-label="{% trans 'Toggle questions panel' %}"
+                aria-expanded="false"
+                aria-controls="questionsPanel"
                 class="w-full bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md active:shadow-sm transition-all duration-200 p-4 flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-2">
                 <div class="flex items-center gap-3">
                     <h3 class="text-base sm:text-lg font-bold text-gray-900">
-                        <mark class="bg-[#fde047] text-gray-900 px-2 rounded-sm">{% trans "Questions" %}</mark>
+                        <span class="bg-[#5624d0]/10 text-[#5624d0] px-2 py-1 rounded-lg font-semibold">{% trans "Questions" %}</span>
                     </h3>
-                    <span class="text-sm text-gray-500 font-medium">
+                    <span class="text-sm text-gray-600 font-medium">
                         ({{ current_index|add:1 }}/{{ total_questions }})
                     </span>
                 </div>
@@ -172,6 +193,10 @@
                             <div class="w-2.5 h-2.5 rounded-full bg-[#5525d0] shadow-sm flex-shrink-0"></div>
                             <span class="text-gray-600 font-medium whitespace-nowrap">{% trans "Current" %}</span>
                         </div>
+                        <div class="flex items-center space-x-2 {% if IS_RTL %}space-x-reverse{% endif %}">
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm flex-shrink-0"></div>
+                            <span class="text-gray-600 font-medium whitespace-nowrap">{% trans "Marked" %}</span>
+                        </div>
                     </div>
                     <!-- Questions Grid -->
                     <div class="flex flex-wrap gap-1.5 max-h-[300px] overflow-y-auto overscroll-contain">
@@ -181,15 +206,20 @@
                             onclick="window.isInternalNavigation = true;"
                             data-question-index="{{ forloop.counter0 }}"
                             data-question-id="{{ question.id }}"
-                            class="question-nav-link flex items-center justify-center w-7 h-7 rounded-md font-medium text-xs transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-1
+                            class="question-nav-link flex items-center justify-center w-7 h-7 rounded-md font-medium text-xs transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#5525d0] focus:ring-offset-1 relative
                                   {% if forloop.counter0 == current_index %}
                                   bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] text-white border-2 border-[#4a1fb8] ring-2 ring-[#5525d0]/20
+                                  {% elif question.id in marked_question_ids %}
+                                  bg-yellow-50 text-gray-900 border-2 border-yellow-400 ring-2 ring-yellow-400/30 hover:bg-yellow-100
                                   {% elif question.id in answered_question_ids %}
                                   bg-green-500 text-white border-2 border-green-600 hover:bg-green-600 hover:border-green-700
                                   {% else %}
                                   bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50
                                   {% endif %}">
                             {{ forloop.counter }}
+                            {% if question.id in marked_question_ids %}
+                            <span class="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full border border-white"></span>
+                            {% endif %}
                         </a>
                         {% endfor %}
                     </div>
@@ -205,8 +235,9 @@
 function toggleQuestionsPanel() {
     const panel = document.getElementById('questionsPanel');
     const icon = document.getElementById('questionsToggleIcon');
+    const button = document.getElementById('questionsToggleBtn');
     
-    if (!panel || !icon) {
+    if (!panel || !icon || !button) {
         return;
     }
     
@@ -220,6 +251,8 @@ function toggleQuestionsPanel() {
         // Rotate icon
         icon.classList.remove('rotate-0');
         icon.classList.add('rotate-180');
+        // Update ARIA attributes
+        button.setAttribute('aria-expanded', 'true');
     } else {
         // Hide panel - remove block, add hidden
         panel.classList.remove('block');
@@ -227,20 +260,26 @@ function toggleQuestionsPanel() {
         // Rotate icon back
         icon.classList.remove('rotate-180');
         icon.classList.add('rotate-0');
+        // Update ARIA attributes
+        button.setAttribute('aria-expanded', 'false');
     }
 }
 
 function saveAnswer() {
     const form = document.getElementById('answerForm');
+    if (!form) {
+        return Promise.resolve(); // Return resolved promise if form doesn't exist
+    }
+    
     const formData = new FormData(form);
     
     // Add subtle save indicator
-    const submitButton = form.querySelector('button[type="submit"]') || form.closest('.bg-white').querySelector('a, button');
+    const submitButton = form.querySelector('button[type="submit"]') || form.closest('.bg-white')?.querySelector('a, button');
     if (submitButton) {
         submitButton.style.opacity = '0.7';
     }
     
-    fetch(form.action, {
+    return fetch(form.action, {
         method: 'POST',
         body: formData,
         headers: {
@@ -290,6 +329,7 @@ function saveAnswer() {
         if (submitButton) {
             submitButton.style.opacity = '1';
         }
+        return Promise.reject(error);
     });
 }
 
@@ -458,6 +498,168 @@ if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText('').catch(function() {
         // Ignore errors
     });
+}
+
+// Timer Countdown Functionality
+{% if has_timer %}
+let timeRemaining = {{ time_remaining|default:0 }};
+let timerInterval = null;
+const totalTime = {{ time_limit_minutes|default:60 }} * 60; // Total time in seconds
+
+function updateTimer() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    
+    const minutesEl = document.getElementById('timer-minutes');
+    const secondsEl = document.getElementById('timer-seconds');
+    const progressEl = document.getElementById('timer-progress');
+    
+    if (minutesEl && secondsEl) {
+        minutesEl.textContent = String(minutes).padStart(2, '0');
+        secondsEl.textContent = String(seconds).padStart(2, '0');
+    }
+    
+    // Update progress bar
+    if (progressEl && totalTime > 0) {
+        const progressPercent = (timeRemaining / totalTime) * 100;
+        progressEl.style.width = progressPercent + '%';
+        
+        // Change color when time is running low
+        if (progressPercent < 20) {
+            progressEl.classList.remove('from-[#5624d0]', 'to-[#4a1fb8]');
+            progressEl.classList.add('from-red-500', 'to-red-600');
+            if (minutesEl && secondsEl) {
+                minutesEl.parentElement.classList.remove('text-[#5624d0]');
+                minutesEl.parentElement.classList.add('text-red-600');
+            }
+        }
+    }
+    
+    // Auto-submit when time expires
+    if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        // Save current answer first
+        if (document.getElementById('answerForm')) {
+            saveAnswer().then(() => {
+                // Auto-submit exam
+                document.getElementById('submitForm').submit();
+            });
+        } else {
+            document.getElementById('submitForm').submit();
+        }
+        return;
+    }
+    
+    timeRemaining--;
+    
+    // Save time remaining to server every 30 seconds
+    if (timeRemaining % 30 === 0) {
+        saveTimeRemaining();
+    }
+}
+
+function saveTimeRemaining() {
+    fetch('{% url "practice:save_time" session_id=session.pk %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            time_remaining: timeRemaining
+        })
+    }).catch(err => console.error('Failed to save time remaining:', err));
+}
+
+// Start timer when page loads
+if (timeRemaining > 0) {
+    updateTimer(); // Initial update
+    timerInterval = setInterval(updateTimer, 1000);
+}
+{% endif %}
+
+// Mark for Review Functionality
+function toggleMarkForReview() {
+    const checkbox = document.getElementById('markForReview');
+    const questionId = {{ current_question.id }};
+    const marked = checkbox.checked;
+    
+    fetch('{% url "practice:mark_for_review" session_id=session.pk %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            question_id: questionId,
+            marked: marked
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update navigation panel if needed
+            updateQuestionIndicator(questionId, marked);
+        }
+    })
+    .catch(err => {
+        console.error('Failed to mark for review:', err);
+        checkbox.checked = !marked; // Revert checkbox
+    });
+}
+
+function updateQuestionIndicator(questionId, marked) {
+    // Update the question indicator in navigation panel
+    const questionBtn = document.querySelector(`[data-question-id="${questionId}"]`);
+    if (questionBtn) {
+        if (marked) {
+            questionBtn.classList.add('ring-2', 'ring-yellow-400', 'bg-yellow-50');
+        } else {
+            questionBtn.classList.remove('ring-2', 'ring-yellow-400', 'bg-yellow-50');
+        }
+    }
+}
+
+// Submit Confirmation Modal
+function showSubmitConfirmation() {
+    const totalQuestions = {{ total_questions }};
+    const answeredCount = {{ answered_count }};
+    const markedCount = {{ marked_question_ids|length }};
+    const unansweredCount = totalQuestions - answeredCount;
+    
+    let body = '<div class="space-y-3">';
+    body += `<p class="text-gray-700">{% trans "Are you sure you want to submit your exam?" %}</p>`;
+    body += '<div class="bg-gray-50 rounded-lg p-4 space-y-2">';
+    body += `<p class="text-sm"><strong>${answeredCount}</strong> {% trans "of" %} <strong>${totalQuestions}</strong> {% trans "questions answered" %}</p>`;
+    if (unansweredCount > 0) {
+        body += `<p class="text-sm text-yellow-700"><strong>${unansweredCount}</strong> {% trans "questions unanswered" %}</p>`;
+    }
+    if (markedCount > 0) {
+        body += `<p class="text-sm text-blue-700"><strong>${markedCount}</strong> {% trans "questions marked for review" %}</p>`;
+    }
+    body += '</div>';
+    body += '<p class="text-sm text-gray-600 mt-4">{% trans "You will not be able to change your answers after submission." %}</p>';
+    body += '</div>';
+    
+    showModal(
+        '{% trans "Submit Exam" %}',
+        body,
+        [
+            {
+                text: '{% trans "Cancel" %}',
+                className: 'px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg font-semibold transition-all duration-200',
+                onclick: closeModal
+            },
+            {
+                text: '{% trans "Submit" %}',
+                className: 'px-5 py-2.5 bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white rounded-lg font-semibold transition-all duration-200',
+                onclick: () => {
+                    closeModal();
+                    document.getElementById('submitForm').submit();
+                }
+            }
+        ]
+    );
 }
 
 // Console warning

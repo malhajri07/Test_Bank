@@ -10,6 +10,7 @@
     "certification_details": "CompTIA Security+ is a globally recognized certification that validates the baseline skills necessary to perform core security functions and pursue an IT security career.",
     "difficulty_level": "easy",
     "price": 0.00,
+    "time_limit_minutes": 60,
     "is_active": true
   },
   "questions": [

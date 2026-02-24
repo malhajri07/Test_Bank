@@ -15,6 +15,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.conf import settings
+import stripe
 from catalog.models import TestBank
 from .models import Payment, Purchase
 from .stripe_integration import (
@@ -215,9 +216,20 @@ def payment_success(request):
             messages.warning(request, 'Payment is being processed. Please wait a moment.')
             return redirect('accounts:dashboard')
             
+    except stripe.error.StripeError as e:
+        # Handle specific Stripe errors
+        logger.error(f'Stripe error processing payment success: {str(e)}')
+        if isinstance(e, stripe.error.InvalidRequestError):
+            messages.error(request, 'Invalid payment session. Please contact support.')
+        elif isinstance(e, stripe.error.APIConnectionError):
+            messages.error(request, 'Payment service temporarily unavailable. Please try again.')
+        else:
+            messages.error(request, 'Payment processing error. Please contact support.')
+        return redirect('accounts:dashboard')
     except Exception as e:
-        logger.error(f'Error processing payment success: {str(e)}')
-        messages.error(request, 'An error occurred while processing your payment.')
+        # Handle other errors
+        logger.error(f'Error processing payment success: {str(e)}', exc_info=True)
+        messages.error(request, 'An error occurred while processing your payment. Please contact support.')
         return redirect('accounts:dashboard')
 
 

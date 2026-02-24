@@ -334,6 +334,14 @@ class TestBank(models.Model):
         help_text='Price to purchase access to this test bank'
     )
     
+    # Time limit for practice sessions (in minutes, null = no time limit)
+    time_limit_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Time Limit (minutes)',
+        help_text='Time limit for practice sessions in minutes (null for no time limit)'
+    )
+    
     # Active flag - only active test banks are shown to users
     is_active = models.BooleanField(
         default=True,

@@ -2,7 +2,7 @@
 Test data generator for stress testing.
 
 Generates realistic test data using Faker:
-- Categories, subcategories, certifications
+- Categories, certifications
 - Test banks with varying question counts
 - User accounts and access records
 - Practice sessions and answers
@@ -23,7 +23,7 @@ django.setup()
 
 from faker import Faker
 from django.contrib.auth import get_user_model
-from catalog.models import Category, SubCategory, Certification, TestBank, Question, AnswerOption
+from catalog.models import Category, Certification, TestBank, Question, AnswerOption
 from practice.models import UserTestAccess, UserTestSession, UserAnswer
 from decimal import Decimal
 import random

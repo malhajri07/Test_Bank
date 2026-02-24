@@ -1,0 +1,86 @@
+{% load i18n %}
+<!-- Reusable Modal Component -->
+<div id="modal-overlay" class="hidden fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm transition-opacity duration-200" aria-hidden="true">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-card sm:p-card-lg transform transition-all duration-200 scale-95 opacity-0">
+            <!-- Modal Header -->
+            <div class="mb-4">
+                <h3 id="modal-title" class="text-2xl font-bold text-gray-900"></h3>
+            </div>
+            
+            <!-- Modal Body -->
+            <div id="modal-body" class="mb-6 text-gray-700"></div>
+            
+            <!-- Modal Footer -->
+            <div id="modal-footer" class="flex gap-3 justify-end">
+                <!-- Buttons will be inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Modal utility functions
+function showModal(title, body, buttons = []) {
+    const overlay = document.getElementById('modal-overlay');
+    const content = document.getElementById('modal-content');
+    const titleEl = document.getElementById('modal-title');
+    const bodyEl = document.getElementById('modal-body');
+    const footerEl = document.getElementById('modal-footer');
+    
+    // Set content
+    titleEl.textContent = title;
+    bodyEl.innerHTML = body;
+    
+    // Clear and add buttons
+    footerEl.innerHTML = '';
+    buttons.forEach(button => {
+        const btn = document.createElement('button');
+        btn.className = button.className || 'px-5 py-2.5 rounded-lg font-semibold transition-all duration-200';
+        btn.textContent = button.text;
+        btn.onclick = button.onclick;
+        if (button.id) btn.id = button.id;
+        footerEl.appendChild(btn);
+    });
+    
+    // Show modal
+    overlay.classList.remove('hidden');
+    overlay.setAttribute('aria-hidden', 'false');
+    
+    // Trigger animation
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    // Close on overlay click
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            closeModal();
+        }
+    };
+}
+
+function closeModal() {
+    const overlay = document.getElementById('modal-overlay');
+    const content = document.getElementById('modal-content');
+    
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.setAttribute('aria-hidden', 'true');
+    }, 200);
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('modal-overlay');
+        if (!overlay.classList.contains('hidden')) {
+            closeModal();
+        }
+    }
+});
+</script>

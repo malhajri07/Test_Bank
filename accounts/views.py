@@ -26,7 +26,7 @@ from .models import CustomUser, UserProfile, EmailVerificationToken
 from .forms import UserRegistrationForm, UserProfileForm
 from practice.models import UserTestAccess, UserTestSession
 from catalog.models import TestBank
-from .email_utils import send_verification_email
+from .email_utils import send_verification_email, send_welcome_email
 from payments.models import Payment, Purchase
 from django.utils import timezone
 from datetime import timedelta
@@ -76,6 +76,13 @@ def register(request):
                     token=token,
                     expires_at=expires_at,
                 )
+                
+                # Send welcome email
+                try:
+                    send_welcome_email(user)
+                except Exception as e:
+                    logger.error(f'Error sending welcome email: {str(e)}')
+                    # Don't fail registration if welcome email fails
                 
                 # Send verification email
                 try:
@@ -269,15 +276,17 @@ def dashboard(request):
     user = request.user
     
     # Get user's purchased test banks (active access only)
+    # Optimized with select_related to avoid N+1 queries
     purchased_test_banks = TestBank.objects.filter(
         user_accesses__user=user,
         user_accesses__is_active=True
-    ).distinct()
+    ).select_related('category', 'certification').distinct()
     
     # Get recent practice sessions (last 10)
+    # Already optimized with select_related
     recent_sessions = UserTestSession.objects.filter(
         user=user
-    ).select_related('test_bank').order_by('-started_at')[:10]
+    ).select_related('test_bank', 'test_bank__category', 'test_bank__certification').order_by('-started_at')[:10]
     
     # Calculate statistics
     total_sessions = UserTestSession.objects.filter(user=user).count()

@@ -18,9 +18,9 @@
     
     <!-- Auto-Create Categories Info -->
     <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #4caf50;">
-        <h2 style="color: #2e7d32; margin-top: 0; font-size: 18px; margin-bottom: 15px;">✨ Auto-Create Categories & Subcategories</h2>
+        <h2 style="color: #2e7d32; margin-top: 0; font-size: 18px; margin-bottom: 15px;">✨ Auto-Create Categories & Certifications</h2>
         <p style="margin-bottom: 15px; color: #424242;">
-            <strong>Great news!</strong> You can use <strong>names</strong> or <strong>slugs</strong> for category, subcategory, and certification in your JSON file.
+            <strong>Great news!</strong> You can use <strong>names</strong> or <strong>slugs</strong> for category and certification in your JSON file.
             The system will automatically create them if they don't exist!
         </p>
         <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 10px;">
@@ -30,9 +30,9 @@
             <ul style="margin: 10px 0 0 20px; font-size: 14px; color: #666;">
                 <li>Use category <strong>name</strong> (e.g., "Vocational") or <strong>slug</strong> (e.g., "vocational")</li>
                 <li>If category doesn't exist, it will be created automatically</li>
-                <li>Subcategories require a category (will be created if missing)</li>
-                <li>Certifications require a subcategory (will be created if missing)</li>
-                <li>Existing categories/subcategories/certifications will be reused if found</li>
+                <li>Certifications require a category (will be created if missing)</li>
+                <li>Same certification name can exist with different difficulty levels under the same category</li>
+                <li>Existing categories/certifications will be reused if found</li>
             </ul>
         </div>
     </div>
@@ -45,7 +45,6 @@
     "title": "Test Bank Title",
     "description": "Description of the test bank",
     "category": "category-slug",
-    "subcategory": "subcategory-slug",
     "certification": "certification-slug",
     "difficulty_level": "easy",
     "price": 0.00,
@@ -79,10 +78,10 @@
 }</pre>
         <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
             <p style="margin: 0; font-size: 14px;">
-                <strong>⚠️ Required:</strong> At least one of <code>category</code>, <code>subcategory</code>, or <code>certification</code> must be specified. They will be created automatically if they don't exist.
+                <strong>⚠️ Required:</strong> At least one of <code>category</code> or <code>certification</code> must be specified. They will be created automatically if they don't exist.
             </p>
             <p style="margin: 10px 0 0 0; font-size: 14px;">
-                <strong>Hierarchy:</strong> If you specify <code>subcategory</code>, you must also specify <code>category</code>. If you specify <code>certification</code>, you must also specify <code>subcategory</code>.
+                <strong>Hierarchy:</strong> If you specify <code>certification</code>, you must also specify <code>category</code>. Certifications belong directly to categories.
             </p>
             <p style="margin: 10px 0 0 0; font-size: 14px;">
                 <strong>Question types:</strong> <code>mcq_single</code>, <code>mcq_multi</code>, or <code>true_false</code>.

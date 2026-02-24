@@ -8,9 +8,8 @@ This module provides views for:
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404, JsonResponse
+from django.http import JsonResponse
 from django.utils import timezone
-from django.db import models
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -42,15 +41,19 @@ def get_active_announcements():
     """
     Get currently active announcements.
     
-    Returns queryset of active announcements that should be displayed.
+    Utility function for retrieving active announcements.
+    Can be used in templates via template tags or context processors.
+    
+    Returns:
+        QuerySet: Active announcements that should be displayed
     """
     now = timezone.now()
     return Announcement.objects.filter(
         is_active=True
     ).filter(
-        models.Q(start_date__isnull=True) | models.Q(start_date__lte=now)
+        Q(start_date__isnull=True) | Q(start_date__lte=now)
     ).filter(
-        models.Q(end_date__isnull=True) | models.Q(end_date__gte=now)
+        Q(end_date__isnull=True) | Q(end_date__gte=now)
     ).order_by('-created_at')
 
 
@@ -58,11 +61,14 @@ def get_content_block(slug):
     """
     Get a content block by slug.
     
+    Utility function for retrieving content blocks.
+    Can be used in templates via template tags or context processors.
+    
     Args:
         slug: Slug of the content block
         
     Returns:
-        ContentBlock instance or None
+        ContentBlock instance or None if not found
     """
     try:
         return ContentBlock.objects.get(slug=slug)

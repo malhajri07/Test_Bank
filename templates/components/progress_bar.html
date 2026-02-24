@@ -1,0 +1,35 @@
+{% load i18n %}
+<!-- Reusable Progress Bar Component -->
+<!-- 
+Usage:
+{% include 'components/progress_bar.html' with current=50 total=100 label="Progress" show_percent=True %}
+-->
+
+<div class="w-full">
+    {% if label %}
+    <div class="flex items-center justify-between mb-2">
+        <span class="text-body-sm font-medium text-gray-700">{{ label }}</span>
+        {% if show_percent %}
+        <span class="text-body-sm font-semibold text-gray-900">{{ current }}%</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+        <div 
+            class="bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] h-full rounded-full transition-all duration-500 ease-out shadow-sm"
+            style="width: {{ current }}%;"
+            role="progressbar"
+            aria-valuenow="{{ current }}"
+            aria-valuemin="0"
+            aria-valuemax="{{ total|default:100 }}"
+            aria-label="{{ label|default:'Progress' }}">
+        </div>
+    </div>
+    
+    {% if show_count %}
+    <p class="text-caption text-gray-600 mt-2 font-medium">
+        {{ current_count|default:current }} {% trans "of" %} {{ total_count|default:total }}
+    </p>
+    {% endif %}
+</div>

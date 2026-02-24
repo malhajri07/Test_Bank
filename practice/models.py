@@ -1,10 +1,11 @@
 """
-Practice app models for user test sessions, access control, and answers.
+Practice app models for user test sessions, access control, answers, and certificates.
 
 This module defines models for:
 - UserTestAccess: Tracks which users have purchased access to which test banks
 - UserTestSession: Represents a practice attempt/session
 - UserAnswer: Stores user's answers to individual questions
+- Certificate: Represents certificates earned by users for completing exams
 """
 
 from django.db import models
@@ -194,6 +195,14 @@ class UserTestSession(models.Model):
         help_text='Total duration of the session in seconds'
     )
     
+    # Time remaining in seconds (for timed exams)
+    time_remaining_seconds = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Time Remaining (seconds)',
+        help_text='Time remaining in seconds (for timed exams)'
+    )
+    
     # Store randomized question order as JSON list of question IDs
     question_order = models.JSONField(
         null=True,
@@ -286,6 +295,13 @@ class UserAnswer(models.Model):
         help_text='Whether the answer is correct'
     )
     
+    # Mark for review flag - allows users to flag questions for later review
+    marked_for_review = models.BooleanField(
+        default=False,
+        verbose_name='Marked for Review',
+        help_text='Whether this question is marked for review'
+    )
+    
     # Timestamp when answer was submitted
     answered_at = models.DateTimeField(
         auto_now_add=True,
@@ -302,6 +318,7 @@ class UserAnswer(models.Model):
         unique_together = ['session', 'question']
         indexes = [
             models.Index(fields=['session', 'question']),
+            models.Index(fields=['answered_at']),  # Added for ordering optimization
         ]
     
     def __str__(self):
@@ -336,3 +353,108 @@ class UserAnswer(models.Model):
             return len(selected) == 1 and selected == correct_options
         
         return False
+
+
+class Certificate(models.Model):
+    """
+    Certificate model representing certificates earned by users.
+    
+    Certificates are generated when users complete practice sessions with a passing score.
+    Each certificate is linked to a test bank and a specific session.
+    """
+    
+    # ForeignKey to User - tracks which user earned the certificate
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='certificates',
+        verbose_name='User',
+        help_text='User who earned this certificate'
+    )
+    
+    # ForeignKey to TestBank - tracks which test bank the certificate is for
+    test_bank = models.ForeignKey(
+        TestBank,
+        on_delete=models.CASCADE,
+        related_name='certificates',
+        verbose_name='Test Bank',
+        help_text='Test bank this certificate is for'
+    )
+    
+    # ForeignKey to UserTestSession - links certificate to the session that earned it
+    session = models.OneToOneField(
+        UserTestSession,
+        on_delete=models.CASCADE,
+        related_name='certificate',
+        verbose_name='Session',
+        help_text='Practice session that earned this certificate'
+    )
+    
+    # Certificate metadata
+    certificate_number = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Certificate Number',
+        help_text='Unique certificate identifier'
+    )
+    
+    # Score achieved when certificate was earned
+    score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name='Score',
+        help_text='Score percentage when certificate was earned'
+    )
+    
+    # Passing threshold (default 70%)
+    passing_threshold = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=70.00,
+        verbose_name='Passing Threshold',
+        help_text='Minimum score required to earn certificate (percentage)'
+    )
+    
+    # Timestamp when certificate was issued
+    issued_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Issued At',
+        help_text='When the certificate was issued'
+    )
+    
+    # Optional certificate PDF file
+    pdf_file = models.FileField(
+        upload_to='certificates/',
+        blank=True,
+        null=True,
+        verbose_name='PDF File',
+        help_text='Generated PDF certificate file'
+    )
+    
+    class Meta:
+        """Meta options for Certificate model."""
+        verbose_name = 'Certificate'
+        verbose_name_plural = 'Certificates'
+        ordering = ['-issued_at']
+        indexes = [
+            models.Index(fields=['user', '-issued_at']),
+            models.Index(fields=['test_bank']),
+            models.Index(fields=['certificate_number']),
+        ]
+    
+    def __str__(self):
+        """String representation of the certificate."""
+        return f"{self.user.username} - {self.test_bank.title} ({self.score}%)"
+    
+    def get_absolute_url(self):
+        """Get URL for certificate view page."""
+        return reverse('practice:certificate_view', kwargs={'certificate_id': self.pk})
+    
+    @staticmethod
+    def generate_certificate_number(user, test_bank):
+        """Generate a unique certificate number."""
+        import uuid
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d')
+        unique_id = str(uuid.uuid4())[:8].upper()
+        return f"CERT-{timestamp}-{test_bank.slug[:8].upper()}-{unique_id}"

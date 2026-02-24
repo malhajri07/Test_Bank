@@ -137,7 +137,7 @@
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">
                     {% trans "Reviews" %}
                     {% if test_bank.total_ratings > 0 %}
-                    <span class="text-base font-normal text-gray-500">({{ test_bank.total_ratings }})</span>
+                    <span class="text-base font-normal text-gray-600">({{ test_bank.total_ratings }})</span>
                     {% endif %}
                 </h2>
                 
@@ -230,7 +230,7 @@
                                         {% endfor %}
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mb-2">{{ review.created_at|date:"M d, Y" }}</p>
+                                <p class="text-xs text-gray-600 mb-2">{{ review.created_at|date:"M d, Y" }}</p>
                                 {% if review.title %}
                                 <h4 class="text-sm font-semibold text-gray-900 mb-1">{{ review.title }}</h4>
                                 {% endif %}
@@ -250,7 +250,7 @@
                                             <div class="flex items-center gap-2 mb-1">
                                                 <p class="text-xs font-medium text-gray-900">{{ reply.user.get_full_name|default:reply.user.username }}</p>
                                                 <span class="text-xs text-gray-400">·</span>
-                                                <p class="text-xs text-gray-500">{{ reply.created_at|date:"M d, Y" }}</p>
+                                                <p class="text-xs text-gray-600">{{ reply.created_at|date:"M d, Y" }}</p>
                                             </div>
                                             <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{{ reply.content }}</p>
                                         </div>
@@ -303,7 +303,7 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-sm text-gray-500 py-4">{% trans "No reviews yet." %}</p>
+                <p class="text-sm text-gray-600 py-4">{% trans "No reviews yet." %}</p>
                 {% endif %}
             </section>
         </div>
@@ -386,7 +386,7 @@
                 {% endif %}
                 
                 {% if not is_free %}
-                <p class="text-xs text-center text-gray-500 mt-4">
+                <p class="text-xs text-center text-gray-600 mt-4">
                     {% trans "30-day money-back guarantee" %}
                 </p>
                 {% endif %}
@@ -473,8 +473,8 @@
                 </div>
                 {% endfor %}
             </div>
-            <div class="swiper-button-next related-next" aria-label="{% trans 'Next slide' %}"></div>
-            <div class="swiper-button-prev related-prev" aria-label="{% trans 'Previous slide' %}"></div>
+            <button type="button" class="swiper-button-next related-next" aria-label="{% trans 'Next slide' %}"></button>
+            <button type="button" class="swiper-button-prev related-prev" aria-label="{% trans 'Previous slide' %}"></button>
         </div>
     </section>
     {% endif %}

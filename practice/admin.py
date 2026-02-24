@@ -5,7 +5,7 @@ Registers UserTestAccess, UserTestSession, and UserAnswer models with Django adm
 """
 
 from django.contrib import admin
-from .models import UserTestAccess, UserTestSession, UserAnswer
+from .models import UserTestAccess, UserTestSession, UserAnswer, Certificate
 
 
 @admin.register(UserTestAccess)
@@ -43,9 +43,31 @@ class UserTestSessionAdmin(admin.ModelAdmin):
 @admin.register(UserAnswer)
 class UserAnswerAdmin(admin.ModelAdmin):
     """Admin interface for UserAnswer model."""
-    list_display = ('session', 'question', 'is_correct', 'answered_at')
-    list_filter = ('is_correct', 'answered_at', 'question__question_type')
+    list_display = ('session', 'question', 'is_correct', 'marked_for_review', 'answered_at')
+    list_filter = ('is_correct', 'marked_for_review', 'answered_at', 'question__question_type')
     search_fields = ('session__user__username', 'question__question_text')
     readonly_fields = ('answered_at',)
     filter_horizontal = ('selected_options',)  # Better UI for ManyToMany field
     date_hierarchy = 'answered_at'
+
+
+@admin.register(Certificate)
+class CertificateAdmin(admin.ModelAdmin):
+    """Admin interface for Certificate model."""
+    list_display = ('certificate_number', 'user', 'test_bank', 'score', 'passing_threshold', 'issued_at')
+    list_filter = ('issued_at', 'test_bank')
+    search_fields = ('certificate_number', 'user__username', 'test_bank__title')
+    readonly_fields = ('certificate_number', 'issued_at')
+    date_hierarchy = 'issued_at'
+    
+    fieldsets = (
+        ('Certificate Info', {
+            'fields': ('certificate_number', 'user', 'test_bank', 'session')
+        }),
+        ('Scores', {
+            'fields': ('score', 'passing_threshold')
+        }),
+        ('Metadata', {
+            'fields': ('issued_at', 'pdf_file')
+        }),
+    )
