@@ -4,11 +4,11 @@ Email utilities for payment-related emails.
 This module provides functions for sending payment invoices and notifications.
 """
 
+import logging
+
+from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.conf import settings
-from django.urls import reverse
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -16,15 +16,15 @@ logger = logging.getLogger(__name__)
 def send_payment_invoice(payment):
     """
     Send payment invoice email to the customer.
-    
+
     This function:
     1. Renders the invoice email template
     2. Sends the email to the customer's email address
     3. Uses info@examstellar.com as the sender
-    
+
     Args:
         payment: Payment instance with succeeded status
-    
+
     Returns:
         bool: True if email sent successfully, False otherwise
     """
@@ -34,7 +34,7 @@ def send_payment_invoice(payment):
         if not customer_email:
             logger.warning(f'User {payment.user.id} has no email address, cannot send invoice')
             return False
-        
+
         # Build site URL for links in email
         try:
             from django.contrib.sites.models import Site
@@ -52,14 +52,14 @@ def send_payment_invoice(payment):
                     site_url = f'https://{host}' if not settings.DEBUG else f'http://{host}:8000'
             else:
                 site_url = 'http://localhost:8000' if settings.DEBUG else 'https://examstellar.com'
-        
+
         # Render email template
         email_subject = f'Payment Invoice - {payment.test_bank.title}'
         email_html = render_to_string('payments/emails/payment_invoice.html', {
             'payment': payment,
             'site_url': site_url,
         })
-        
+
         # Create plain text version
         email_text = f"""
 Payment Invoice - {payment.test_bank.title}
@@ -94,10 +94,10 @@ Contact Support: {site_url}/contact/
 
 © {payment.created_at.year} Exam Stellar. All rights reserved.
 """
-        
+
         # Send email
         from_email = 'info@examstellar.com'
-        
+
         send_mail(
             subject=email_subject,
             message=email_text,
@@ -106,10 +106,10 @@ Contact Support: {site_url}/contact/
             recipient_list=[customer_email],
             fail_silently=False,
         )
-        
+
         logger.info(f'Payment invoice email sent to {customer_email} for payment {payment.id}')
         return True
-        
+
     except Exception as e:
         logger.error(f'Error sending payment invoice email: {str(e)}', exc_info=True)
         return False

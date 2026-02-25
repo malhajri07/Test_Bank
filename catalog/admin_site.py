@@ -4,7 +4,6 @@ Custom admin site configuration for Exam Stellar.
 Provides a professional, styled admin interface with custom branding.
 """
 
-from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.utils.translation import gettext_lazy as _
 

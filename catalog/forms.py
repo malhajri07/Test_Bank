@@ -3,13 +3,14 @@ Forms for catalog app, including JSON upload form for test banks.
 """
 
 from django import forms
-from .models import TestBank, Category, Certification, TestBankRating, ReviewReply, ContactMessage
+
+from .models import ContactMessage, ReviewReply, TestBank, TestBankRating
 
 
 class TestBankJSONUploadForm(forms.Form):
     """
     Form for uploading test bank data via JSON file.
-    
+
     Expected JSON format:
     {
         "test_bank": {
@@ -46,7 +47,7 @@ class TestBankJSONUploadForm(forms.Form):
         ]
     }
     """
-    
+
     json_file = forms.FileField(
         label='JSON File',
         help_text='Upload a JSON file containing test bank data with questions and answers.',
@@ -55,7 +56,7 @@ class TestBankJSONUploadForm(forms.Form):
             'class': 'form-control'
         })
     )
-    
+
     test_bank = forms.ModelChoiceField(
         queryset=TestBank.objects.all(),
         required=False,
@@ -63,31 +64,31 @@ class TestBankJSONUploadForm(forms.Form):
         help_text='Select an existing test bank to update, or leave empty to create a new one.',
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    
+
     def clean_json_file(self):
         """Validate JSON file."""
         json_file = self.cleaned_data.get('json_file')
         if json_file:
             if not json_file.name.endswith('.json'):
                 raise forms.ValidationError('File must be a JSON file (.json)')
-            
+
             # Check file size (max 10MB)
             if json_file.size > 10 * 1024 * 1024:
                 raise forms.ValidationError('File size must be less than 10MB')
-        
+
         return json_file
 
 
 class TestBankReviewForm(forms.ModelForm):
     """Form for submitting reviews and ratings for test banks."""
-    
+
     rating = forms.IntegerField(
         min_value=1,
         max_value=5,
         widget=forms.HiddenInput(),
         required=True
     )
-    
+
     title = forms.CharField(
         widget=forms.TextInput(attrs={
             'placeholder': 'Review title...',
@@ -97,7 +98,7 @@ class TestBankReviewForm(forms.ModelForm):
         required=False,
         max_length=200
     )
-    
+
     review = forms.CharField(
         widget=forms.Textarea(attrs={
             'rows': 3,
@@ -107,7 +108,7 @@ class TestBankReviewForm(forms.ModelForm):
         required=False,
         max_length=1000
     )
-    
+
     class Meta:
         model = TestBankRating
         fields = ['rating', 'title', 'review']
@@ -115,7 +116,7 @@ class TestBankReviewForm(forms.ModelForm):
 
 class ReviewReplyForm(forms.ModelForm):
     """Form for replying to reviews."""
-    
+
     content = forms.CharField(
         widget=forms.Textarea(attrs={
             'rows': 2,
@@ -125,7 +126,7 @@ class ReviewReplyForm(forms.ModelForm):
         required=True,
         max_length=1000
     )
-    
+
     class Meta:
         model = ReviewReply
         fields = ['content']
@@ -133,7 +134,7 @@ class ReviewReplyForm(forms.ModelForm):
 
 class ContactForm(forms.ModelForm):
     """Form for submitting contact messages."""
-    
+
     name = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-3 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 bg-transparent',
@@ -142,7 +143,7 @@ class ContactForm(forms.ModelForm):
         required=True,
         max_length=200
     )
-    
+
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
             'class': 'w-full px-4 py-3 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 bg-transparent',
@@ -150,7 +151,7 @@ class ContactForm(forms.ModelForm):
         }),
         required=True
     )
-    
+
     subject = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-3 text-sm border-0 border-b border-gray-300 focus:border-[#5624d0] focus:outline-none focus:ring-0 bg-transparent',
@@ -159,7 +160,7 @@ class ContactForm(forms.ModelForm):
         required=True,
         max_length=200
     )
-    
+
     message = forms.CharField(
         widget=forms.Textarea(attrs={
             'rows': 6,
@@ -168,7 +169,7 @@ class ContactForm(forms.ModelForm):
         }),
         required=True
     )
-    
+
     class Meta:
         model = ContactMessage
         fields = ['name', 'email', 'subject', 'message']

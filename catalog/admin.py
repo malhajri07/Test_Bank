@@ -6,14 +6,14 @@ Includes inline admin for AnswerOptions within Questions and Certifications with
 Includes JSON upload functionality for importing test banks with questions and answers.
 """
 
-from django.contrib import admin
-from django.shortcuts import render, redirect
-from django.contrib import messages
+from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
+from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils.html import format_html
-from django.core.exceptions import ValidationError
-from .models import Category, Certification, TestBank, TestBankRating, Question, AnswerOption, ContactMessage
+
 from .forms import TestBankJSONUploadForm
+from .models import AnswerOption, Category, Certification, ContactMessage, Question, TestBank, TestBankRating
 from .utils import import_test_bank_from_json, parse_json_file
 
 
@@ -67,7 +67,7 @@ class CertificationAdmin(admin.ModelAdmin):
     prepopulated_fields = {}  # Slug is auto-generated with difficulty level
     readonly_fields = ('created_at', 'updated_at', 'slug')
     ordering = ('category', 'order', 'name')
-    
+
     # Fieldsets for better organization
     fieldsets = (
         ('Basic Information', {
@@ -91,18 +91,18 @@ class TestBankAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}  # Auto-generate slug from title
     readonly_fields = ('created_at', 'updated_at', 'question_count', 'user_count', 'average_rating', 'total_ratings')
-    
+
     def user_count(self, obj):
         """Display user count for this test bank."""
         return obj.get_user_count()
     user_count.short_description = 'Users'
-    
+
     def changelist_view(self, request, extra_context=None):
         """Add custom button for JSON upload."""
         extra_context = extra_context or {}
         extra_context['show_json_upload'] = True
         return super().changelist_view(request, extra_context=extra_context)
-    
+
     # Fieldsets for better organization in admin
     fieldsets = (
         ('Hierarchy', {
@@ -129,13 +129,13 @@ class TestBankAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
+
     def question_count(self, obj):
         """Display question count for the test bank."""
         count = obj.get_question_count()
         return format_html('<span style="color: #8FABD4; font-weight: bold;">{}</span>', count)
     question_count.short_description = 'Questions'
-    
+
     def get_urls(self):
         """Add custom URL for JSON upload."""
         urls = super().get_urls()
@@ -143,7 +143,7 @@ class TestBankAdmin(admin.ModelAdmin):
             path('upload-json/', self.admin_site.admin_view(self.upload_json_view), name='catalog_testbank_upload_json'),
         ]
         return custom_urls + urls
-    
+
     def upload_json_view(self, request):
         """View for uploading JSON file with test bank data."""
         if request.method == 'POST':
@@ -151,36 +151,36 @@ class TestBankAdmin(admin.ModelAdmin):
             if form.is_valid():
                 json_file = form.cleaned_data['json_file']
                 update_existing = form.cleaned_data.get('test_bank')
-                
+
                 try:
                     # Parse JSON file
                     json_data = parse_json_file(json_file)
-                    
+
                     # Import test bank
                     test_bank, questions_count, errors, created_items = import_test_bank_from_json(
-                        json_data, 
+                        json_data,
                         update_existing=update_existing
                     )
-                    
+
                     # Show what was created
                     if created_items:
                         items_msg = 'Created: ' + ', '.join(created_items)
                         messages.info(request, items_msg)
-                    
+
                     if errors:
                         for error in errors:
                             messages.warning(request, error)
-                    
+
                     if questions_count > 0:
                         action = 'updated' if update_existing else 'created'
                         messages.success(
-                            request, 
+                            request,
                             f'Successfully {action} test bank "{test_bank.title}" with {questions_count} questions!'
                         )
                         return redirect('admin:catalog_testbank_change', test_bank.pk)
                     else:
                         messages.error(request, 'No questions were imported. Please check your JSON file.')
-                        
+
                 except ValidationError as e:
                     # Handle validation errors with better formatting
                     error_message = str(e)
@@ -197,7 +197,7 @@ class TestBankAdmin(admin.ModelAdmin):
                     messages.error(request, f'Error importing test bank: {error_message}')
         else:
             form = TestBankJSONUploadForm()
-        
+
         context = {
             **self.admin_site.each_context(request),
             'title': 'Upload Test Bank from JSON',
@@ -205,7 +205,7 @@ class TestBankAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
             'has_view_permission': self.has_view_permission(request),
         }
-        
+
         return render(request, 'admin/catalog/testbank/upload_json.html', context)
 
 
@@ -217,7 +217,7 @@ class QuestionAdmin(admin.ModelAdmin):
     search_fields = ('question_text', 'explanation')
     inlines = [AnswerOptionInline]  # Show answer options inline
     readonly_fields = ('created_at', 'updated_at')
-    
+
     # Fieldsets for better organization
     fieldsets = (
         ('Question Details', {
@@ -241,7 +241,7 @@ class TestBankRatingAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'test_bank__title', 'review')
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('-created_at',)
-    
+
     fieldsets = (
         ('Rating Information', {
             'fields': ('user', 'test_bank', 'rating', 'review')
@@ -270,7 +270,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
     search_fields = ('name', 'email', 'subject', 'message')
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)
-    
+
     fieldsets = (
         ('Message Information', {
             'fields': ('name', 'email', 'subject', 'message')
@@ -283,11 +283,11 @@ class ContactMessageAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
+
     def mark_as_read(self, request, queryset):
         """Mark selected messages as read."""
         queryset.update(is_read=True)
         self.message_user(request, f'{queryset.count()} message(s) marked as read.')
     mark_as_read.short_description = 'Mark selected messages as read'
-    
+
     actions = [mark_as_read]

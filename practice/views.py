@@ -8,56 +8,59 @@ This module provides views for:
 - Reviewing results and explanations
 """
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.db import transaction
-from django.utils import timezone
-from django.http import JsonResponse
-from .models import UserTestSession, UserAnswer, UserTestAccess
-from catalog.models import TestBank, Question
 import random
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from catalog.models import Question, TestBank
+
+from .models import UserAnswer, UserTestAccess, UserTestSession
 
 
 @login_required
 def start_practice(request, testbank_slug):
     """
     Start a new practice session for a test bank.
-    
+
     This view:
     1. Verifies user has access to the test bank
     2. Creates a new UserTestSession
     3. Loads questions (randomized order)
     4. Redirects to practice session page
-    
+
     Args:
         testbank_slug: Slug of the test bank to practice
     """
     test_bank = get_object_or_404(TestBank, slug=testbank_slug, is_active=True)
     user = request.user
-    
+
     # Check if user has access
     access = UserTestAccess.objects.filter(
         user=user,
         test_bank=test_bank,
         is_active=True
     ).first()
-    
+
     if not access or not access.is_valid():
         messages.error(request, 'You do not have access to this test bank. Please purchase it first.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
-    
+
     # Get active questions
     questions = list(test_bank.questions.filter(is_active=True).order_by('order'))
-    
+
     if not questions:
         messages.error(request, 'This test bank has no questions available.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
-    
+
     # Randomize question order
     question_ids = [q.id for q in questions]
     random.shuffle(question_ids)
-    
+
     # Create new practice session with randomized question order
     with transaction.atomic():
         session = UserTestSession.objects.create(
@@ -67,7 +70,7 @@ def start_practice(request, testbank_slug):
             total_questions=len(questions),
             question_order=question_ids
         )
-    
+
     # Redirect to practice session page
     return redirect('practice:practice_session', session_id=session.pk)
 
@@ -76,27 +79,27 @@ def start_practice(request, testbank_slug):
 def practice_session(request, session_id):
     """
     Display practice session with questions.
-    
+
     Shows:
     - Current question with answer options
     - Navigation (Previous/Next)
     - Progress indicator
     - Submit button when on last question
-    
+
     Args:
         session_id: Primary key of the UserTestSession
     """
     session = get_object_or_404(UserTestSession, pk=session_id, user=request.user)
-    
+
     # Ensure session belongs to current user
     if session.user != request.user:
         messages.error(request, 'You do not have permission to access this session.')
         return redirect('accounts:dashboard')
-    
+
     # Prevent access to completed sessions
     if session.status == 'completed':
         return redirect('practice:results', session_id=session_id)
-    
+
     # Get questions in randomized order (stored in session)
     if session.question_order:
         # Use stored randomized order
@@ -112,44 +115,44 @@ def practice_session(request, session_id):
         # Save the order for future reference
         session.question_order = [q.id for q in questions]
         session.save(update_fields=['question_order'])
-    
+
     if not questions:
         messages.error(request, 'No questions available.')
         return redirect('accounts:dashboard')
-    
+
     # Get current question index from query parameter (default to first)
     current_index = int(request.GET.get('q', 0))
     if current_index < 0 or current_index >= len(questions):
         current_index = 0
-    
+
     current_question = questions[current_index]
-    
+
     # Get user's existing answer for this question (if any)
     existing_answer = UserAnswer.objects.filter(
         session=session,
         question=current_question
     ).first()
-    
+
     # Get selected option IDs if answer exists
     selected_option_ids = []
     if existing_answer:
         selected_option_ids = [opt.id for opt in existing_answer.selected_options.all()]
-    
+
     # Get answer options for current question and randomize them
     answer_options = list(current_question.answer_options.all().order_by('order'))
     random.shuffle(answer_options)
-    
+
     # Get all answered question IDs for navigation box
     answered_question_ids = set(
         UserAnswer.objects.filter(session=session)
         .values_list('question_id', flat=True)
     )
-    
+
     # Calculate completion percentage based on answered questions
     answered_count = len(answered_question_ids)
     total_questions_count = len(questions)
-    completion_percent = int((answered_count / total_questions_count * 100)) if total_questions_count > 0 else 0
-    
+    completion_percent = int(answered_count / total_questions_count * 100) if total_questions_count > 0 else 0
+
     return render(request, 'practice/practice_session.html', {
         'session': session,
         'questions': questions,
@@ -169,36 +172,36 @@ def practice_session(request, session_id):
 def save_answer(request, session_id):
     """
     Save user's answer to a question (AJAX endpoint).
-    
+
     This view handles saving answers during practice without submitting the entire session.
     Allows users to navigate back and forth between questions.
-    
+
     Args:
         session_id: Primary key of the UserTestSession
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
+
     session = get_object_or_404(UserTestSession, pk=session_id, user=request.user)
-    
+
     # Prevent saving to completed sessions
     if session.status == 'completed':
         return JsonResponse({'error': 'Session already completed'}, status=400)
-    
+
     question_id = request.POST.get('question_id')
     selected_option_ids = request.POST.getlist('selected_options[]')
-    
+
     if not question_id or not selected_option_ids:
         return JsonResponse({'error': 'Missing question_id or selected_options'}, status=400)
-    
+
     question = get_object_or_404(Question, pk=question_id, test_bank=session.test_bank)
-    
+
     # Get selected answer options
     selected_options = question.answer_options.filter(pk__in=selected_option_ids)
-    
+
     if not selected_options.exists():
         return JsonResponse({'error': 'Invalid option IDs'}, status=400)
-    
+
     # Save or update answer
     with transaction.atomic():
         answer, created = UserAnswer.objects.get_or_create(
@@ -208,14 +211,14 @@ def save_answer(request, session_id):
                 'is_correct': False,  # Will be updated below
             }
         )
-        
+
         # Update selected options
         answer.selected_options.set(selected_options)
-        
+
         # Check correctness
         answer.is_correct = answer.check_correctness()
         answer.save()
-    
+
     return JsonResponse({
         'success': True,
         'is_correct': answer.is_correct,
@@ -226,57 +229,57 @@ def save_answer(request, session_id):
 def submit_practice(request, session_id):
     """
     Submit practice session and calculate final score.
-    
+
     This view:
     1. Evaluates all answers
     2. Calculates score percentage
     3. Updates session status to 'completed'
     4. Redirects to results page
-    
+
     Args:
         session_id: Primary key of the UserTestSession
     """
     session = get_object_or_404(UserTestSession, pk=session_id, user=request.user)
-    
+
     # Ensure session belongs to current user
     if session.user != request.user:
         messages.error(request, 'You do not have permission to submit this session.')
         return redirect('accounts:dashboard')
-    
+
     # Prevent resubmission
     if session.status == 'completed':
         return redirect('practice:results', session_id=session_id)
-    
+
     # Calculate score
     with transaction.atomic():
         # Get all answers for this session
         answers = UserAnswer.objects.filter(session=session)
-        
+
         # Count correct answers
         correct_count = answers.filter(is_correct=True).count()
         total_count = answers.count()
-        
+
         # Update session
         session.correct_answers = correct_count
         session.total_questions = total_count
-        
+
         # Calculate score percentage
         if total_count > 0:
             session.score = (correct_count / total_count) * 100
         else:
             session.score = 0
-        
+
         # Mark as completed
         session.status = 'completed'
         session.completed_at = timezone.now()
-        
+
         # Calculate duration if started_at exists
         if session.started_at:
             duration = timezone.now() - session.started_at
             session.duration_seconds = int(duration.total_seconds())
-        
+
         session.save()
-    
+
     messages.success(request, 'Practice session completed! View your results below.')
     return redirect('practice:results', session_id=session_id)
 
@@ -285,7 +288,7 @@ def submit_practice(request, session_id):
 def practice_results(request, session_id):
     """
     Display practice session results and review.
-    
+
     Shows:
     - Score and statistics
     - Total questions and correct/incorrect counts
@@ -293,25 +296,25 @@ def practice_results(request, session_id):
       - Correct answer
       - User's answer
       - Explanation
-    
+
     Args:
         session_id: Primary key of the UserTestSession
     """
     session = get_object_or_404(UserTestSession, pk=session_id, user=request.user)
-    
+
     # Ensure session belongs to current user
     if session.user != request.user:
         messages.error(request, 'You do not have permission to view this session.')
         return redirect('accounts:dashboard')
-    
+
     # Get all answers with related data
     answers = UserAnswer.objects.filter(
         session=session
     ).select_related('question').prefetch_related('selected_options', 'question__answer_options')
-    
+
     # Create a dict of answers by question ID for quick lookup
     answers_dict = {answer.question.id: answer for answer in answers}
-    
+
     # Prepare review data in randomized order (if stored) or original order
     review_data = []
     if session.question_order:
@@ -338,7 +341,7 @@ def practice_results(request, session_id):
                 'correct_options': correct_options,
                 'is_correct': answer.is_correct,
             })
-    
+
     return render(request, 'practice/practice_results.html', {
         'session': session,
         'review_data': review_data,

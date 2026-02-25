@@ -7,7 +7,7 @@ Provides user's preferred language to templates for RTL/LTR support.
 def user_language(request):
     """
     Add user's preferred language to template context.
-    
+
     Returns static default values to avoid recursion.
     Language switching is handled by LocaleMiddleware via session.
     """

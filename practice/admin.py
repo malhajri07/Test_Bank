@@ -5,7 +5,8 @@ Registers UserTestAccess, UserTestSession, and UserAnswer models with Django adm
 """
 
 from django.contrib import admin
-from .models import UserTestAccess, UserTestSession, UserAnswer
+
+from .models import UserAnswer, UserTestAccess, UserTestSession
 
 
 @admin.register(UserTestAccess)
@@ -26,7 +27,7 @@ class UserTestSessionAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'test_bank__title')
     readonly_fields = ('started_at', 'score', 'calculate_score')
     date_hierarchy = 'started_at'
-    
+
     fieldsets = (
         ('Session Info', {
             'fields': ('user', 'test_bank', 'status')

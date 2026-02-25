@@ -2,16 +2,17 @@
 Views for Forum app.
 """
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Count, F, Q
-from django.utils import timezone
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
-from .models import ForumCategory, ForumTopic, ForumPost
-from .forms import ForumTopicForm, ForumPostForm, ForumCategoryForm
+
+from .forms import ForumCategoryForm, ForumPostForm, ForumTopicForm
+from .models import ForumCategory, ForumPost, ForumTopic
 
 
 def forum_index(request):
@@ -22,18 +23,18 @@ def forum_index(request):
         topic_count=Count('topics', filter=Q(topics__is_locked=False)),
         post_count=Count('topics__posts', filter=Q(topics__is_locked=False, topics__posts__isnull=False))
     ).order_by('order', 'name')
-    
+
     # Get recent topics across all categories
     recent_topics = ForumTopic.objects.filter(
         category__is_active=True,
         is_locked=False
     ).select_related('category', 'author').prefetch_related('posts').order_by('-last_activity_at')[:10]
-    
+
     context = {
         'categories': categories,
         'recent_topics': recent_topics,
     }
-    
+
     return render(request, 'forum/index.html', context)
 
 
@@ -42,7 +43,7 @@ def category_detail(request, slug):
     Display topics within a specific category.
     """
     category = get_object_or_404(ForumCategory, slug=slug, is_active=True)
-    
+
     # Get topics in this category
     topics = ForumTopic.objects.filter(
         category=category,
@@ -50,17 +51,17 @@ def category_detail(request, slug):
     ).select_related('author', 'category').prefetch_related('posts').annotate(
         reply_count=Count('posts') - 1  # Subtract 1 for the initial post
     ).order_by('-is_pinned', '-last_activity_at')
-    
+
     # Pagination
     paginator = Paginator(topics, 20)  # 20 topics per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     context = {
         'category': category,
         'topics': page_obj,
     }
-    
+
     return render(request, 'forum/category_detail.html', context)
 
 
@@ -106,7 +107,7 @@ def topic_create(request, category_slug=None):
             'order': 0
         }
     )
-    
+
     if request.method == 'POST':
         form = ForumTopicForm(request.POST)
         if form.is_valid():
@@ -114,23 +115,23 @@ def topic_create(request, category_slug=None):
             topic.author = request.user
             topic.category = default_category  # Auto-assign to default category
             topic.save()
-            
+
             # Create the initial post
             ForumPost.objects.create(
                 topic=topic,
                 author=request.user,
                 content=topic.content
             )
-            
+
             messages.success(request, 'Topic created successfully!')
             return redirect(topic.get_absolute_url())
     else:
         form = ForumTopicForm()
-    
+
     context = {
         'form': form,
     }
-    
+
     return render(request, 'forum/topic_create.html', context)
 
 
@@ -145,30 +146,30 @@ def topic_detail(request, category_slug, topic_slug):
         slug=topic_slug,
         is_locked=False
     )
-    
+
     # Increment view count atomically to avoid race conditions
     ForumTopic.objects.filter(pk=topic.pk).update(views_count=F('views_count') + 1)
-    
+
     # Get all posts in this topic
     posts = topic.posts.select_related('author').order_by('created_at')
-    
+
     # Pagination
     paginator = Paginator(posts, 20)  # 20 posts per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     # Form for replying
     reply_form = None
     if request.user.is_authenticated:
         reply_form = ForumPostForm()
-    
+
     context = {
         'category': category,
         'topic': topic,
         'posts': page_obj,
         'reply_form': reply_form,
     }
-    
+
     return render(request, 'forum/topic_detail.html', context)
 
 
@@ -184,18 +185,18 @@ def topic_reply(request, category_slug, topic_slug):
         category=category,
         slug=topic_slug
     )
-    
+
     if topic.is_locked:
         messages.error(request, 'This topic is locked and cannot be replied to.')
         return redirect(topic.get_absolute_url())
-    
+
     form = ForumPostForm(request.POST)
     if form.is_valid():
         post = form.save(commit=False)
         post.topic = topic
         post.author = request.user
         post.save()
-        
+
         messages.success(request, 'Your reply has been posted!')
         return redirect(topic.get_absolute_url())
     else:
@@ -209,12 +210,12 @@ def post_edit(request, post_id):
     Edit a forum post.
     """
     post = get_object_or_404(ForumPost, pk=post_id)
-    
+
     # Check if user owns the post
     if post.author != request.user:
         messages.error(request, 'You can only edit your own posts.')
         return redirect(post.topic.get_absolute_url())
-    
+
     if request.method == 'POST':
         form = ForumPostForm(request.POST, instance=post)
         if form.is_valid():
@@ -222,16 +223,16 @@ def post_edit(request, post_id):
             edited_post.is_edited = True
             edited_post.edited_at = timezone.now()
             edited_post.save()
-            
+
             messages.success(request, 'Post updated successfully!')
             return redirect(post.topic.get_absolute_url())
     else:
         form = ForumPostForm(instance=post)
-    
+
     context = {
         'form': form,
         'post': post,
         'topic': post.topic,
     }
-    
+
     return render(request, 'forum/post_edit.html', context)

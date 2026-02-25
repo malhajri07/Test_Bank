@@ -11,36 +11,35 @@ Routes URLs to:
 Also configures media file serving for development.
 """
 
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
 
 # Import admin configuration
-from . import admin as admin_config
 
 urlpatterns = [
     # Admin interface
     path('admin/', admin.site.urls),
-    
+
     # Accounts app URLs (authentication, profiles, dashboard)
     path('accounts/', include('accounts.urls')),
-    
+
     # Catalog app URLs (browsing categories and test banks)
     path('', include('catalog.urls')),  # Root URL goes to catalog index
-    
+
     # Payments app URLs (purchase and payment processing)
     path('payments/', include('payments.urls')),
-    
+
     # Practice app URLs (test practice sessions)
     path('practice/', include('practice.urls')),
-    
+
     # CMS app URLs (content management)
     path('cms/', include('cms.urls')),
-    
+
     # Forum app URLs (discussion boards)
     path('forum/', include('forum.urls')),
-    
+
     # CKEditor file upload URLs
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ]

@@ -11,8 +11,8 @@ This configuration file includes:
 """
 
 from pathlib import Path
+
 from decouple import config
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,13 +36,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
+
     # Third-party apps
     "tailwind",  # Django Tailwind integration
     "theme",  # Tailwind theme app
     "ckeditor",  # Rich text editor for CMS
     "ckeditor_uploader",  # File uploads for CKEditor
-    
+
     # Local apps
     "accounts",  # Authentication and user profiles
     "catalog",   # Categories, test banks, and questions

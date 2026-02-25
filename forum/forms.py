@@ -2,14 +2,15 @@
 Forms for Forum app.
 """
 
-from django import forms
 from ckeditor.widgets import CKEditorWidget
-from .models import ForumCategory, ForumTopic, ForumPost
+from django import forms
+
+from .models import ForumCategory, ForumPost, ForumTopic
 
 
 class ForumCategoryForm(forms.ModelForm):
     """Form for creating new forum categories."""
-    
+
     class Meta:
         model = ForumCategory
         fields = ['name', 'description', 'icon']
@@ -32,7 +33,7 @@ class ForumCategoryForm(forms.ModelForm):
 
 class ForumTopicForm(forms.ModelForm):
     """Form for creating/editing forum topics."""
-    
+
     class Meta:
         model = ForumTopic
         fields = ['title', 'content']
@@ -49,7 +50,7 @@ class ForumTopicForm(forms.ModelForm):
 
 class ForumPostForm(forms.ModelForm):
     """Form for creating/editing forum posts."""
-    
+
     class Meta:
         model = ForumPost
         fields = ['content']
