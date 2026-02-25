@@ -30,7 +30,7 @@ class CertificationInline(admin.TabularInline):
     """Inline admin for Certifications, displayed within Category admin."""
     model = Certification
     extra = 1  # Show 1 extra empty form by default
-    fields = ('name', 'slug', 'difficulty_level', 'description', 'order')
+    fields = ('name', 'slug', 'difficulty_level', 'official_url', 'description', 'order')
     readonly_fields = ('slug',)  # Slug is auto-generated with difficulty level
 
 
@@ -61,12 +61,21 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Certification)
 class CertificationAdmin(admin.ModelAdmin):
     """Admin interface for Certification model."""
-    list_display = ('name', 'category', 'difficulty_level', 'order', 'created_at')
+    list_display = ('name', 'category', 'difficulty_level', 'official_url_link', 'order', 'created_at')
     list_filter = ('category', 'difficulty_level', 'created_at')
-    search_fields = ('name', 'description', 'category__name')
+    search_fields = ('name', 'description', 'category__name', 'official_url')
     prepopulated_fields = {}  # Slug is auto-generated with difficulty level
     readonly_fields = ('created_at', 'updated_at', 'slug')
     ordering = ('category', 'order', 'name')
+    
+    def official_url_link(self, obj):
+        """Display official URL as a clickable link."""
+        if obj.official_url:
+            display_url = obj.official_url[:50] + '...' if len(obj.official_url) > 50 else obj.official_url
+            return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">{}</a>', 
+                             obj.official_url, display_url)
+        return '-'
+    official_url_link.short_description = 'Official URL'
     
     # Fieldsets for better organization
     fieldsets = (
@@ -74,7 +83,7 @@ class CertificationAdmin(admin.ModelAdmin):
             'fields': ('category', 'name', 'slug', 'description')
         }),
         ('Settings', {
-            'fields': ('difficulty_level', 'order')
+            'fields': ('difficulty_level', 'order', 'official_url')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

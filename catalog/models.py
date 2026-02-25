@@ -164,6 +164,15 @@ class Certification(models.Model):
         help_text='Difficulty level of the certification'
     )
     
+    # Official URL for the certification
+    official_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name='Official URL',
+        help_text='Official website URL for the certification or organization'
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,

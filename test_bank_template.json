@@ -4,6 +4,7 @@
     "description": "This is a sample test bank with questions and answers. Replace this with your actual test bank data.",
     "category": "Vocational",
     "certification": "CompTIA Security+",
+    "certification_url": "https://www.comptia.org/certifications/security",
     "certification_domain": "Information Technology",
     "organization": "CompTIA",
     "official_url": "https://www.comptia.org/certifications/security",

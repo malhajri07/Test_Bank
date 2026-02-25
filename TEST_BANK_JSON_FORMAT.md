@@ -65,9 +65,10 @@
 |-------|------|-------------|---------|---------|
 | `category` | string | Category name or slug | `null` | `"Vocational"` or `"vocational"` |
 | `certification` | string | Certification name or slug | `null` | `"CompTIA Security+"` |
+| `certification_url` | string | Official URL for the certification (saved to Certification model) | `null` | `"https://www.comptia.org/certifications/security"` |
 | `certification_domain` | string | Subject area (metadata) | `null` | `"Information Technology"` |
 | `organization` | string | Issuing organization | `null` | `"CompTIA"`, `"Microsoft"`, `"PMI"` |
-| `official_url` | string | Official certification URL | `null` | `"https://www.comptia.org/certifications/security"` |
+| `official_url` | string | Official URL for test bank (saved to TestBank model) | `null` | `"https://www.comptia.org/certifications/security"` |
 | `certification_details` | string | Additional certification details | `null` | `"Globally recognized certification..."` |
 | `difficulty_level` | string | Difficulty level | `"easy"` | `"easy"`, `"medium"`, `"advanced"` |
 | `price` | number | Price in decimal | `0.00` | `29.99`, `0.00` |
@@ -86,6 +87,13 @@
 - **Behavior:** Auto-created if doesn't exist (requires category)
 - **Note:** Same certification name can exist with different `difficulty_level` values
 - **Examples:** `"CompTIA Security+"`, `"PMP"`, `"AWS Certified Solutions Architect"`
+
+#### `certification_url`
+- **Type:** String (URL)
+- **Behavior:** Saved to the Certification model's `official_url` field when certification is created/updated
+- **Note:** This URL is specific to the certification itself, not the test bank
+- **Examples:** `"https://www.comptia.org/certifications/security"`, `"https://www.pmi.org/certifications/project-management-pmp"`
+- **Fallback:** If `certification_url` is not provided, the system will use `official_url` from test_bank data
 
 #### `difficulty_level`
 - **Accepted Values:**
@@ -200,6 +208,7 @@
     "description": "Comprehensive practice questions covering all domains of the CompTIA Security+ SY0-601 exam. Includes questions on network security, threats and vulnerabilities, identity and access management, and more.",
     "category": "Professional",
     "certification": "CompTIA Security+",
+    "certification_url": "https://www.comptia.org/certifications/security",
     "certification_domain": "Information Technology",
     "organization": "CompTIA",
     "official_url": "https://www.comptia.org/certifications/security",

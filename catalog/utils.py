@@ -85,7 +85,7 @@ def import_test_bank_from_json(json_data, update_existing=None):
                 return category, True
             
             # Helper function to get or create certification by name or slug
-            def get_or_create_certification(name_or_slug, parent_category, difficulty='easy'):
+            def get_or_create_certification(name_or_slug, parent_category, difficulty='easy', official_url=None):
                 """Get existing certification by slug or name with difficulty level, or create new one."""
                 name_or_slug = name_or_slug.strip() if name_or_slug else None
                 if not name_or_slug:
@@ -116,6 +116,10 @@ def import_test_bank_from_json(json_data, update_existing=None):
                     difficulty_level=normalized_difficulty
                 ).first()
                 if certification:
+                    # Update URL if provided and different
+                    if official_url and certification.official_url != official_url:
+                        certification.official_url = official_url.strip() if official_url else None
+                        certification.save(update_fields=['official_url'])
                     return certification, False
                 
                 # Try to find by name and difficulty level (case-insensitive)
@@ -125,6 +129,10 @@ def import_test_bank_from_json(json_data, update_existing=None):
                     difficulty_level=normalized_difficulty
                 ).first()
                 if certification:
+                    # Update URL if provided and different
+                    if official_url and certification.official_url != official_url:
+                        certification.official_url = official_url.strip() if official_url else None
+                        certification.save(update_fields=['official_url'])
                     return certification, False
                 
                 # Check if exists with same name but different difficulty (this is allowed)
@@ -136,12 +144,13 @@ def import_test_bank_from_json(json_data, update_existing=None):
                     # This is fine - same certification can exist with different difficulty
                     pass
                 
-                # Create new certification with difficulty level
+                # Create new certification with difficulty level and URL
                 certification = Certification.objects.create(
                     name=name_or_slug,
                     slug=expected_slug,
                     category=parent_category,
-                    difficulty_level=normalized_difficulty
+                    difficulty_level=normalized_difficulty,
+                    official_url=official_url.strip() if official_url else None
                 )
                 return certification, True
             
@@ -165,7 +174,9 @@ def import_test_bank_from_json(json_data, update_existing=None):
                 certification_value = test_bank_data['certification']
                 # Get difficulty level from test_bank_data for certification
                 difficulty = test_bank_data.get('difficulty_level', 'easy').lower()
-                certification, was_created = get_or_create_certification(certification_value, category, difficulty)
+                # Get certification URL if provided (can be in test_bank or as separate certification_url field)
+                certification_url = test_bank_data.get('certification_url') or test_bank_data.get('official_url')
+                certification, was_created = get_or_create_certification(certification_value, category, difficulty, certification_url)
                 if certification:
                     if was_created:
                         created_items.append(f'Certification: "{certification.name}" ({certification.get_difficulty_level_display()}) (created under {category.name})')
