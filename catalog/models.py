@@ -180,7 +180,9 @@ class Certification(models.Model):
         verbose_name = 'Certification'
         verbose_name_plural = 'Certifications'
         ordering = ['order', 'name']
-        unique_together = [['category', 'slug', 'difficulty_level']]  # Same certification can exist with different difficulty levels
+        constraints = [
+            models.UniqueConstraint(fields=['category', 'slug', 'difficulty_level'], name='unique_certification_per_category_difficulty'),
+        ]
         indexes = [
             models.Index(fields=['category', 'order']),
             models.Index(fields=['category', 'difficulty_level']),
@@ -483,7 +485,9 @@ class TestBankRating(models.Model):
         """Meta options for TestBankRating model."""
         verbose_name = 'Test Bank Rating'
         verbose_name_plural = 'Test Bank Ratings'
-        unique_together = ['user', 'test_bank']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'test_bank'], name='unique_rating_per_user_testbank'),
+        ]
         ordering = ['-created_at']
     
     def __str__(self):

@@ -11,6 +11,7 @@ This module provides views for:
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Count, Q, Avg
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -108,13 +109,17 @@ def category_list(request):
     - Link to appropriate page (vocational_index, certification list, or test bank list)
     """
     # Get all categories with test bank counts and certification counts
-    categories = Category.objects.annotate(
+    categories_qs = Category.objects.annotate(
         test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True)),
         certification_count=Count('certifications')
     ).order_by('name')
     
+    paginator = Paginator(categories_qs, 12)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
     return render(request, 'catalog/category_list.html', {
-        'categories': categories,
+        'categories': page_obj,
+        'page_obj': page_obj,
     })
 
 
@@ -230,10 +235,13 @@ def testbank_list(request, category_slug, certification_slug=None):
         certification = get_object_or_404(Certification, category=category, slug=certification_slug)
         filter_q = Q(certification=certification, is_active=True)
     
-    # Get active test banks with user counts
-    test_banks = TestBank.objects.filter(filter_q).annotate(
+    # Get active test banks with user counts (paginated)
+    test_banks_qs = TestBank.objects.filter(filter_q).annotate(
         user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
     ).order_by('-user_count', '-average_rating', '-created_at')
+    
+    paginator = Paginator(test_banks_qs, 12)
+    test_banks = paginator.get_page(request.GET.get('page'))
     
     # Build breadcrumbs
     breadcrumbs = [

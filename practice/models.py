@@ -74,8 +74,9 @@ class UserTestAccess(models.Model):
         verbose_name = 'User Test Access'
         verbose_name_plural = 'User Test Accesses'
         ordering = ['-purchased_at']
-        # Ensure one access record per user-test_bank combination
-        unique_together = ['user', 'test_bank']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'test_bank'], name='unique_access_per_user_testbank'),
+        ]
         indexes = [
             models.Index(fields=['user', 'is_active']),
             models.Index(fields=['test_bank', 'is_active']),
@@ -298,8 +299,9 @@ class UserAnswer(models.Model):
         verbose_name = 'User Answer'
         verbose_name_plural = 'User Answers'
         ordering = ['answered_at']
-        # Ensure one answer per question per session
-        unique_together = ['session', 'question']
+        constraints = [
+            models.UniqueConstraint(fields=['session', 'question'], name='unique_answer_per_session_question'),
+        ]
         indexes = [
             models.Index(fields=['session', 'question']),
         ]
