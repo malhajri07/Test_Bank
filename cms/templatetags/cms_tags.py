@@ -7,9 +7,11 @@ Provides template tags to:
 - Get CMS pages
 """
 
+import nh3
 from django import template
 from django.utils.safestring import mark_safe
-from ..models import ContentBlock, Announcement, Page
+
+from ..models import ContentBlock, Page
 
 register = template.Library()
 
@@ -18,20 +20,20 @@ register = template.Library()
 def content_block(slug):
     """
     Render a content block by slug.
-    
+
     Usage:
         {% load cms_tags %}
         {% content_block "footer-content" %}
-    
+
     Args:
         slug: Slug of the content block to render
-        
+
     Returns:
         Rendered HTML content or empty string
     """
     try:
         block = ContentBlock.objects.get(slug=slug)
-        return mark_safe(block.content)
+        return mark_safe(nh3.clean(block.content))
     except ContentBlock.DoesNotExist:
         return ""
 
@@ -40,7 +42,7 @@ def content_block(slug):
 def render_announcement(announcement):
     """
     Render an announcement.
-    
+
     Usage:
         {% load cms_tags %}
         {% for announcement in cms_homepage_announcements %}
@@ -54,7 +56,7 @@ def render_announcement(announcement):
 def cms_page_url(slug):
     """
     Get URL for a CMS page by slug.
-    
+
     Usage:
         {% load cms_tags %}
         <a href="{% cms_page_url 'about-us' %}">About Us</a>
@@ -70,7 +72,7 @@ def cms_page_url(slug):
 def get_cms_pages():
     """
     Get all published CMS pages.
-    
+
     Usage:
         {% load cms_tags %}
         {% get_cms_pages as pages %}

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n sanitize_tags %}
 {% if announcement.is_currently_active %}
 <div class="announcement announcement-{{ announcement.announcement_type }} mb-4">
     <div class="bg-{% if announcement.announcement_type == 'info' %}blue{% elif announcement.announcement_type == 'success' %}green{% elif announcement.announcement_type == 'warning' %}yellow{% else %}red{% endif %}-50 border-l-4 border-{% if announcement.announcement_type == 'info' %}blue{% elif announcement.announcement_type == 'success' %}green{% elif announcement.announcement_type == 'warning' %}yellow{% else %}red{% endif %}-500 text-{% if announcement.announcement_type == 'info' %}blue{% elif announcement.announcement_type == 'success' %}green{% elif announcement.announcement_type == 'warning' %}yellow{% else %}red{% endif %}-700 px-4 py-3 rounded shadow-sm" role="alert">
@@ -24,7 +24,7 @@
             </div>
             <div class="ml-3 flex-1 {% if IS_RTL %}mr-3 ml-0{% endif %}">
                 <h3 class="text-sm font-medium mb-1">{{ announcement.title }}</h3>
-                <div class="text-sm">{{ announcement.content|safe }}</div>
+                <div class="text-sm">{{ announcement.content|sanitize }}</div>
                 {% if announcement.link_url and announcement.link_text %}
                 <div class="mt-2">
                     <a href="{{ announcement.link_url }}" class="font-semibold underline hover:no-underline">

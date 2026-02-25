@@ -7,11 +7,12 @@ Usage:
     python manage.py run_benchmarks --compare
 """
 
-from django.core.management.base import BaseCommand
-from django.conf import settings
-import subprocess
 import os
+import subprocess
 import sys
+
+from django.conf import settings
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
@@ -69,7 +70,7 @@ class Command(BaseCommand):
 
         if compare:
             cmd.append('--benchmark-compare')
-        
+
         if save:
             cmd.extend(['--benchmark-save', save])
 

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n sanitize_tags %}
 
 {% block title %}{{ topic.title }} - {% trans "Forum" %} - {% trans "Exam Stellar" %}{% endblock %}
 
@@ -68,7 +68,7 @@
                     </div>
                     
                     <div class="prose max-w-none text-gray-700">
-                        {{ post.content|safe }}
+                        {{ post.content|sanitize }}
                     </div>
                 </div>
             </div>

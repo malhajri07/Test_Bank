@@ -5,6 +5,7 @@ Registers Payment and Purchase models with Django admin.
 """
 
 from django.contrib import admin
+
 from .models import Payment, Purchase
 
 
@@ -16,7 +17,7 @@ class PaymentAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'test_bank__title', 'provider_session_id', 'provider_payment_id')
     readonly_fields = ('created_at', 'updated_at')
     date_hierarchy = 'created_at'
-    
+
     fieldsets = (
         ('Payment Info', {
             'fields': ('user', 'test_bank', 'amount', 'currency', 'payment_provider')
@@ -39,7 +40,7 @@ class PurchaseAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'test_bank__title')
     readonly_fields = ('purchased_at',)
     date_hierarchy = 'purchased_at'
-    
+
     fieldsets = (
         ('Purchase Info', {
             'fields': ('user', 'test_bank', 'payment')

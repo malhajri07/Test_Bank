@@ -22,15 +22,12 @@ from practice.models import UserTestAccess
 from .email_utils import send_payment_invoice
 
 
-# Initialize Stripe with secret key from settings
-if not settings.STRIPE_SECRET_KEY:
-    raise ValueError('STRIPE_SECRET_KEY is not configured. Please set it in your .env file.')
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
-# Configure Stripe to bypass proxy
-# Set proxy to None explicitly in Stripe configuration
-stripe.proxy = None
+def _ensure_stripe_configured():
+    """Lazily configure Stripe API key on first use, avoiding module-level crashes."""
+    if not settings.STRIPE_SECRET_KEY:
+        raise ValueError('STRIPE_SECRET_KEY is not configured. Please set it in your .env file.')
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    stripe.proxy = None
 
 
 def _make_stripe_request(func, *args, **kwargs):
@@ -100,6 +97,8 @@ def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
         ValueError: If test bank price is invalid
         stripe.error.StripeError: If Stripe API call fails
     """
+    _ensure_stripe_configured()
+
     # Validate test bank price
     if test_bank.price <= 0:
         raise ValueError('Test bank price must be greater than 0')
@@ -202,6 +201,8 @@ def verify_webhook_signature(request):
     Raises:
         ValueError: If signature verification fails
     """
+    _ensure_stripe_configured()
+
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     
@@ -251,6 +252,8 @@ def handle_payment_success(session_id):
         Payment.DoesNotExist: If payment record not found
         Exception: If Stripe API call fails (handles AttributeError from network issues)
     """
+    _ensure_stripe_configured()
+
     try:
         # Retrieve Stripe session (with proxy bypass)
         checkout_session = _make_stripe_request(

@@ -12,11 +12,9 @@ Usage:
     Or import this in settings.py conditionally
 """
 
+
+
 from .settings import *
-import os
-from google.cloud import storage
-from google.oauth2 import service_account
-import json
 
 # GCP Project Configuration
 GCP_PROJECT_ID = config('GCP_PROJECT_ID', default='')
@@ -42,26 +40,26 @@ GCS_STATIC_BUCKET_NAME = config('GCS_STATIC_BUCKET_NAME', default=f'{GCP_PROJECT
 if USE_GCS:
     # Install django-storages for GCS support
     # Add to requirements: django-storages[google]>=1.14.0
-    
+
     # Media files (user uploads) - Cloud Storage
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_BUCKET_NAME = GCS_BUCKET_NAME
     GS_DEFAULT_ACL = 'publicRead'
     GS_PROJECT_ID = GCP_PROJECT_ID
-    
+
     # Media URL
     MEDIA_URL = f'https://storage.googleapis.com/{GCS_BUCKET_NAME}/'
-    
+
     # Static files - Cloud Storage (optional, can use Cloud CDN)
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_STATIC_BUCKET_NAME = GCS_STATIC_BUCKET_NAME
     STATIC_URL = f'https://storage.googleapis.com/{GCS_STATIC_BUCKET_NAME}/'
-    
+
     # GCS credentials (if using service account JSON)
     # GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     #     config('GCS_CREDENTIALS_FILE', default='')
     # )
-    
+
     # Or use default credentials (Application Default Credentials)
     # Cloud Run automatically provides credentials
 else:
@@ -136,14 +134,14 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@examstellar.c
 # Secret Manager Integration (optional)
 # Uncomment to use Secret Manager instead of environment variables
 # from google.cloud import secretmanager
-# 
+#
 # def get_secret(secret_id):
 #     """Retrieve secret from Secret Manager."""
 #     client = secretmanager.SecretManagerServiceClient()
 #     name = f"projects/{GCP_PROJECT_ID}/secrets/{secret_id}/versions/latest"
 #     response = client.access_secret_version(request={"name": name})
 #     return response.payload.data.decode("UTF-8")
-# 
+#
 # SECRET_KEY = get_secret('django-secret-key')
 # DATABASES['default']['PASSWORD'] = get_secret('db-password')
 

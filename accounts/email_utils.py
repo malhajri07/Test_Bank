@@ -4,11 +4,12 @@ Email utilities for account-related emails.
 This module provides functions for sending account verification and notification emails.
 """
 
+import logging
+
+from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.conf import settings
 from django.urls import reverse
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -16,16 +17,16 @@ logger = logging.getLogger(__name__)
 def send_verification_email(user, verification_token):
     """
     Send email verification email to the user.
-    
+
     This function:
     1. Renders the verification email template
     2. Sends the email to the user's email address
     3. Uses info@examstellar.com as the sender
-    
+
     Args:
         user: CustomUser instance
         verification_token: EmailVerificationToken instance
-    
+
     Returns:
         bool: True if email sent successfully, False otherwise
     """
@@ -34,7 +35,7 @@ def send_verification_email(user, verification_token):
         if not user.email:
             logger.warning(f'User {user.id} has no email address, cannot send verification email')
             return False
-        
+
         # Build site URL for links in email
         try:
             from django.contrib.sites.models import Site
@@ -52,10 +53,10 @@ def send_verification_email(user, verification_token):
                     site_url = f'https://{host}' if not settings.DEBUG else f'http://{host}:8000'
             else:
                 site_url = 'http://localhost:8000' if settings.DEBUG else 'https://examstellar.com'
-        
+
         # Build verification URL
         verification_url = f"{site_url}{reverse('accounts:verify_email', kwargs={'token': verification_token.token})}"
-        
+
         # Render email template
         email_subject = 'Activate Your Exam Stellar Account'
         email_html = render_to_string('accounts/emails/verification_email.html', {
@@ -64,7 +65,7 @@ def send_verification_email(user, verification_token):
             'site_url': site_url,
             'token': verification_token,
         })
-        
+
         # Create plain text version
         email_text = f"""
 Welcome to Exam Stellar!
@@ -94,10 +95,10 @@ Exam Stellar Team
 Visit our website: {site_url}
 Contact Support: {site_url}/contact/
 """
-        
+
         # Send email
         from_email = 'info@examstellar.com'
-        
+
         try:
             send_mail(
                 subject=email_subject,
@@ -107,14 +108,14 @@ Contact Support: {site_url}/contact/
                 recipient_list=[user.email],
                 fail_silently=False,
             )
-            
+
             logger.info(f'Verification email sent successfully to {user.email} for user {user.id}')
             return True
         except Exception as email_error:
             logger.error(f'SMTP error sending verification email: {str(email_error)}')
             # Re-raise to be caught by calling function
             raise
-        
+
     except Exception as e:
         logger.error(f'Error sending verification email: {str(e)}', exc_info=True)
         return False

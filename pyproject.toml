@@ -1,0 +1,42 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "S",     # flake8-bandit (security)
+    "UP",    # pyupgrade
+    "SIM",   # flake8-simplify
+    "DJ",    # flake8-django
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "E402",  # module-import-not-at-top (existing codebase pattern with conditional imports)
+    "F403",  # import star (existing pattern in settings_gcp)
+    "F405",  # undefined from import star (follows from F403)
+    "S101",  # assert usage (needed for tests)
+    "S105",  # hardcoded password (false positives in tests)
+    "S106",  # hardcoded password argument (false positives in tests)
+    "S308",  # mark_safe usage (we sanitize with nh3 first)
+    "DJ001", # null=True on string fields (existing codebase pattern)
+    "DJ012", # unordered model body content (existing codebase pattern)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S"]
+"**/test_*.py" = ["S"]
+"**/migrations/**" = ["E", "W", "F", "I", "UP"]
+"**/management/commands/**" = ["S603"]
+"stress_tests/**" = ["S"]
+"manage.py" = ["F"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["accounts", "catalog", "payments", "practice", "cms", "forum", "theme", "testbank_platform"]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"

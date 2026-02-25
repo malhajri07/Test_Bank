@@ -7,8 +7,9 @@ This module defines forms for:
 """
 
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
+
 from .models import UserProfile
 
 User = get_user_model()
@@ -108,66 +109,66 @@ COUNTRIES = [
 class UserRegistrationForm(UserCreationForm):
     """
     User registration form extending Django's UserCreationForm.
-    
+
     Adds additional fields:
     - Email (required)
     - Full name, phone number, country, preferred language
     """
-    
+
     email = forms.EmailField(
         required=True,
         label='Email',
         help_text='Required. Enter a valid email address.'
     )
-    
+
     full_name = forms.CharField(
         max_length=255,
         required=False,
         label='Full Name',
         help_text='Your full name'
     )
-    
+
     phone_number = forms.CharField(
         max_length=20,
         required=False,
         label='Phone Number',
         help_text='Your contact phone number'
     )
-    
+
     country = forms.CharField(
         max_length=100,
         required=False,
         label='Country',
         help_text='Your country'
     )
-    
+
     preferred_language = forms.ChoiceField(
         choices=UserProfile.LANGUAGE_CHOICES,
         initial='en',
         label='Preferred Language',
         help_text='Your preferred language for the interface'
     )
-    
+
     class Meta:
         """Meta options for UserRegistrationForm."""
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'full_name', 
+        fields = ('username', 'email', 'password1', 'password2', 'full_name',
                   'phone_number', 'country', 'preferred_language')
-    
+
     def __init__(self, *args, **kwargs):
         """Initialize form with custom styling classes."""
         super().__init__(*args, **kwargs)
         # Add Tailwind CSS classes to form fields
-        for field_name, field in self.fields.items():
+        for _field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
-    
+
     def clean_email(self):
         """Validate that email is unique."""
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('A user with this email already exists.')
         return email
-    
+
     def save(self, commit=True):
         """Save user and return user instance."""
         user = super().save(commit=False)
@@ -180,14 +181,14 @@ class UserRegistrationForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     """
     Form for editing user profile information.
-    
+
     Allows users to update:
     - Full name
     - Phone number (with country code)
     - Country
     - Preferred language (for RTL/LTR support)
     """
-    
+
     # Separate fields for phone number with country code
     phone_country_code = forms.ChoiceField(
         choices=COUNTRY_CODES,
@@ -197,7 +198,7 @@ class UserProfileForm(forms.ModelForm):
             'class': 'px-4 py-4 border-0 rounded-l-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium bg-white outline-none'
         })
     )
-    
+
     phone_number_only = forms.CharField(
         max_length=20,
         required=False,
@@ -207,7 +208,7 @@ class UserProfileForm(forms.ModelForm):
             'placeholder': 'Phone number'
         })
     )
-    
+
     # Override country field to use Select with choices
     country = forms.ChoiceField(
         choices=COUNTRIES,
@@ -217,7 +218,7 @@ class UserProfileForm(forms.ModelForm):
             'class': 'w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all'
         })
     )
-    
+
     class Meta:
         """Meta options for UserProfileForm."""
         model = UserProfile
@@ -230,14 +231,14 @@ class UserProfileForm(forms.ModelForm):
                 'class': 'w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all'
             }),
         }
-    
+
     def __init__(self, *args, **kwargs):
         """Initialize form and split phone number if it exists."""
         super().__init__(*args, **kwargs)
-        
+
         # Set country field choices
         self.fields['country'].choices = COUNTRIES
-        
+
         # If editing existing profile, split phone number
         if self.instance and self.instance.pk and self.instance.phone_number:
             phone = self.instance.phone_number
@@ -265,20 +266,20 @@ class UserProfileForm(forms.ModelForm):
         else:
             # Default to +1
             self.initial['phone_country_code'] = '+1'
-    
+
     def save(self, commit=True):
         """Combine country code and phone number before saving."""
         instance = super().save(commit=False)
-        
+
         # Combine country code and phone number
         country_code = self.cleaned_data.get('phone_country_code', '+1')
         phone_number = self.cleaned_data.get('phone_number_only', '').strip()
-        
+
         if phone_number:
             instance.phone_number = f"{country_code} {phone_number}"
         else:
             instance.phone_number = ''
-        
+
         if commit:
             instance.save()
         return instance
