@@ -2,12 +2,23 @@
 Template filter for rendering sanitized HTML content.
 
 Uses nh3 to strip dangerous tags/attributes (script, onclick, etc.)
-while preserving safe formatting markup.
+while preserving safe formatting markup. Falls back to Django's escape
+if nh3 is not installed.
 """
 
-import nh3
+import logging
+
 from django import template
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
+
+try:
+    import nh3
+    _HAS_NH3 = True
+except ImportError:
+    _HAS_NH3 = False
+
+logger = logging.getLogger(__name__)
 
 register = template.Library()
 
@@ -38,10 +49,13 @@ def sanitize_html(value):
     """
     if not value:
         return ""
-    cleaned = nh3.clean(
-        str(value),
-        tags=ALLOWED_TAGS,
-        attributes=ALLOWED_ATTRIBUTES,
-        link_rel="noopener noreferrer",
-    )
-    return mark_safe(cleaned)
+    if _HAS_NH3:
+        cleaned = nh3.clean(
+            str(value),
+            tags=ALLOWED_TAGS,
+            attributes=ALLOWED_ATTRIBUTES,
+            link_rel="noopener noreferrer",
+        )
+        return mark_safe(cleaned)
+    logger.warning("nh3 not installed — falling back to Django escape. Run: pip install nh3")
+    return escape(value)

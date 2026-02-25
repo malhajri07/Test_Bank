@@ -7,9 +7,15 @@ Provides template tags to:
 - Get CMS pages
 """
 
-import nh3
 from django import template
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
+
+try:
+    import nh3
+    _HAS_NH3 = True
+except ImportError:
+    _HAS_NH3 = False
 
 from ..models import ContentBlock, Page
 
@@ -33,7 +39,9 @@ def content_block(slug):
     """
     try:
         block = ContentBlock.objects.get(slug=slug)
-        return mark_safe(nh3.clean(block.content))
+        if _HAS_NH3:
+            return mark_safe(nh3.clean(block.content))
+        return escape(block.content)
     except ContentBlock.DoesNotExist:
         return ""
 
