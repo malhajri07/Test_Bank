@@ -3,10 +3,10 @@ Views for Forum app.
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -65,10 +65,11 @@ def category_detail(request, slug):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_content_manager(), login_url='/')
 @require_POST
 def category_create_ajax(request):
     """
-    Create a new category via AJAX.
+    Create a new category via AJAX. Restricted to content managers and admins.
     """
     form = ForumCategoryForm(request.POST)
     if form.is_valid():
@@ -145,9 +146,8 @@ def topic_detail(request, category_slug, topic_slug):
         is_locked=False
     )
     
-    # Increment view count
-    topic.views_count += 1
-    topic.save(update_fields=['views_count'])
+    # Increment view count atomically to avoid race conditions
+    ForumTopic.objects.filter(pk=topic.pk).update(views_count=F('views_count') + 1)
     
     # Get all posts in this topic
     posts = topic.posts.select_related('author').order_by('created_at')

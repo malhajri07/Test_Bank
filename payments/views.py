@@ -166,19 +166,13 @@ def create_checkout(request, testbank_slug):
         messages.error(request, f'Invalid payment configuration: {str(e)}')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
     except Exception as e:
-        # Stripe API errors and other exceptions
         error_msg = str(e)
         if hasattr(e, 'user_message'):
             error_msg = e.user_message
         elif hasattr(e, 'message'):
             error_msg = e.message
         
-        logger.error(f'Stripe API error: {error_msg}', exc_info=True)
-        messages.error(request, f'Payment processing error: {error_msg}')
-        return redirect('catalog:testbank_detail', slug=testbank_slug)
-    except Exception as e:
-        # Other errors
-        logger.error(f'Error creating checkout session: {str(e)}', exc_info=True)
+        logger.error(f'Error creating checkout session: {error_msg}', exc_info=True)
         messages.error(request, 'An error occurred while processing your payment. Please try again.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
 

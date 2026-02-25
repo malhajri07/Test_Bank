@@ -21,11 +21,11 @@ from practice.models import UserTestAccess
 from .email_utils import send_payment_invoice
 
 
-# Initialize Stripe with secret key from settings
-if not settings.STRIPE_SECRET_KEY:
-    raise ValueError('STRIPE_SECRET_KEY is not configured. Please set it in your .env file.')
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
+def _ensure_stripe_configured():
+    """Lazily configure Stripe API key on first use, avoiding module-level crashes."""
+    if not settings.STRIPE_SECRET_KEY:
+        raise ValueError('STRIPE_SECRET_KEY is not configured. Please set it in your .env file.')
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
@@ -50,6 +50,8 @@ def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
     Raises:
         stripe.error.StripeError: If Stripe API call fails
     """
+    _ensure_stripe_configured()
+    
     # Create Payment record with initial status
     payment = Payment.objects.create(
         user=user,
@@ -154,6 +156,8 @@ def verify_webhook_signature(request):
         ValueError: If signature verification fails
         stripe.error.SignatureVerificationError: If signature is invalid
     """
+    _ensure_stripe_configured()
+    
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     
@@ -200,6 +204,8 @@ def handle_payment_success(session_id):
         Payment.DoesNotExist: If payment record not found
         stripe.error.StripeError: If Stripe API call fails
     """
+    _ensure_stripe_configured()
+    
     try:
         # Retrieve Stripe session to verify payment status
         checkout_session = stripe.checkout.Session.retrieve(session_id)
