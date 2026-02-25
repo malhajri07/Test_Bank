@@ -150,13 +150,9 @@ def create_checkout(request, testbank_slug):
                 messages.error(request, f'Payment processing error: {error_msg}')
             return redirect('catalog:testbank_detail', slug=testbank_slug)
         else:
-            # Re-raise non-Stripe errors
-            raise
-    except Exception as e:
-        # Other errors
-        logger.error(f'Unexpected error: {str(e)}', exc_info=True)
-        messages.error(request, 'An error occurred while processing your payment. Please try again.')
-        return redirect('catalog:testbank_detail', slug=testbank_slug)
+            logger.error(f'Unexpected error: {str(e)}', exc_info=True)
+            messages.error(request, 'An error occurred while processing your payment. Please try again.')
+            return redirect('catalog:testbank_detail', slug=testbank_slug)
 
 
 @login_required
@@ -204,12 +200,9 @@ def payment_success(request):
                 messages.error(request, 'Payment processing error. Please contact support.')
             return redirect('accounts:dashboard')
         else:
-            # Re-raise non-Stripe errors
-            raise
-    except Exception as e:
-        logger.error(f'Error processing payment success: {str(e)}', exc_info=True)
-        messages.error(request, 'An error occurred while processing your payment. Please contact support.')
-        return redirect('accounts:dashboard')
+            logger.error(f'Error processing payment success: {str(e)}', exc_info=True)
+            messages.error(request, 'An error occurred while processing your payment. Please contact support.')
+            return redirect('accounts:dashboard')
 
 
 @login_required

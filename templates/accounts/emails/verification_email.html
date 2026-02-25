@@ -1,218 +1,122 @@
-{% load i18n static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% trans "Activate Your Account" %} - Exam Stellar</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', 'Roboto', sans-serif;
-            line-height: 1.6;
-            color: #000000;
-            background-color: #f5f5f7;
-            margin: 0;
-            padding: 0;
-        }
-        .email-container {
-            max-width: 600px;
-            margin: 40px auto;
-            background-color: #ffffff;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        .email-header {
-            background: linear-gradient(to right, #5624d0, #4a1fb8);
-            padding: 40px 30px;
-            text-align: center;
-        }
-        .logo {
-            color: #ffffff;
-            font-size: 32px;
-            font-weight: 700;
-            margin: 0 0 10px 0;
-            letter-spacing: 1px;
-        }
-        .logo-subtitle {
-            color: #ffffff;
-            font-size: 14px;
-            opacity: 0.9;
-            margin: 0;
-        }
-        .email-content {
-            padding: 40px 30px;
-        }
-        .welcome-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #000000;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .message-text {
-            color: #333333;
-            font-size: 16px;
-            line-height: 1.8;
-            margin-bottom: 30px;
-        }
-        .activation-box {
-            background-color: #f0f4ff;
-            border: 2px solid #5624d0;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 30px 0;
-            text-align: center;
-        }
-        .activation-text {
-            color: #333333;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(to right, #5624d0, #4a1fb8);
-            color: #ffffff;
-            padding: 16px 40px;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 18px;
-            margin: 10px 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(86, 36, 208, 0.3);
-            transition: all 0.3s ease;
-        }
-        .cta-button:hover {
-            background: linear-gradient(to right, #4a1fb8, #3d1a9e);
-            box-shadow: 0 6px 16px rgba(86, 36, 208, 0.4);
-        }
-        .link-fallback {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #666666;
-            word-break: break-all;
-        }
-        .features-list {
-            background-color: #f8f9fa;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 30px 0;
-        }
-        .features-list h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #000000;
-            margin-bottom: 15px;
-        }
-        .features-list ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .features-list li {
-            padding: 8px 0;
-            color: #333333;
-            font-size: 14px;
-            padding-left: 25px;
-            position: relative;
-        }
-        .features-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #5624d0;
-            font-weight: bold;
-        }
-        .expiry-notice {
-            color: #666666;
-            font-size: 14px;
-            font-style: italic;
-            margin-top: 20px;
-            text-align: center;
-        }
-        .footer {
-            background-color: #f8f9fa;
-            padding: 30px;
-            text-align: center;
-            color: #666666;
-            font-size: 12px;
-        }
-        .footer a {
-            color: #5624d0;
-            text-decoration: none;
-        }
-    </style>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% trans "Activate Your Account" %} — Exam Stellar</title>
 </head>
-<body>
-    <div class="email-container">
-        <div class="email-header">
-            <h1 class="logo">Exam Stellar</h1>
-            <p class="logo-subtitle">{% trans "Your Learning Journey Starts Here" %}</p>
-        </div>
-        
-        <div class="email-content">
-            <h2 class="welcome-title">{% trans "Welcome to Exam Stellar!" %}</h2>
-            
-            <p class="message-text">
-                {% trans "Dear" %} <strong>{{ user.get_full_name|default:user.username }}</strong>,
-            </p>
-            
-            <p class="message-text">
-                {% trans "Thank you for registering with Exam Stellar! We're excited to have you join our learning community." %}
-            </p>
-            
-            <div class="activation-box">
-                <p class="activation-text">
-                    {% trans "To complete your registration and activate your account, please click the button below:" %}
-                </p>
-                
-                <a href="{{ verification_url }}" class="cta-button">
-                    {% trans "Activate My Account" %}
-                </a>
-                
-                <div class="link-fallback">
-                    {% trans "If the button doesn't work, copy and paste this link into your browser:" %}<br>
-                    <a href="{{ verification_url }}" style="color: #5624d0;">{{ verification_url }}</a>
-                </div>
-                
-                <p class="expiry-notice">
-                    {% trans "This activation link will expire in 7 days." %}
-                </p>
-            </div>
-            
-            <div class="features-list">
-                <h3>{% trans "Once your account is activated, you'll be able to:" %}</h3>
-                <ul>
-                    <li>{% trans "Access all test banks" %}</li>
-                    <li>{% trans "Track your practice sessions" %}</li>
-                    <li>{% trans "View your progress and scores" %}</li>
-                    <li>{% trans "Purchase premium test banks" %}</li>
-                    <li>{% trans "Join our learning community" %}</li>
-                </ul>
-            </div>
-            
-            <p class="message-text" style="margin-top: 30px;">
-                {% trans "If you did not create an account with Exam Stellar, please ignore this email." %}
-            </p>
-            
-            <p class="message-text">
-                {% trans "If you have any questions or need assistance, please don't hesitate to contact our support team." %}
-            </p>
-        </div>
-        
-        <div class="footer">
-            <p><strong>{% trans "Exam Stellar Team" %}</strong></p>
-            <p>
-                <a href="{{ site_url }}">{% trans "Visit our website" %}</a> | 
-                <a href="{{ site_url }}/contact/">{% trans "Contact Support" %}</a>
-            </p>
-            <p style="margin-top: 20px;">&copy; {% now "Y" %} Exam Stellar. {% trans "All rights reserved." %}</p>
-        </div>
-    </div>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f2f5;">
+        <tr><td align="center" style="padding:40px 16px;">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+                <!-- Header -->
+                <tr>
+                    <td style="background:linear-gradient(135deg,#5624d0 0%,#3b10a0 100%);padding:32px;text-align:center;">
+                        <p style="margin:0;font-size:26px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">
+                            {ES} Exam Stellar
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                    <td style="padding:36px 32px 0;">
+                        <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1a1a2e;">
+                            {% trans "Activate Your Account" %}
+                        </h1>
+                        <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.7;">
+                            {% trans "Dear" %} <strong>{{ user.get_full_name|default:user.username }}</strong>,<br>
+                            {% trans "Use the code below to verify your email address and activate your Exam Stellar account." %}
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Verification Code -->
+                <tr>
+                    <td style="padding:0 32px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f0ff;border:2px solid #5624d0;border-radius:12px;">
+                            <tr><td style="padding:28px 24px;text-align:center;">
+                                <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#5624d0;text-transform:uppercase;letter-spacing:1.5px;">
+                                    {% trans "Verification Code" %}
+                                </p>
+                                <p style="margin:0 0 12px;font-size:36px;font-weight:800;color:#1a1a2e;letter-spacing:6px;font-family:'Courier New',Courier,monospace;">
+                                    {{ verification_code }}
+                                </p>
+                                <p style="margin:0;font-size:12px;color:#888;">
+                                    {% trans "Expires in 7 days" %}
+                                </p>
+                            </td></tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Activate Button -->
+                <tr>
+                    <td style="padding:24px 32px;text-align:center;">
+                        <p style="margin:0 0 14px;font-size:14px;color:#777;">
+                            {% trans "Or click below to activate instantly:" %}
+                        </p>
+                        <a href="{{ verification_url }}" style="display:inline-block;background:linear-gradient(135deg,#5624d0,#3b10a0);color:#ffffff;padding:14px 36px;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;box-shadow:0 4px 12px rgba(86,36,208,0.3);">
+                            {% trans "Activate My Account" %}
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- Fallback link -->
+                <tr>
+                    <td style="padding:0 32px 24px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa;border-radius:8px;">
+                            <tr><td style="padding:12px 16px;font-size:11px;color:#999;word-break:break-all;">
+                                {% trans "Can't click the button? Copy this link:" %}<br>
+                                <a href="{{ verification_url }}" style="color:#5624d0;">{{ verification_url }}</a>
+                            </td></tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- What you get -->
+                <tr>
+                    <td style="padding:0 32px 24px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;border-radius:8px;">
+                            <tr><td style="padding:16px 20px;">
+                                <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#1a1a2e;">{% trans "Once activated, you can:" %}</p>
+                                <p style="margin:0;font-size:13px;color:#666;line-height:1.8;">
+                                    ✓ {% trans "Access all test banks" %}<br>
+                                    ✓ {% trans "Track practice sessions and scores" %}<br>
+                                    ✓ {% trans "Purchase premium content" %}<br>
+                                    ✓ {% trans "Join the learning community" %}
+                                </p>
+                            </td></tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Note -->
+                <tr>
+                    <td style="padding:0 32px 28px;">
+                        <p style="margin:0;font-size:13px;color:#999;line-height:1.6;">
+                            {% trans "If you did not create an account with Exam Stellar, please ignore this email." %}
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f8f9fa;padding:20px 32px;text-align:center;">
+                        <p style="margin:0 0 8px;font-size:13px;color:#555;font-weight:600;">{% trans "Exam Stellar Team" %}</p>
+                        <p style="margin:0 0 8px;font-size:12px;color:#999;">
+                            <a href="{{ site_url }}" style="color:#5624d0;text-decoration:none;">{% trans "Website" %}</a> &nbsp;·&nbsp;
+                            <a href="{{ site_url }}/contact/" style="color:#5624d0;text-decoration:none;">{% trans "Support" %}</a>
+                        </p>
+                        <p style="margin:0;font-size:11px;color:#ccc;">&copy; {% now "Y" %} Exam Stellar. {% trans "All rights reserved." %}</p>
+                    </td>
+                </tr>
+
+            </table>
+        </td></tr>
+    </table>
 </body>
 </html>

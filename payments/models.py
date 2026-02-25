@@ -146,9 +146,13 @@ class Payment(models.Model):
         return self.status == 'succeeded'
 
     def get_vat_rate(self):
-        """Get VAT rate (15% default)."""
+        """Get VAT rate as a decimal (e.g. 0.15 for 15%)."""
         from django.conf import settings
-        return getattr(settings, 'VAT_RATE', 0.15)  # 15% VAT
+        return getattr(settings, 'VAT_RATE', 0.15)
+
+    def get_vat_rate_percent(self):
+        """Get VAT rate as a percentage number (e.g. 15 for 15%)."""
+        return int(self.get_vat_rate() * 100)
 
     def get_net_price(self):
         """
