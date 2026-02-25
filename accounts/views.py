@@ -15,8 +15,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.db import transaction
+from django.db.models import Avg
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseRedirect
 import logging
@@ -135,7 +137,9 @@ def custom_login(request):
                 
                 # Redirect to next page or dashboard
                 next_url = request.GET.get('next')
-                if next_url:
+                if next_url and url_has_allowed_host_and_scheme(
+                    next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+                ):
                     return redirect(next_url)
                 return redirect('accounts:dashboard')
             else:
@@ -283,16 +287,12 @@ def dashboard(request):
     total_sessions = UserTestSession.objects.filter(user=user).count()
     completed_sessions = UserTestSession.objects.filter(user=user, status='completed').count()
     
-    # Calculate average score
-    completed_with_scores = UserTestSession.objects.filter(
+    # Calculate average score using database aggregation
+    avg_score = UserTestSession.objects.filter(
         user=user,
         status='completed',
         score__isnull=False
-    )
-    if completed_with_scores.exists():
-        avg_score = sum(session.score for session in completed_with_scores) / completed_with_scores.count()
-    else:
-        avg_score = None
+    ).aggregate(avg=Avg('score'))['avg']
     
     return render(request, 'accounts/dashboard.html', {
         'purchased_test_banks': purchased_test_banks,
@@ -331,6 +331,10 @@ def set_language(request):
         
         messages.success(request, _('Language changed successfully.'))
     
-    # Redirect to the previous page or home
+    # Redirect to the previous page or home (validated to prevent open redirect)
     next_url = request.POST.get('next', request.META.get('HTTP_REFERER', '/'))
+    if not url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        next_url = '/'
     return HttpResponseRedirect(next_url)
