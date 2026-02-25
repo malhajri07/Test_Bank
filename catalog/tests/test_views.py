@@ -6,6 +6,7 @@ Tests cover:
 - Test bank detail page access
 """
 
+from decimal import Decimal
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from catalog.models import Category, TestBank
@@ -37,8 +38,8 @@ class CatalogViewsTest(TestCase):
             title='Test Bank',
             slug='test-bank',
             description='Test description',
-            price=29.99,
-            difficulty_level='beginner',
+            price=Decimal('29.99'),
+            difficulty_level='easy',
             is_active=True
         )
     
@@ -46,7 +47,7 @@ class CatalogViewsTest(TestCase):
         """Test landing page view."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Test Bank Platform')
+        self.assertContains(response, 'Exam Stellar')
     
     def test_category_list_view(self):
         """Test category list view."""

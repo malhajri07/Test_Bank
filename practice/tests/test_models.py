@@ -41,7 +41,7 @@ class UserTestSessionModelTest(TestCase):
             slug='test-bank',
             description='Test description',
             price=Decimal('29.99'),
-            difficulty_level='beginner'
+            difficulty_level='easy'
         )
         
         # Create questions and answers
@@ -99,10 +99,12 @@ class UserTestSessionModelTest(TestCase):
     
     def test_is_completed(self):
         """Test is_completed method."""
+        from django.utils import timezone
         session = UserTestSession.objects.create(
             user=self.user,
             test_bank=self.test_bank,
-            status='completed'
+            status='completed',
+            completed_at=timezone.now()
         )
         
         self.assertTrue(session.is_completed())

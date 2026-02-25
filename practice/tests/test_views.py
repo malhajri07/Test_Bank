@@ -6,6 +6,7 @@ Tests cover:
 - Preventing access when user has not purchased
 """
 
+from decimal import Decimal
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from catalog.models import Category, TestBank, Question, AnswerOption
@@ -37,7 +38,8 @@ class PracticeViewsTest(TestCase):
             title='Test Bank',
             slug='test-bank',
             description='Test',
-            price=29.99,
+            price=Decimal('29.99'),
+            difficulty_level='easy',
             is_active=True
         )
         
