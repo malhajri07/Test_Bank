@@ -4,12 +4,14 @@
     "description": "This is a sample test bank with questions and answers. Replace this with your actual test bank data.",
     "category": "Vocational",
     "certification": "CompTIA Security+",
+    "certification_url": "https://www.comptia.org/certifications/security",
     "certification_domain": "Information Technology",
     "organization": "CompTIA",
     "official_url": "https://www.comptia.org/certifications/security",
     "certification_details": "CompTIA Security+ is a globally recognized certification that validates the baseline skills necessary to perform core security functions and pursue an IT security career.",
     "difficulty_level": "easy",
     "price": 0.00,
+    "time_limit_minutes": 60,
     "is_active": true
   },
   "questions": [

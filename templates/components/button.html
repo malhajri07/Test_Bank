@@ -1,0 +1,101 @@
+{% comment %}
+Reusable Button Component
+
+Usage:
+  {% include 'components/button.html' with style="primary" size="md" text="Click me" href="/url" %}
+  {% include 'components/button.html' with style="secondary" size="sm" text="Cancel" onclick="cancel()" %}
+  {% include 'components/button.html' with style="ghost" size="lg" text="Learn More" %}
+
+Parameters:
+  style: "primary" (default), "secondary", "ghost"
+  size: "sm", "md" (default), "lg"
+  text: Button text (required)
+  href: URL for link button (optional, creates <a> tag)
+  onclick: JavaScript onclick handler (optional)
+  type: Button type for form buttons: "submit", "button" (default), "reset"
+  class: Additional CSS classes (optional)
+  disabled: "true" to disable button
+  aria_label: ARIA label for accessibility (optional)
+{% endcomment %}
+
+{% load i18n %}
+
+{% if style == "primary" or not style %}
+  {% if size == "sm" %}
+    {% with btn_classes="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% elif size == "lg" %}
+    {% with btn_classes="px-8 py-4 text-base font-semibold bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    {% with btn_classes="px-6 py-3 text-sm font-semibold bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% endif %}
+{% elif style == "secondary" %}
+  {% if size == "sm" %}
+    {% with btn_classes="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% elif size == "lg" %}
+    {% with btn_classes="px-8 py-4 text-base font-semibold bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    {% with btn_classes="px-6 py-3 text-sm font-semibold bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% endif %}
+{% elif style == "ghost" %}
+  {% if size == "sm" %}
+    {% with btn_classes="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% elif size == "lg" %}
+    {% with btn_classes="px-8 py-4 text-base font-normal text-gray-700 hover:text-[#5624d0] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% else %}
+    {% with btn_classes="px-6 py-3 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+      {% if href %}
+        <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
+      {% else %}
+        <button type="{{ type|default:'button' }}" onclick="{{ onclick|default:'' }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if disabled == "true" %}disabled{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</button>
+      {% endif %}
+    {% endwith %}
+  {% endif %}
+{% endif %}

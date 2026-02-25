@@ -1,0 +1,75 @@
+{% comment %}
+Reusable Form Input Component
+
+Usage:
+  {% include 'components/form_input.html' with field=form.username %}
+  {% include 'components/form_input.html' with field=form.email label="Email Address" %}
+  {% include 'components/form_input.html' with field=form.password help_text="Must be at least 8 characters" %}
+
+Parameters:
+  field: Django form field (required)
+  label: Custom label text (optional, uses field.label if not provided)
+  help_text: Help text to display below input (optional)
+  class: Additional CSS classes for input (optional)
+  wrapper_class: Additional CSS classes for wrapper div (optional)
+{% endcomment %}
+
+{% load i18n %}
+
+<div class="mb-5 {{ wrapper_class|default:'' }}">
+  <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+    {{ label|default:field.label }}
+    {% if field.field.required %}<span class="text-red-500" aria-label="{% trans 'required' %}">*</span>{% endif %}
+  </label>
+  
+  {% if field.field.widget.input_type == "textarea" %}
+    <textarea 
+      name="{{ field.name }}" 
+      id="{{ field.id_for_label }}"
+      class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-gray-900 font-medium shadow-sm hover:shadow-md transition-all {{ class|default:'' }}"
+      {% if field.field.required %}required{% endif %}
+      {% if field.field.widget.attrs.rows %}rows="{{ field.field.widget.attrs.rows }}"{% endif %}
+      {% if field.field.widget.attrs.cols %}cols="{{ field.field.widget.attrs.cols }}"{% endif %}
+      {% if field.field.widget.attrs.placeholder %}placeholder="{{ field.field.widget.attrs.placeholder }}"{% endif %}
+    >{{ field.value|default:'' }}</textarea>
+  {% elif field.field.widget.input_type == "select" %}
+    <select 
+      name="{{ field.name }}" 
+      id="{{ field.id_for_label }}"
+      class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-gray-900 font-medium shadow-sm hover:shadow-md transition-all {{ class|default:'' }}"
+      {% if field.field.required %}required{% endif %}
+    >
+      {% for choice in field.field.choices %}
+        <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+      {% endfor %}
+    </select>
+  {% else %}
+    <input 
+      type="{{ field.field.widget.input_type|default:'text' }}" 
+      name="{{ field.name }}" 
+      id="{{ field.id_for_label }}"
+      value="{{ field.value|default:'' }}"
+      class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-gray-900 font-medium shadow-sm hover:shadow-md transition-all {{ class|default:'' }}"
+      {% if field.field.required %}required{% endif %}
+      {% if field.field.widget.attrs.placeholder %}placeholder="{{ field.field.widget.attrs.placeholder }}"{% endif %}
+      {% if field.field.widget.attrs.maxlength %}maxlength="{{ field.field.widget.attrs.maxlength }}"{% endif %}
+      {% if field.field.widget.attrs.minlength %}minlength="{{ field.field.widget.attrs.minlength }}"{% endif %}
+    >
+  {% endif %}
+  
+  {% if help_text %}
+    <p class="mt-2 text-sm text-gray-600">{{ help_text }}</p>
+  {% endif %}
+  
+  {% if field.errors %}
+    <div class="mt-2 text-sm text-red-600" role="alert">
+      {% for error in field.errors %}
+        <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+  
+  {% if field.help_text and not help_text %}
+    <p class="mt-2 text-sm text-gray-600">{{ field.help_text }}</p>
+  {% endif %}
+</div>

@@ -26,25 +26,39 @@
     </div>
 </div>
 
-<!-- Subcategories Grid - Apple Style -->
+<!-- Certifications Grid - Apple Style -->
 <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
     <div class="mb-6">
         <p class="text-[#666666]">
-            {% blocktrans count count=subcategories|length %}{{ count }} subcategory available{% plural %}{{ count }} subcategories available{% endblocktrans %}
+            {% blocktrans count count=certifications|length %}{{ count }} certification available{% plural %}{{ count }} certifications available{% endblocktrans %}
         </p>
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {% for subcategory in subcategories %}
-        <a href="{% url 'catalog:subcategory_list_full' category_slug=category.slug subcategory_slug=subcategory.slug %}" class="block">
+        {% for certification in certifications %}
+        <a href="{% url 'catalog:certification_list_full' category_slug=category.slug certification_slug=certification.slug %}" class="block">
             <div class="bg-white border border-gray-200 rounded p-4 hover:shadow-lg transition-all h-full flex flex-col">
-                <h2 class="text-base font-bold text-gray-900 mb-2">{{ subcategory.name }}</h2>
-                {% if subcategory.description %}
-                <p class="text-sm text-gray-600 line-clamp-2 mb-3 flex-1">{{ subcategory.description|truncatewords:15 }}</p>
+                <h2 class="text-base font-bold text-gray-900 mb-2">{{ certification.name }}</h2>
+                {% if certification.description %}
+                <p class="text-sm text-gray-600 line-clamp-2 mb-3 flex-1">{{ certification.description|truncatewords:15 }}</p>
+                {% endif %}
+                {% if certification.official_url %}
+                <div class="mb-3">
+                    <a href="{{ certification.official_url }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center gap-1.5 text-xs text-[#5624d0] hover:text-[#4a1fb8] font-medium transition-colors"
+                       onclick="event.stopPropagation();">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        {% trans "Official Site" %}
+                    </a>
+                </div>
                 {% endif %}
                 <div class="mt-auto pt-3 border-t border-gray-100">
                     <span class="text-xs text-gray-600">
-                        {% blocktrans count count=subcategory.certification_count %}{{ count }} certification{% plural %}{{ count }} certifications{% endblocktrans %}
+                        {% blocktrans count count=certification.test_bank_count %}{{ count }} test bank{% plural %}{{ count }} test banks{% endblocktrans %}
                     </span>
                 </div>
             </div>
@@ -58,7 +72,7 @@
                     </svg>
                 </div>
                 <p class="text-[#666666] text-lg">
-                    {% trans "No subcategories available at the moment" %}
+                    {% trans "No certifications available at the moment" %}
                 </p>
             </div>
         </div>

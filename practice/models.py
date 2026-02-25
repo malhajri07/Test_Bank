@@ -1,19 +1,18 @@
 """
-Practice app models for user test sessions, access control, and answers.
+Practice app models for user test sessions, access control, answers, and certificates.
 
 This module defines models for:
 - UserTestAccess: Tracks which users have purchased access to which test banks
 - UserTestSession: Represents a practice attempt/session
 - UserAnswer: Stores user's answers to individual questions
+- Certificate: Represents certificates earned by users for completing exams
 """
 
-from decimal import Decimal
-
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
-
-from catalog.models import AnswerOption, Question, TestBank
+from django.contrib.auth import get_user_model
+from catalog.models import TestBank, Question, AnswerOption
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -21,16 +20,16 @@ User = get_user_model()
 class UserTestAccess(models.Model):
     """
     UserTestAccess model representing user's purchased access to a test bank.
-
+    
     This model tracks which users have purchased and have active access to which test banks.
     Access is granted when a user successfully purchases a test bank.
-
+    
     Features:
     - Tracks purchase timestamp
     - Supports future subscription expiry via expires_at field
     - is_active flag allows deactivating access without deleting record
     """
-
+    
     # ForeignKey to User - tracks which user has access
     user = models.ForeignKey(
         User,
@@ -39,7 +38,7 @@ class UserTestAccess(models.Model):
         verbose_name='User',
         help_text='User who has access'
     )
-
+    
     # ForeignKey to TestBank - tracks which test bank user has access to
     test_bank = models.ForeignKey(
         TestBank,
@@ -48,14 +47,14 @@ class UserTestAccess(models.Model):
         verbose_name='Test Bank',
         help_text='Test bank user has access to'
     )
-
+    
     # Timestamp when access was purchased/granted
     purchased_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Purchased At',
         help_text='When access was granted'
     )
-
+    
     # Optional expiry date for subscription-based access
     expires_at = models.DateTimeField(
         null=True,
@@ -63,19 +62,20 @@ class UserTestAccess(models.Model):
         verbose_name='Expires At',
         help_text='When access expires (null for lifetime access)'
     )
-
+    
     # Active flag - allows deactivating access without deleting
     is_active = models.BooleanField(
         default=True,
         verbose_name='Is Active',
         help_text='Whether access is currently active'
     )
-
+    
     class Meta:
         """Meta options for UserTestAccess model."""
         verbose_name = 'User Test Access'
         verbose_name_plural = 'User Test Accesses'
         ordering = ['-purchased_at']
+        # Ensure one access record per user-test_bank combination
         constraints = [
             models.UniqueConstraint(fields=['user', 'test_bank'], name='unique_access_per_user_testbank'),
         ]
@@ -83,15 +83,15 @@ class UserTestAccess(models.Model):
             models.Index(fields=['user', 'is_active']),
             models.Index(fields=['test_bank', 'is_active']),
         ]
-
+    
     def __str__(self):
         """String representation of the access."""
         return f"{self.user.username} - {self.test_bank.title}"
-
+    
     def is_valid(self):
         """
         Check if access is currently valid.
-
+        
         Returns True if:
         - is_active is True
         - expires_at is None (lifetime access) OR expires_at is in the future
@@ -107,16 +107,16 @@ class UserTestAccess(models.Model):
 class UserTestSession(models.Model):
     """
     UserTestSession model representing a practice attempt/session.
-
+    
     This model tracks each time a user practices a test bank:
     - When session started and completed
     - Score and performance metrics
     - Status (in_progress, completed)
     - Duration tracking
-
+    
     Users can have multiple sessions for the same test bank to track progress over time.
     """
-
+    
     # ForeignKey to User - tracks which user's session
     user = models.ForeignKey(
         User,
@@ -125,7 +125,7 @@ class UserTestSession(models.Model):
         verbose_name='User',
         help_text='User who is practicing'
     )
-
+    
     # ForeignKey to TestBank - tracks which test bank is being practiced
     test_bank = models.ForeignKey(
         TestBank,
@@ -134,14 +134,14 @@ class UserTestSession(models.Model):
         verbose_name='Test Bank',
         help_text='Test bank being practiced'
     )
-
+    
     # Session start timestamp
     started_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Started At',
         help_text='When the practice session started'
     )
-
+    
     # Session completion timestamp (null if not completed)
     completed_at = models.DateTimeField(
         null=True,
@@ -149,7 +149,7 @@ class UserTestSession(models.Model):
         verbose_name='Completed At',
         help_text='When the practice session was completed'
     )
-
+    
     # Score as percentage (0-100)
     score = models.DecimalField(
         max_digits=5,
@@ -159,28 +159,28 @@ class UserTestSession(models.Model):
         verbose_name='Score',
         help_text='Score as percentage (0-100)'
     )
-
+    
     # Total number of questions in this session
     total_questions = models.PositiveIntegerField(
         default=0,
         verbose_name='Total Questions',
         help_text='Total number of questions answered'
     )
-
+    
     # Number of correct answers
     correct_answers = models.PositiveIntegerField(
         default=0,
         verbose_name='Correct Answers',
         help_text='Number of correct answers'
     )
-
+    
     # Session status choices
     STATUS_CHOICES = [
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
         ('abandoned', 'Abandoned'),
     ]
-
+    
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -188,7 +188,7 @@ class UserTestSession(models.Model):
         verbose_name='Status',
         help_text='Current status of the session'
     )
-
+    
     # Optional duration tracking in seconds
     duration_seconds = models.PositiveIntegerField(
         null=True,
@@ -196,7 +196,15 @@ class UserTestSession(models.Model):
         verbose_name='Duration (seconds)',
         help_text='Total duration of the session in seconds'
     )
-
+    
+    # Time remaining in seconds (for timed exams)
+    time_remaining_seconds = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Time Remaining (seconds)',
+        help_text='Time remaining in seconds (for timed exams)'
+    )
+    
     # Store randomized question order as JSON list of question IDs
     question_order = models.JSONField(
         null=True,
@@ -204,7 +212,7 @@ class UserTestSession(models.Model):
         verbose_name='Question Order',
         help_text='Randomized order of question IDs for this session'
     )
-
+    
     class Meta:
         """Meta options for UserTestSession model."""
         verbose_name = 'User Test Session'
@@ -214,29 +222,29 @@ class UserTestSession(models.Model):
             models.Index(fields=['user', 'test_bank', 'status']),
             models.Index(fields=['started_at']),
         ]
-
+    
     def __str__(self):
         """String representation of the session."""
         return f"{self.user.username} - {self.test_bank.title} - {self.started_at}"
-
+    
     def calculate_score(self):
         """
         Calculate score percentage based on correct answers and total questions.
-
+        
         Returns:
             Decimal: Score as percentage (0-100), or None if no questions answered
         """
         if self.total_questions == 0:
             return None
-
+        
         # Calculate percentage: (correct / total) * 100
         score_percentage = (Decimal(self.correct_answers) / Decimal(self.total_questions)) * 100
         return score_percentage.quantize(Decimal('0.01'))  # Round to 2 decimal places
-
+    
     def is_completed(self):
         """Check if session is completed."""
         return self.status == 'completed' and self.completed_at is not None
-
+    
     def get_absolute_url(self):
         """Get URL for session results page."""
         return reverse('practice:results', kwargs={'session_id': self.pk})
@@ -245,16 +253,16 @@ class UserTestSession(models.Model):
 class UserAnswer(models.Model):
     """
     UserAnswer model storing user's answers to individual questions.
-
+    
     This model tracks:
     - Which question was answered
     - Which answer option(s) the user selected
     - Whether the answer was correct
     - When the answer was submitted
-
+    
     Supports multiple answer options for MCQ multi questions via ManyToMany relationship.
     """
-
+    
     # ForeignKey to UserTestSession - links answer to a specific practice session
     session = models.ForeignKey(
         UserTestSession,
@@ -263,7 +271,7 @@ class UserAnswer(models.Model):
         verbose_name='Session',
         help_text='Practice session this answer belongs to'
     )
-
+    
     # ForeignKey to Question - tracks which question was answered
     question = models.ForeignKey(
         Question,
@@ -272,7 +280,7 @@ class UserAnswer(models.Model):
         verbose_name='Question',
         help_text='Question that was answered'
     )
-
+    
     # ManyToMany to AnswerOption - supports multiple selections for MCQ multi
     # For MCQ single, only one option should be selected
     selected_options = models.ManyToManyField(
@@ -281,62 +289,176 @@ class UserAnswer(models.Model):
         verbose_name='Selected Options',
         help_text='Answer options selected by the user'
     )
-
+    
     # Boolean flag indicating if the answer was correct
     is_correct = models.BooleanField(
         default=False,
         verbose_name='Is Correct',
         help_text='Whether the answer is correct'
     )
-
+    
+    # Mark for review flag - allows users to flag questions for later review
+    marked_for_review = models.BooleanField(
+        default=False,
+        verbose_name='Marked for Review',
+        help_text='Whether this question is marked for review'
+    )
+    
     # Timestamp when answer was submitted
     answered_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Answered At',
         help_text='When the answer was submitted'
     )
-
+    
     class Meta:
         """Meta options for UserAnswer model."""
         verbose_name = 'User Answer'
         verbose_name_plural = 'User Answers'
         ordering = ['answered_at']
+        # Ensure one answer per question per session
         constraints = [
             models.UniqueConstraint(fields=['session', 'question'], name='unique_answer_per_session_question'),
         ]
         indexes = [
             models.Index(fields=['session', 'question']),
+            models.Index(fields=['answered_at']),  # Added for ordering optimization
         ]
-
+    
     def __str__(self):
         """String representation of the answer."""
         return f"{self.session} - {self.question} - {'Correct' if self.is_correct else 'Incorrect'}"
-
+    
     def check_correctness(self):
         """
         Check if the selected answer(s) are correct.
-
+        
         Logic:
         - For MCQ single: Exactly one correct option must be selected
         - For MCQ multi: All correct options must be selected, no incorrect ones
         - For True/False: Selected option must be correct
-
+        
         Returns:
             bool: True if answer is correct, False otherwise
         """
         selected = set(self.selected_options.all())
         correct_options = set(self.question.get_correct_answers())
-
+        
         if self.question.question_type == 'mcq_single':
             # For single choice: must select exactly one option and it must be correct
             return len(selected) == 1 and selected == correct_options
-
+        
         elif self.question.question_type == 'mcq_multi':
             # For multiple choice: must select all correct options and no incorrect ones
             return selected == correct_options
-
+        
         elif self.question.question_type == 'true_false':
             # For True/False: must select the correct option
             return len(selected) == 1 and selected == correct_options
-
+        
         return False
+
+
+class Certificate(models.Model):
+    """
+    Certificate model representing certificates earned by users.
+    
+    Certificates are generated when users complete practice sessions with a passing score.
+    Each certificate is linked to a test bank and a specific session.
+    """
+    
+    # ForeignKey to User - tracks which user earned the certificate
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='certificates',
+        verbose_name='User',
+        help_text='User who earned this certificate'
+    )
+    
+    # ForeignKey to TestBank - tracks which test bank the certificate is for
+    test_bank = models.ForeignKey(
+        TestBank,
+        on_delete=models.CASCADE,
+        related_name='certificates',
+        verbose_name='Test Bank',
+        help_text='Test bank this certificate is for'
+    )
+    
+    # ForeignKey to UserTestSession - links certificate to the session that earned it
+    session = models.OneToOneField(
+        UserTestSession,
+        on_delete=models.CASCADE,
+        related_name='certificate',
+        verbose_name='Session',
+        help_text='Practice session that earned this certificate'
+    )
+    
+    # Certificate metadata
+    certificate_number = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Certificate Number',
+        help_text='Unique certificate identifier'
+    )
+    
+    # Score achieved when certificate was earned
+    score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name='Score',
+        help_text='Score percentage when certificate was earned'
+    )
+    
+    # Passing threshold (default 70%)
+    passing_threshold = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=70.00,
+        verbose_name='Passing Threshold',
+        help_text='Minimum score required to earn certificate (percentage)'
+    )
+    
+    # Timestamp when certificate was issued
+    issued_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Issued At',
+        help_text='When the certificate was issued'
+    )
+    
+    # Optional certificate PDF file
+    pdf_file = models.FileField(
+        upload_to='certificates/',
+        blank=True,
+        null=True,
+        verbose_name='PDF File',
+        help_text='Generated PDF certificate file'
+    )
+    
+    class Meta:
+        """Meta options for Certificate model."""
+        verbose_name = 'Certificate'
+        verbose_name_plural = 'Certificates'
+        ordering = ['-issued_at']
+        indexes = [
+            models.Index(fields=['user', '-issued_at']),
+            models.Index(fields=['test_bank']),
+            models.Index(fields=['certificate_number']),
+        ]
+    
+    def __str__(self):
+        """String representation of the certificate."""
+        return f"{self.user.username} - {self.test_bank.title} ({self.score}%)"
+    
+    def get_absolute_url(self):
+        """Get URL for certificate view page."""
+        return reverse('practice:certificate_view', kwargs={'certificate_id': self.pk})
+    
+    @staticmethod
+    def generate_certificate_number(user, test_bank):
+        """Generate a unique certificate number."""
+        import uuid
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d')
+        unique_id = str(uuid.uuid4())[:8].upper()
+        return f"CERT-{timestamp}-{test_bank.slug[:8].upper()}-{unique_id}"

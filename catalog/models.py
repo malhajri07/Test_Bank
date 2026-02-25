@@ -8,11 +8,11 @@ This module defines the core domain models:
 - AnswerOption: Answer choices for questions
 """
 
-from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 
@@ -20,22 +20,22 @@ User = get_user_model()
 class Category(models.Model):
     """
     Category model for organizing test banks.
-
+    
     Categories represent different levels of education/certification:
     - School level: K-12 education
     - College level: Undergraduate/Graduate
     - Professional: Certifications (PMP, KPIs, etc.)
-
+    
     Uses slug field for clean URL routing (e.g., /categories/school-level/)
     """
-
+    
     name = models.CharField(
         max_length=100,
         unique=True,
         verbose_name='Category Name',
         help_text='Name of the category (e.g., School, College, Professional)'
     )
-
+    
     # Slug for URL-friendly routing
     slug = models.SlugField(
         max_length=100,
@@ -43,13 +43,13 @@ class Category(models.Model):
         verbose_name='Slug',
         help_text='URL-friendly version of the name'
     )
-
+    
     description = models.TextField(
         blank=True,
         verbose_name='Description',
         help_text='Detailed description of the category'
     )
-
+    
     # Category image/icon
     image = models.ImageField(
         upload_to='categories/',
@@ -58,7 +58,7 @@ class Category(models.Model):
         verbose_name='Category Image',
         help_text='Image/icon for the category card'
     )
-
+    
     # Optional JSON field for additional metadata (level details, tags, etc.)
     level_details = models.JSONField(
         default=dict,
@@ -67,34 +67,34 @@ class Category(models.Model):
         verbose_name='Level Details',
         help_text='Additional metadata as JSON (tags, requirements, etc.)'
     )
-
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At'
     )
-
+    
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Updated At'
     )
-
+    
     class Meta:
         """Meta options for Category model."""
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
         ordering = ['name']
-
+    
     def __str__(self):
         """String representation of the category."""
         return self.name
-
+    
     def save(self, *args, **kwargs):
         """Auto-generate slug from name if not provided."""
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
-
+    
     def get_absolute_url(self):
         """Get URL for category's test banks list page."""
         return reverse('catalog:testbank_list', kwargs={'category_slug': self.slug})
@@ -103,30 +103,30 @@ class Category(models.Model):
 class Certification(models.Model):
     """
     Certification model for organizing test banks within a category.
-
+    
     Certifications represent specific professional certifications or exams.
     For example, under "Vocational" category, we might have:
     - CompTIA IT Fundamentals (ITF+)
     - CompTIA A+
     - CompTIA Network+
     etc.
-
+    
     Uses slug field for clean URL routing.
     """
-
+    
     name = models.CharField(
         max_length=200,
         verbose_name='Certification Name',
         help_text='Name of the certification or exam'
     )
-
+    
     # Slug for URL-friendly routing
     slug = models.SlugField(
         max_length=200,
         verbose_name='Slug',
         help_text='URL-friendly version of the name'
     )
-
+    
     # ForeignKey to Category - each certification belongs to one category
     category = models.ForeignKey(
         Category,
@@ -135,27 +135,27 @@ class Certification(models.Model):
         verbose_name='Category',
         help_text='Category this certification belongs to'
     )
-
+    
     description = models.TextField(
         blank=True,
         verbose_name='Description',
         help_text='Detailed description of the certification'
     )
-
+    
     # Order field for custom ordering within category
     order = models.PositiveIntegerField(
         default=0,
         verbose_name='Order',
         help_text='Order of this certification within the category'
     )
-
+    
     # Difficulty level choices
     DIFFICULTY_CHOICES = [
         ('easy', 'Easy'),
         ('medium', 'Medium'),
         ('advanced', 'Advanced'),
     ]
-
+    
     difficulty_level = models.CharField(
         max_length=20,
         choices=DIFFICULTY_CHOICES,
@@ -163,18 +163,27 @@ class Certification(models.Model):
         verbose_name='Difficulty Level',
         help_text='Difficulty level of the certification'
     )
-
+    
+    # Official URL for the certification
+    official_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name='Official URL',
+        help_text='Official website URL for the certification or organization'
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At'
     )
-
+    
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Updated At'
     )
-
+    
     class Meta:
         """Meta options for Certification model."""
         verbose_name = 'Certification'
@@ -187,11 +196,11 @@ class Certification(models.Model):
             models.Index(fields=['category', 'order']),
             models.Index(fields=['category', 'difficulty_level']),
         ]
-
+    
     def __str__(self):
         """String representation of the certification."""
         return f"{self.category.name} - {self.name} ({self.get_difficulty_level_display()})"
-
+    
     def save(self, *args, **kwargs):
         """Auto-generate slug from name if not provided, including difficulty level for uniqueness."""
         if not self.slug:
@@ -205,7 +214,7 @@ class Certification(models.Model):
             if not self.slug.endswith(f"-{self.difficulty_level}"):
                 self.slug = expected_slug
         super().save(*args, **kwargs)
-
+    
     def get_absolute_url(self):
         """Get URL for certification's test banks list page."""
         return reverse('catalog:certification_list', kwargs={
@@ -217,20 +226,20 @@ class Certification(models.Model):
 class TestBank(models.Model):
     """
     TestBank model representing a purchasable test bank product.
-
+    
     A TestBank is a collection of questions that users can purchase and practice.
     Each TestBank can belong to:
     - A Category (top level)
     - A Certification (within a category)
-
+    
     At least one of category or certification must be assigned.
-
+    
     Users purchase access to a TestBank, which grants them the ability to:
     - Practice questions multiple times
     - Review results and explanations
     - Track their progress
     """
-
+    
     # ForeignKey to Category - each test bank can belong to a category
     category = models.ForeignKey(
         Category,
@@ -241,7 +250,7 @@ class TestBank(models.Model):
         null=True,
         blank=True
     )
-
+    
     # ForeignKey to Certification - optional, for specific certification exams
     certification = models.ForeignKey(
         Certification,
@@ -252,13 +261,13 @@ class TestBank(models.Model):
         null=True,
         blank=True
     )
-
+    
     title = models.CharField(
         max_length=200,
         verbose_name='Title',
         help_text='Title of the test bank'
     )
-
+    
     # Slug for URL-friendly routing
     slug = models.SlugField(
         max_length=200,
@@ -266,12 +275,12 @@ class TestBank(models.Model):
         verbose_name='Slug',
         help_text='URL-friendly version of the title'
     )
-
+    
     description = models.TextField(
         verbose_name='Description',
         help_text='Detailed description of the test bank content'
     )
-
+    
     # Certification metadata fields
     certification_domain = models.CharField(
         max_length=200,
@@ -280,7 +289,7 @@ class TestBank(models.Model):
         verbose_name='Certification Domain',
         help_text='Subject area or domain of the certification (e.g., Information Technology, Healthcare) - metadata field'
     )
-
+    
     organization = models.CharField(
         max_length=200,
         blank=True,
@@ -288,7 +297,7 @@ class TestBank(models.Model):
         verbose_name='Organization',
         help_text='Organization or body that issues the certification (e.g., CompTIA, Microsoft, PMI)'
     )
-
+    
     official_url = models.URLField(
         max_length=500,
         blank=True,
@@ -296,14 +305,14 @@ class TestBank(models.Model):
         verbose_name='Official URL',
         help_text='Official website URL for the certification or organization'
     )
-
+    
     certification_details = models.TextField(
         blank=True,
         null=True,
         verbose_name='Certification Details',
         help_text='Additional details about the certification, requirements, or exam information'
     )
-
+    
     # Test bank image/thumbnail
     image = models.ImageField(
         upload_to='testbanks/',
@@ -312,14 +321,14 @@ class TestBank(models.Model):
         verbose_name='Test Bank Image',
         help_text='Image/thumbnail for the test bank card'
     )
-
+    
     # Difficulty level choices
     DIFFICULTY_CHOICES = [
         ('easy', 'Easy'),
         ('medium', 'Medium'),
         ('advanced', 'Advanced'),
     ]
-
+    
     difficulty_level = models.CharField(
         max_length=20,
         choices=DIFFICULTY_CHOICES,
@@ -327,7 +336,7 @@ class TestBank(models.Model):
         verbose_name='Difficulty Level',
         help_text='Difficulty level of the test bank'
     )
-
+    
     # Price for purchasing access (in USD or configured currency)
     price = models.DecimalField(
         max_digits=10,
@@ -335,14 +344,22 @@ class TestBank(models.Model):
         verbose_name='Price',
         help_text='Price to purchase access to this test bank'
     )
-
+    
+    # Time limit for practice sessions (in minutes, null = no time limit)
+    time_limit_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Time Limit (minutes)',
+        help_text='Time limit for practice sessions in minutes (null for no time limit)'
+    )
+    
     # Active flag - only active test banks are shown to users
     is_active = models.BooleanField(
         default=True,
         verbose_name='Is Active',
         help_text='Whether this test bank is active and visible to users'
     )
-
+    
     # Rating fields - cached for performance
     average_rating = models.DecimalField(
         max_digits=3,
@@ -351,24 +368,24 @@ class TestBank(models.Model):
         verbose_name='Average Rating',
         help_text='Average rating (0.00 to 5.00)'
     )
-
+    
     total_ratings = models.PositiveIntegerField(
         default=0,
         verbose_name='Total Ratings',
         help_text='Total number of ratings received'
     )
-
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At'
     )
-
+    
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Updated At'
     )
-
+    
     class Meta:
         """Meta options for TestBank model."""
         verbose_name = 'Test Bank'
@@ -379,13 +396,13 @@ class TestBank(models.Model):
             models.Index(fields=['certification', 'is_active']),
             models.Index(fields=['slug']),
         ]
-
+    
     def clean(self):
         """Validate that at least one level (category or certification) is assigned."""
         from django.core.exceptions import ValidationError
         if not self.category and not self.certification:
             raise ValidationError('Test bank must belong to at least one level: category or certification.')
-
+    
     def save(self, *args, **kwargs):
         """Auto-generate slug from title if not provided and validate."""
         if not self.slug:
@@ -396,24 +413,24 @@ class TestBank(models.Model):
                 self.category = self.certification.category
         self.full_clean()  # Run validation
         super().save(*args, **kwargs)
-
+    
     def __str__(self):
         """String representation of the test bank."""
         return self.title
-
-
+    
+    
     def get_absolute_url(self):
         """Get URL for test bank detail page."""
         return reverse('catalog:testbank_detail', kwargs={'slug': self.slug})
-
+    
     def get_question_count(self):
         """Get total number of active questions in this test bank."""
         return self.questions.filter(is_active=True).count()
-
+    
     def get_user_count(self):
         """Get total number of users who have selected/purchased this test bank."""
         return self.user_accesses.filter(is_active=True).count()
-
+    
     def update_rating(self):
         """Update average rating and total ratings count from user ratings."""
         ratings = self.ratings.all()
@@ -431,11 +448,11 @@ class TestBank(models.Model):
 class TestBankRating(models.Model):
     """
     TestBankRating model for user ratings of test banks.
-
+    
     Users can rate test banks from 1 to 5 stars.
     Each user can only rate a test bank once (enforced by unique_together).
     """
-
+    
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -443,7 +460,7 @@ class TestBankRating(models.Model):
         verbose_name='User',
         help_text='User who gave the rating'
     )
-
+    
     test_bank = models.ForeignKey(
         TestBank,
         on_delete=models.CASCADE,
@@ -451,36 +468,36 @@ class TestBankRating(models.Model):
         verbose_name='Test Bank',
         help_text='Test bank being rated'
     )
-
+    
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         verbose_name='Rating',
         help_text='Rating from 1 to 5 stars'
     )
-
+    
     title = models.CharField(
         max_length=200,
         blank=True,
         verbose_name='Review Title',
         help_text='Optional title for the review'
     )
-
+    
     review = models.TextField(
         blank=True,
         verbose_name='Review',
         help_text='Optional review text'
     )
-
+    
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At'
     )
-
+    
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Updated At'
     )
-
+    
     class Meta:
         """Meta options for TestBankRating model."""
         verbose_name = 'Test Bank Rating'
@@ -489,16 +506,16 @@ class TestBankRating(models.Model):
             models.UniqueConstraint(fields=['user', 'test_bank'], name='unique_rating_per_user_testbank'),
         ]
         ordering = ['-created_at']
-
+    
     def __str__(self):
         """String representation of the rating."""
         return f'{self.user.username} - {self.test_bank.title} - {self.rating} stars'
-
+    
     def save(self, *args, **kwargs):
         """Save rating and update test bank's cached rating fields."""
         super().save(*args, **kwargs)
         self.test_bank.update_rating()
-
+    
     def delete(self, *args, **kwargs):
         """Delete rating and update test bank's cached rating fields."""
         test_bank = self.test_bank
@@ -509,10 +526,10 @@ class TestBankRating(models.Model):
 class ReviewReply(models.Model):
     """
     ReviewReply model for replies to test bank reviews.
-
+    
     Users can reply to reviews, creating a discussion thread.
     """
-
+    
     review = models.ForeignKey(
         TestBankRating,
         on_delete=models.CASCADE,
@@ -520,7 +537,7 @@ class ReviewReply(models.Model):
         verbose_name='Review',
         help_text='Review being replied to'
     )
-
+    
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -528,29 +545,29 @@ class ReviewReply(models.Model):
         verbose_name='User',
         help_text='User who wrote the reply'
     )
-
+    
     content = models.TextField(
         max_length=1000,
         verbose_name='Content',
         help_text='Reply content'
     )
-
+    
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At'
     )
-
+    
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Updated At'
     )
-
+    
     class Meta:
         """Meta options for ReviewReply model."""
         verbose_name = 'Review Reply'
         verbose_name_plural = 'Review Replies'
         ordering = ['created_at']
-
+    
     def __str__(self):
         """String representation of the reply."""
         return f'{self.user.username} - Reply to {self.review.user.username}\'s review'
@@ -600,15 +617,15 @@ class ContactMessage(models.Model):
 class Question(models.Model):
     """
     Question model representing individual questions within a test bank.
-
+    
     Questions can be of different types:
     - MCQ single: Multiple choice with one correct answer
     - MCQ multi: Multiple choice with multiple correct answers
     - True/False: Boolean question
-
+    
     Each question has answer options (AnswerOption) and an explanation shown after answering.
     """
-
+    
     # ForeignKey to TestBank - each question belongs to one test bank
     test_bank = models.ForeignKey(
         TestBank,
@@ -617,19 +634,19 @@ class Question(models.Model):
         verbose_name='Test Bank',
         help_text='Test bank this question belongs to'
     )
-
+    
     question_text = models.TextField(
         verbose_name='Question Text',
         help_text='The question content'
     )
-
+    
     # Question type choices
     QUESTION_TYPE_CHOICES = [
         ('mcq_single', 'Multiple Choice (Single Answer)'),
         ('mcq_multi', 'Multiple Choice (Multiple Answers)'),
         ('true_false', 'True/False'),
     ]
-
+    
     question_type = models.CharField(
         max_length=20,
         choices=QUESTION_TYPE_CHOICES,
@@ -637,39 +654,39 @@ class Question(models.Model):
         verbose_name='Question Type',
         help_text='Type of question'
     )
-
+    
     # Explanation shown to user after answering
     explanation = models.TextField(
         blank=True,
         verbose_name='Explanation',
         help_text='Explanation shown after user answers the question'
     )
-
+    
     # Active flag - only active questions are shown in practice sessions
     is_active = models.BooleanField(
         default=True,
         verbose_name='Is Active',
         help_text='Whether this question is active'
     )
-
+    
     # Order field for custom ordering of questions
     order = models.PositiveIntegerField(
         default=0,
         verbose_name='Order',
         help_text='Order of this question within the test bank'
     )
-
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At'
     )
-
+    
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Updated At'
     )
-
+    
     class Meta:
         """Meta options for Question model."""
         verbose_name = 'Question'
@@ -678,11 +695,11 @@ class Question(models.Model):
         indexes = [
             models.Index(fields=['test_bank', 'is_active']),
         ]
-
+    
     def __str__(self):
         """String representation of the question."""
         return f"{self.test_bank.title} - Question {self.order}"
-
+    
     def get_correct_answers(self):
         """Get all correct answer options for this question."""
         return self.answer_options.filter(is_correct=True)
@@ -691,15 +708,15 @@ class Question(models.Model):
 class AnswerOption(models.Model):
     """
     AnswerOption model representing answer choices for questions.
-
+    
     Each question can have multiple answer options.
     For MCQ single questions, exactly one option should be marked as correct.
     For MCQ multi questions, multiple options can be correct.
     For True/False questions, typically two options (True/False).
-
+    
     The order field allows custom ordering of options.
     """
-
+    
     # ForeignKey to Question - each answer option belongs to one question
     question = models.ForeignKey(
         Question,
@@ -708,39 +725,39 @@ class AnswerOption(models.Model):
         verbose_name='Question',
         help_text='Question this answer option belongs to'
     )
-
+    
     option_text = models.CharField(
         max_length=500,
         verbose_name='Option Text',
         help_text='The text of this answer option'
     )
-
+    
     # Boolean flag indicating if this option is correct
     is_correct = models.BooleanField(
         default=False,
         verbose_name='Is Correct',
         help_text='Whether this answer option is correct'
     )
-
+    
     # Order field for custom ordering of options
     order = models.PositiveIntegerField(
         default=0,
         verbose_name='Order',
         help_text='Order of this option within the question'
     )
-
+    
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Created At'
     )
-
+    
     class Meta:
         """Meta options for AnswerOption model."""
         verbose_name = 'Answer Option'
         verbose_name_plural = 'Answer Options'
         ordering = ['order', 'created_at']
-
+    
     def __str__(self):
         """String representation of the answer option."""
         return f"{self.question} - Option {self.order}: {self.option_text[:50]}"

@@ -63,6 +63,27 @@ module.exports = {
         'card': '0 4px 6px rgba(0, 0, 0, 0.1)',
         'card-hover': '0 10px 15px rgba(0, 0, 0, 0.15)',
       },
+      fontSize: {
+        // Standardized Typography Scale
+        'display': ['3rem', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.02em' }],      // 48px - Hero headings
+        'h1': ['2.25rem', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '-0.02em' }],        // 36px - Page titles
+        'h2': ['1.875rem', { lineHeight: '1.3', fontWeight: '700', letterSpacing: '-0.02em' }],        // 30px - Section headings
+        'h3': ['1.5rem', { lineHeight: '1.4', fontWeight: '600', letterSpacing: '-0.01em' }],          // 24px - Subsection headings
+        'h4': ['1.25rem', { lineHeight: '1.5', fontWeight: '600', letterSpacing: '-0.01em' }],        // 20px - Card titles
+        'body': ['1rem', { lineHeight: '1.6', fontWeight: '400', letterSpacing: '-0.01em' }],         // 16px - Body text
+        'body-sm': ['0.875rem', { lineHeight: '1.5', fontWeight: '400', letterSpacing: '-0.01em' }],  // 14px - Small body text
+        'caption': ['0.75rem', { lineHeight: '1.4', fontWeight: '400', letterSpacing: '0' }],         // 12px - Captions, labels
+      },
+      spacing: {
+        // Standardized Spacing Scale
+        'section': '3rem',      // 48px - Section padding (py-section)
+        'section-lg': '4rem',   // 64px - Large section padding
+        'card': '1.5rem',      // 24px - Card padding (p-card)
+        'card-lg': '2rem',      // 32px - Large card padding
+        'gap': '1.5rem',       // 24px - Standard gap (gap-gap)
+        'gap-sm': '1rem',      // 16px - Small gap
+        'gap-lg': '2rem',      // 32px - Large gap
+      },
       letterSpacing: {
         'apple': '-0.01em',
         'apple-heading': '-0.02em',

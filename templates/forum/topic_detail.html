@@ -104,7 +104,7 @@
     {% if not topic.is_locked %}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4">
-            <mark class="bg-[#fde047] text-gray-900 px-2 rounded-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{% trans "Reply to Topic" %}</mark>
+            <span class="bg-[#5624d0]/10 text-[#5624d0] px-2 py-1 rounded-lg font-semibold">{% trans "Reply to Topic" %}</span>
         </h2>
         <form method="post" action="{% url 'forum:topic_reply' category_slug=category.slug topic_slug=topic.slug %}">
             {% csrf_token %}

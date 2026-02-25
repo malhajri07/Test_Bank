@@ -37,6 +37,7 @@ Your JSON file should follow this structure:
     "description": "Description of the test bank",
     "category": "category-slug",
     "certification": "certification-slug",
+    "certification_url": "https://www.example.com/certification",
     "certification_domain": "Information Technology",
     "organization": "CompTIA",
     "official_url": "https://www.example.com/certification",
@@ -76,9 +77,10 @@ Your JSON file should follow this structure:
 - **description** (required): Description of the test bank
 - **category**: Name or slug of category (will be created if doesn't exist)
 - **certification**: Name or slug of certification (optional, requires category, will be created if doesn't exist). **Note:** The same certification name can exist multiple times under the same category, but each must have a different `difficulty_level`. For example, "PMP" can exist as both "PMP (Easy)" and "PMP (Advanced)" under the same category.
+- **certification_url** (optional): Official URL for the certification (saved to Certification model). If not provided, will use `official_url` as fallback.
 - **certification_domain** (optional, metadata field): Subject area text field for certification metadata (e.g., "Information Technology", "Healthcare", "Finance")
 - **organization** (optional): Organization or body that issues the certification (e.g., "CompTIA", "Microsoft", "PMI")
-- **official_url** (optional): Official website URL for the certification or organization
+- **official_url** (optional): Official website URL for the test bank (saved to TestBank model). Also used as fallback for certification URL if `certification_url` is not provided.
 - **certification_details** (optional): Additional details about the certification, requirements, or exam information
 - **difficulty_level**: "easy", "medium", or "advanced" (default: "easy"). Also accepts "beginner" (maps to "easy"), "intermediate" (maps to "medium"), or "hard" (maps to "advanced")
 - **price**: Price in decimal format (default: 0.00)

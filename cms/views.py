@@ -7,23 +7,22 @@ This module provides views for:
 - Content block rendering
 """
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from django.utils import timezone
+from django.db.models import Count, Q
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.db import models
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 from django.views.decorators.http import require_POST
-
+from .models import Page, Announcement, ContentBlock, BlogPost, BlogComment
 from .forms import BlogCommentForm, BlogCommentReplyForm
-from .models import Announcement, BlogComment, BlogPost, ContentBlock, Page
 
 
 def page_detail(request, slug):
     """
     Display a static page.
-
+    
     Args:
         slug: Slug of the page to display
     """
@@ -32,7 +31,7 @@ def page_detail(request, slug):
         page = get_object_or_404(Page, slug=slug)
     else:
         page = get_object_or_404(Page, slug=slug, status='published')
-
+    
     return render(request, 'cms/page_detail.html', {
         'page': page,
     })
@@ -41,28 +40,35 @@ def page_detail(request, slug):
 def get_active_announcements():
     """
     Get currently active announcements.
-
-    Returns queryset of active announcements that should be displayed.
+    
+    Utility function for retrieving active announcements.
+    Can be used in templates via template tags or context processors.
+    
+    Returns:
+        QuerySet: Active announcements that should be displayed
     """
     now = timezone.now()
     return Announcement.objects.filter(
         is_active=True
     ).filter(
-        models.Q(start_date__isnull=True) | models.Q(start_date__lte=now)
+        Q(start_date__isnull=True) | Q(start_date__lte=now)
     ).filter(
-        models.Q(end_date__isnull=True) | models.Q(end_date__gte=now)
+        Q(end_date__isnull=True) | Q(end_date__gte=now)
     ).order_by('-created_at')
 
 
 def get_content_block(slug):
     """
     Get a content block by slug.
-
+    
+    Utility function for retrieving content blocks.
+    Can be used in templates via template tags or context processors.
+    
     Args:
         slug: Slug of the content block
-
+        
     Returns:
-        ContentBlock instance or None
+        ContentBlock instance or None if not found
     """
     try:
         return ContentBlock.objects.get(slug=slug)
@@ -73,28 +79,28 @@ def get_content_block(slug):
 def blog_list(request):
     """
     Display a list of published blog posts.
-
+    
     Shows paginated list of published blog posts, ordered by published date.
     """
     # Get published blog posts with comment counts
     blog_posts = BlogPost.objects.filter(status='published').annotate(
         comment_count=Count('comments', filter=Q(comments__is_approved=True))
     ).order_by('-published_at', '-created_at')
-
+    
     # If user is staff, show all posts including drafts
     if request.user.is_staff:
         blog_posts = BlogPost.objects.all().annotate(
             comment_count=Count('comments', filter=Q(comments__is_approved=True))
         ).order_by('-published_at', '-created_at')
-
+    
     # Pagination
     paginator = Paginator(blog_posts, 10)  # Show 10 posts per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    
     # Get featured posts with comment counts
     featured_posts = blog_posts.filter(is_featured=True)[:3]
-
+    
     return render(request, 'cms/blog_list.html', {
         'blog_posts': page_obj,
         'featured_posts': featured_posts,
@@ -104,7 +110,7 @@ def blog_list(request):
 def blog_detail(request, slug):
     """
     Display a single blog post with comments.
-
+    
     Args:
         slug: Slug of the blog post to display
     """
@@ -113,24 +119,24 @@ def blog_detail(request, slug):
         post = get_object_or_404(BlogPost, slug=slug)
     else:
         post = get_object_or_404(BlogPost, slug=slug, status='published')
-
+    
     # Get approved comments (top-level comments only, no replies)
     comments = BlogComment.objects.filter(
         blog_post=post,
         is_approved=True,
         parent__isnull=True  # Only top-level comments
     ).order_by('created_at')
-
+    
     # Get related posts (same author or recent posts)
     related_posts = BlogPost.objects.filter(
         status='published'
     ).exclude(
         pk=post.pk
     ).order_by('-published_at')[:3]
-
+    
     # Initialize comment form
     comment_form = BlogCommentForm()
-
+    
     # Handle comment submission
     if request.method == 'POST' and request.user.is_authenticated:
         comment_form = BlogCommentForm(request.POST)
@@ -141,7 +147,7 @@ def blog_detail(request, slug):
             comment.save()
             messages.success(request, 'Your comment has been posted successfully!')
             return redirect('cms:blog_detail', slug=post.slug)
-
+    
     return render(request, 'cms/blog_detail.html', {
         'post': post,
         'related_posts': related_posts,
@@ -155,12 +161,12 @@ def blog_detail(request, slug):
 def add_comment_reply(request, comment_id):
     """
     Handle reply submission to a comment.
-
+    
     Args:
         comment_id: ID of the parent comment
     """
     parent_comment = get_object_or_404(BlogComment, pk=comment_id, is_approved=True)
-
+    
     form = BlogCommentReplyForm(request.POST)
     if form.is_valid():
         reply = form.save(commit=False)
@@ -170,6 +176,6 @@ def add_comment_reply(request, comment_id):
         reply.save()
         messages.success(request, 'Your reply has been posted successfully!')
         return redirect('cms:blog_detail', slug=parent_comment.blog_post.slug)
-
+    
     messages.error(request, 'There was an error posting your reply.')
     return redirect('cms:blog_detail', slug=parent_comment.blog_post.slug)
