@@ -1,0 +1,12 @@
+{
+  "name": "Exam Stellar",
+  "short_name": "ExamStellar",
+  "description": "Practice certification exams and test banks",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#5624d0",
+  "orientation": "portrait-primary",
+  "icons": [],
+  "categories": ["education", "productivity"]
+}

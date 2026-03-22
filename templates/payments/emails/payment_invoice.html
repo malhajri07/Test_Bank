@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% trans "Payment Invoice" %} - {{ payment.test_bank.title }}</title>
+    <title>{% trans "Payment Invoice" %} - {% if payment.test_bank %}{{ payment.test_bank.title }}{% else %}{% trans "Your purchase" %}{% endif %}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', 'Roboto', sans-serif;
@@ -169,8 +169,8 @@
             </div>
             
             <div class="test-bank-info">
-                <div class="test-bank-title">{{ payment.test_bank.title }}</div>
-                {% if payment.test_bank.description %}
+                <div class="test-bank-title">{% if payment.test_bank %}{{ payment.test_bank.title }}{% else %}{% trans "Your purchase" %}{% endif %}</div>
+                {% if payment.test_bank and payment.test_bank.description %}
                 <div class="test-bank-description">{{ payment.test_bank.description|truncatewords:30 }}</div>
                 {% endif %}
             </div>
@@ -181,9 +181,15 @@
             </div>
             
             <div style="text-align: center;">
+                {% if payment.test_bank %}
                 <a href="{{ site_url }}{% url 'catalog:testbank_detail' slug=payment.test_bank.slug %}" class="cta-button">
                     {% trans "Access Your Test Bank" %}
                 </a>
+                {% else %}
+                <a href="{{ site_url }}{% url 'accounts:dashboard' %}" class="cta-button">
+                    {% trans "Go to Dashboard" %}
+                </a>
+                {% endif %}
             </div>
             
             <p style="margin-top: 30px; color: #666666; font-size: 14px;">

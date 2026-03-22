@@ -71,11 +71,13 @@ class PracticeViewsTest(TestCase):
 
     def test_start_practice_with_access(self):
         """Test starting practice with purchase access."""
-        # Create access
+        # Create access with attempts remaining
         UserTestAccess.objects.create(
             user=self.user,
             test_bank=self.test_bank,
-            is_active=True
+            is_active=True,
+            attempts_allowed=3,
+            attempts_used=0,
         )
 
         self.client.login(username='testuser', password='testpass123')
@@ -85,4 +87,22 @@ class PracticeViewsTest(TestCase):
         # Should redirect to practice session
         self.assertEqual(response.status_code, 302)
         self.assertIn('/practice/session/', response.url)
+
+    def test_start_practice_no_attempts_remaining(self):
+        """Test that user cannot start practice when attempts exhausted."""
+        UserTestAccess.objects.create(
+            user=self.user,
+            test_bank=self.test_bank,
+            is_active=True,
+            attempts_allowed=3,
+            attempts_used=3,
+        )
+
+        self.client.login(username='testuser', password='testpass123')
+
+        response = self.client.get(f'/practice/start/{self.test_bank.slug}/')
+
+        # Should redirect back to test bank detail with error
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(self.test_bank.slug, response.url)
 

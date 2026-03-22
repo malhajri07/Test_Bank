@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Checkout" %} - {{ test_bank.title }}{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="page__inner py-12 max-w-2xl">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">{% trans "Secure checkout" %}</h1>
+    <div class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ test_bank.title }}</h2>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Amount" %}: {{ amount }} {{ currency }}</p>
+    </div>
+    <div class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+        <div id="tap-card-sdk"></div>
+        <div class="mt-4">
+            <button id="tap-pay-btn" type="button" disabled
+                class="w-full px-6 py-4 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all">
+                {% trans "Pay" %} {{ amount }} {{ currency }}
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="https://tap-sdks.b-cdn.net/card/1.0.2/index.js"></script>
+<script>
+(function() {
+  const paymentId = {{ payment.id }};
+  const createChargeUrl = "{% url 'payments:tap_create_charge' %}";
+  const csrfToken = "{{ csrf_token }}";
+
+  const { renderTapCard, Theme, Currencies, Locale, Direction, Edges } = window.CardSDK;
+  const payBtn = document.getElementById('tap-pay-btn');
+
+  const { unmount } = renderTapCard('tap-card-sdk', {
+    publicKey: '{{ publishable_key }}',
+    merchant: { id: '{{ merchant_id }}' },
+    transaction: {
+      amount: {{ amount_smallest }},
+      currency: '{{ currency }}'
+    },
+    customer: {
+      name: [{ lang: Locale.EN, first: '{{ user.first_name|default:"Test"|escapejs }}', last: '{{ user.last_name|default:"User"|escapejs }}' }],
+      contact: { email: '{{ user.email|default:"test@example.com"|escapejs }}' }
+    },
+    acceptance: {
+      supportedBrands: ['VISA', 'MASTERCARD', 'MADA'],
+      supportedCards: 'ALL'
+    },
+    fields: { cardHolder: true },
+    addons: { displayPaymentBrands: true, loader: true, saveCard: false },
+    interface: { locale: Locale.EN, theme: Theme.LIGHT, edges: Edges.CURVED, direction: Direction.LTR },
+    onReady: () => { payBtn.disabled = false; },
+    onSuccess: async (data) => {
+      payBtn.disabled = true;
+      payBtn.textContent = '{% trans "Processing..." %}';
+      const token = data.id || data.token?.id;
+      if (!token) {
+        alert('{% trans "Payment token not received" %}');
+        payBtn.disabled = false;
+        payBtn.textContent = '{% trans "Pay" %} {{ amount }} {{ currency }}';
+        return;
+      }
+      const formData = new FormData();
+      formData.append('token', token);
+      formData.append('payment_id', paymentId);
+      formData.append('csrfmiddlewaretoken', csrfToken);
+      try {
+        const resp = await fetch(createChargeUrl, {
+          method: 'POST',
+          body: formData,
+          headers: { 'X-CSRFToken': csrfToken }
+        });
+        const json = await resp.json();
+        if (json.redirect_url) {
+          window.location.href = json.redirect_url;
+        } else if (json.error) {
+          alert(json.error);
+          payBtn.disabled = false;
+          payBtn.textContent = '{% trans "Pay" %} {{ amount }} {{ currency }}';
+        }
+      } catch (e) {
+        alert('{% trans "Payment request failed" %}');
+        payBtn.disabled = false;
+        payBtn.textContent = '{% trans "Pay" %} {{ amount }} {{ currency }}';
+      }
+    },
+    onError: (data) => {
+      console.error('Tap SDK error:', data);
+      alert(data.message || '{% trans "Card error" %}');
+    }
+  });
+
+  payBtn.addEventListener('click', () => {
+    if (window.CardSDK && window.CardSDK.tokenize) {
+      window.CardSDK.tokenize();
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -11,7 +11,7 @@ from .models import UserTestAccess, UserTestSession, UserAnswer, Certificate
 @admin.register(UserTestAccess)
 class UserTestAccessAdmin(admin.ModelAdmin):
     """Admin interface for UserTestAccess model."""
-    list_display = ('user', 'test_bank', 'purchased_at', 'expires_at', 'is_active')
+    list_display = ('user', 'test_bank', 'attempts_used', 'attempts_allowed', 'purchased_at', 'expires_at', 'is_active')
     list_filter = ('is_active', 'purchased_at', 'expires_at')
     search_fields = ('user__username', 'test_bank__title')
     readonly_fields = ('purchased_at',)

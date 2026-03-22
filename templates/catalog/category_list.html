@@ -4,10 +4,11 @@
 {% block title %}{% trans "Categories - Exam Stellar" %}{% endblock %}
 
 {% block content %}
+<div class="page">
 <!-- Page Header - Apple Style -->
 <div class="bg-white/80 backdrop-blur-xl border-b border-gray-100">
-    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-        <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %} mb-6">
+    <div class="page__inner py-12">
+        <nav class="flex items-center gap-2 flex-wrap text-sm mb-6">
             <a href="{% url 'catalog:index' %}" class="text-[#6184b7] hover:text-[#4A70A9] font-medium">
                 {% trans "Home" %}
             </a>
@@ -21,7 +22,7 @@
 </div>
 
 <!-- Categories Grid - Apple Style -->
-<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+<div class="page__inner py-12">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for category in categories %}
         <a href="{% if category.certification_count > 0 %}{% url 'catalog:category_detail' category_slug=category.slug %}{% else %}{% url 'catalog:testbank_list' category_slug=category.slug %}{% endif %}" class="block">
@@ -32,7 +33,7 @@
                     <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
                 </div>
                 {% else %}
-                <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                <div class="h-40 bg-gradient-to-br from-brand-500 to-brand-600 relative overflow-hidden flex items-center justify-center">
                     <div class="text-white text-5xl font-bold opacity-50">{{ category.name|first|upper }}</div>
                 </div>
                 {% endif %}
@@ -66,5 +67,6 @@
         </div>
         {% endfor %}
     </div>
+</div>
 </div>
 {% endblock %}

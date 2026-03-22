@@ -51,6 +51,80 @@ services:
       - exam_stellar_network
     restart: unless-stopped
 
+  # Redis (cache, Celery broker)
+  redis:
+    image: redis:7-alpine
+    container_name: exam_stellar_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - exam_stellar_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Celery worker (async tasks: grading, PDF cert, email)
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exam_stellar_celery
+    command: celery -A testbank_platform worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-testbank_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-in-production}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - exam_stellar_network
+    restart: unless-stopped
+    profiles:
+      - full
+
+  # Celery beat (scheduled tasks)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exam_stellar_celery_beat
+    command: celery -A testbank_platform beat -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-testbank_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-in-production}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - exam_stellar_network
+    restart: unless-stopped
+    profiles:
+      - full
+
   # Nginx (for production - serves static files and reverse proxy)
   nginx:
     image: nginx:alpine

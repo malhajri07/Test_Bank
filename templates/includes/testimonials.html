@@ -2,10 +2,10 @@
 {% comment %}Testimonials Section Component - Uses CMS testimonials from context processor{% endcomment %}
 {% if cms_testimonials %}
 <section class="py-16 bg-white">
-    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="page__inner">
         <div class="text-center mb-8">
             <h2 class="text-2xl font-bold text-gray-900 mb-2">
-                <span class="bg-[#5624d0]/10 text-[#5624d0] px-3 py-1 rounded-lg font-semibold">{% trans "Why people choose Exam Stellar" %}</span>
+                <span class="bg-brand-500/10 text-brand-500 px-3 py-1 rounded-lg font-semibold">{% trans "Why people choose Exam Stellar" %}</span>
             </h2>
         </div>
         
@@ -14,13 +14,13 @@
                 {% for testimonial in cms_testimonials %}
                 <div class="swiper-slide">
                     <div class="bg-white border border-gray-200 p-6 h-full transition-all duration-200 hover:shadow-lg flex flex-col">
-                        <div class="flex items-start space-x-4 mb-4">
+                        <div class="flex items-start gap-4 mb-4">
                             {% if testimonial.photo %}
                             <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                                 <img src="{{ testimonial.photo.url }}" alt="{{ testimonial.name }}" class="w-full h-full object-cover">
                             </div>
                             {% else %}
-                            <div class="w-12 h-12 bg-[#5624d0] rounded-full flex items-center justify-center flex-shrink-0">
+                            <div class="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center flex-shrink-0">
                                 <span class="text-white font-semibold text-sm">{{ testimonial.name|first|upper }}</span>
                             </div>
                             {% endif %}

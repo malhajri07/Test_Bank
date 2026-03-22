@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.urls import path
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-from .models import Category, Certification, TestBank, TestBankRating, Question, AnswerOption, ContactMessage
+from .models import Category, Certification, ExamPackage, ExamPackageItem, TestBank, TestBankRating, Question, AnswerOption, ContactMessage
 from .forms import TestBankJSONUploadForm
 from .utils import import_test_bank_from_json, parse_json_file
 
@@ -89,6 +89,28 @@ class CertificationAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
+    )
+
+
+class ExamPackageItemInline(admin.TabularInline):
+    """Inline for test banks in a package."""
+    model = ExamPackageItem
+    extra = 1
+    autocomplete_fields = ['test_bank']
+
+
+@admin.register(ExamPackage)
+class ExamPackageAdmin(admin.ModelAdmin):
+    """Admin for ExamPackage."""
+    list_display = ('title', 'slug', 'package_price', 'get_retail_value', 'get_savings', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('title', 'description')
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [ExamPackageItemInline]
+    fieldsets = (
+        ('Basic', {'fields': ('title', 'slug', 'description', 'package_price', 'is_active')}),
+        ('Timestamps', {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)}),
     )
 
 

@@ -18,10 +18,10 @@ Parameters:
 {% load i18n %}
 
 {% if href %}
-<a href="{{ href }}" class="block h-full group focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2 rounded-xl">
+<a href="{{ href }}" class="block h-full group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 rounded-xl">
   <div class="bg-white h-full rounded-xl border border-gray-200 {% if hover == "true" %}shadow-sm hover:shadow-lg{% else %}shadow-sm{% endif %} transition-all duration-300 {% if hover == "true" %}hover:-translate-y-1{% endif %} overflow-hidden flex flex-col {% if size == "large" %}p-card-lg{% else %}p-card{% endif %} {{ class|default:'' }}">
     {% if title %}
-    <h3 class="text-xl font-semibold text-gray-900 mb-4 group-hover:text-[#5624d0] transition-colors tracking-tight">{{ title }}</h3>
+    <h3 class="text-xl font-semibold text-gray-900 mb-4 group-hover:text-brand-500 transition-colors tracking-tight">{{ title }}</h3>
     {% endif %}
     {% if content %}
     <div class="flex-1 text-gray-700 leading-relaxed">{{ content }}</div>

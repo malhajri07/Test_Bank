@@ -4,10 +4,11 @@
 {% block title %}{{ page.meta_title|default:page.title }} - {% trans "Exam Stellar" %}{% endblock %}
 
 {% block content %}
+<div class="page">
 <!-- Page Header -->
 <div class="bg-white border-b border-gray-200">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %} mb-4">
+    <div class="page__inner max-w-4xl py-8">
+        <nav class="flex items-center gap-2 flex-wrap text-sm mb-4">
             <a href="{% url 'catalog:index' %}" class="text-[#8FABD4] hover:text-[#4A70A9]">
                 {% trans "Home" %}
             </a>
@@ -19,7 +20,7 @@
 </div>
 
 <!-- Page Content -->
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="page__inner max-w-4xl py-12">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 prose prose-lg max-w-none">
         {{ page.content|sanitize }}
     </div>
@@ -29,6 +30,7 @@
         {% trans "Last updated:" %} {{ page.updated_at|date:"F d, Y" }}
     </div>
     {% endif %}
+</div>
 </div>
 {% endblock %}
 

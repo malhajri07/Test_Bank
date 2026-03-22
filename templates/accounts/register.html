@@ -9,12 +9,12 @@
         <!-- Logo - New Purple Style -->
         <div class="text-center mb-10">
             <div class="inline-flex items-center justify-center mb-6">
-                <div class="w-16 h-16 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] rounded-xl flex items-center justify-center shadow-sm">
+                <div class="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-sm">
                     <span class="font-semibold text-xl"><span class="text-white">{</span><span class="text-white">E</span><span class="text-white">S</span><span class="text-white">}</span></span>
                 </div>
             </div>
             <h2 class="text-4xl font-semibold tracking-tight mb-2">
-                <span class="bg-[#5624d0]/10 text-[#5624d0] px-3 py-1 rounded-lg font-semibold">{% trans "Create your account" %}</span>
+                <span class="bg-brand-500/10 text-brand-500 px-3 py-1 rounded-lg font-semibold">{% trans "Create your account" %}</span>
             </h2>
             <p class="mt-2 text-base text-[#666666] font-medium">
                 {% trans "Start your learning journey" %}
@@ -33,7 +33,7 @@
                     </label>
                     <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
                         value="{{ form.username.value|default:'' }}" required
-                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.username.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
                     {% endif %}
@@ -45,7 +45,7 @@
                     </label>
                     <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}"
                         value="{{ form.email.value|default:'' }}" required
-                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.email.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
                     {% endif %}
@@ -58,7 +58,7 @@
                     </label>
                     <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}"
                         required
-                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.password1.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
                     {% endif %}
@@ -71,7 +71,7 @@
                     </label>
                     <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}"
                         required
-                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                     {% if form.password2.errors %}
                     <p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
                     {% endif %}
@@ -84,7 +84,7 @@
                     </label>
                     <input type="text" name="{{ form.full_name.name }}" id="{{ form.full_name.id_for_label }}"
                         value="{{ form.full_name.value|default:'' }}"
-                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#5624d0] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
+                        class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all">
                 </div>
 
                 <div>
@@ -102,7 +102,7 @@
                 </div>
 
                 <button type="submit"
-                    class="w-full bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+                    class="w-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
                     {% trans "Create Account" %}
                 </button>
             </form>
@@ -111,7 +111,7 @@
                 <p class="text-sm text-[#666666]">
                     {% url 'accounts:login' as login_url %}
                     {% blocktrans %}Already have an account? <a href="{{ login_url }}"
-                        class="text-[#5624d0] hover:text-[#4a1fb8] font-semibold">Log in</a>{% endblocktrans %}
+                        class="text-brand-500 hover:text-brand-600 font-semibold">Log in</a>{% endblocktrans %}
                 </p>
             </div>
         </div>

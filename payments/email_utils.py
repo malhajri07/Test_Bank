@@ -54,15 +54,23 @@ def send_payment_invoice(payment):
                 site_url = 'http://localhost:8000' if settings.DEBUG else 'https://examstellar.com'
 
         # Render email template
-        email_subject = f'Payment Invoice - {payment.test_bank.title}'
+        product_title = (
+            payment.test_bank.title
+            if payment.test_bank
+            else (f"Package ({payment.order.items.count()} exams)" if payment.order else "Your purchase")
+        )
+        email_subject = f'Payment Invoice - {product_title}'
         email_html = render_to_string('payments/emails/payment_invoice.html', {
             'payment': payment,
             'site_url': site_url,
         })
 
         # Create plain text version
+        cta_url = f"{site_url}/accounts/dashboard/"
+        if payment.test_bank:
+            cta_url = f"{site_url}/test-bank/{payment.test_bank.slug}/"
         email_text = f"""
-Payment Invoice - {payment.test_bank.title}
+Payment Invoice - {product_title}
 
 Invoice #{payment.id} | Date: {payment.created_at.strftime('%B %d, %Y')}
 
@@ -77,13 +85,13 @@ Payment Details:
 - Payment Method: {payment.get_payment_provider_display()}
 - Status: Paid
 
-Test Bank: {payment.test_bank.title}
+Product: {product_title}
 
 Total Paid: ${payment.amount:.2f} {payment.currency.upper()}
 
-You now have full access to this test bank. You can start practicing immediately from your dashboard.
+You now have full access. You can start practicing immediately from your dashboard.
 
-Access your test bank: {site_url}/test-bank/{payment.test_bank.slug}/
+Access: {cta_url}
 
 If you have any questions or need assistance, please don't hesitate to contact our support team.
 

@@ -1,11 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     '../../templates/**/*.html',
     '../../accounts/templates/**/*.html',
     '../../catalog/templates/**/*.html',
     '../../payments/templates/**/*.html',
     '../../practice/templates/**/*.html',
+    '../../cms/templates/**/*.html',
+    '../../forum/templates/**/*.html',
+  ],
+  safelist: [
+    // Django messages: semantic alert surfaces (JIT cannot see dynamic tag strings)
+    'es-alert--success',
+    'es-alert--error',
+    'es-alert--warning',
+    'es-alert--info',
   ],
   theme: {
     extend: {
@@ -30,9 +40,19 @@ module.exports = {
         'apple-text': '#1d1d1f',
         'apple-text-secondary': '#86868b',
         'apple-border': 'rgba(0, 0, 0, 0.1)',
-        // Udemy colors
+        // Brand (Exam Stellar) — prefer `brand-*` in templates; udemy-* kept for compatibility
+        brand: {
+          500: '#5624d0',
+          600: '#4a1fb8',
+          700: '#3d1a9e',
+        },
+        // Udemy colors (alias)
         'udemy-purple': '#5624d0',
         'udemy-purple-dark': '#4a1fb8',
+        // Dark mode (slate-900 base per skill spec)
+        'dark-bg': '#0F172A',
+        'dark-surface': '#1E293B',
+        'dark-border': '#334155',
       },
       backgroundColor: {
         'app': 'rgb(245, 245, 247)',
@@ -47,6 +67,13 @@ module.exports = {
         '9xl': '1440px',
       },
       zIndex: {
+        // Layered stack (modals/toasts should use higher values in page code)
+        nav: '1000',
+        'nav-mega': '1010',
+        'nav-dropdown': '1020',
+        overlay: '2000',
+        toast: '3000',
+        // Legacy — migrate callers to nav / nav-mega / nav-dropdown
         '9999': '9999',
         '10000': '10000',
       },
@@ -94,8 +121,11 @@ module.exports = {
     },
   },
   plugins: [
-    function({ addBase, addComponents, addUtilities }) {
+    function({ addBase, addComponents, addUtilities, theme }) {
       addBase({
+        ':root': {
+          '--header-h': '4rem', // matches nav h-16; use for scroll-margin / JS if needed
+        },
         '*': {
           '-webkit-font-smoothing': 'antialiased',
           '-moz-osx-font-smoothing': 'grayscale',
@@ -116,6 +146,64 @@ module.exports = {
         },
         'a, button': {
           'transition': 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        },
+      });
+      addComponents({
+        /* Page shell: wrap block content for consistent width + horizontal padding */
+        '.page': {
+          width: '100%',
+          flex: '1 1 auto',
+        },
+        '.page__inner': {
+          maxWidth: theme('maxWidth.9xl'),
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          paddingLeft: theme('spacing.4'),
+          paddingRight: theme('spacing.4'),
+          '@screen sm': {
+            paddingLeft: theme('spacing.6'),
+            paddingRight: theme('spacing.6'),
+          },
+          '@screen lg': {
+            paddingLeft: theme('spacing.8'),
+            paddingRight: theme('spacing.8'),
+          },
+        },
+        /* Django messages — static classes so Tailwind always emits utilities */
+        '.es-alert': {
+          display: 'block',
+          borderRadius: theme('borderRadius.md'),
+          padding: theme('spacing.4'),
+          marginBottom: theme('spacing.4'),
+          boxShadow: theme('boxShadow.sm'),
+        },
+        '.es-alert--success': {
+          backgroundColor: theme('colors.green.50'),
+          borderInlineStartWidth: '4px',
+          borderInlineStartStyle: 'solid',
+          borderInlineStartColor: theme('colors.green.500'),
+          color: theme('colors.green.800'),
+        },
+        '.es-alert--error': {
+          backgroundColor: theme('colors.red.50'),
+          borderInlineStartWidth: '4px',
+          borderInlineStartStyle: 'solid',
+          borderInlineStartColor: theme('colors.red.500'),
+          color: theme('colors.red.800'),
+        },
+        '.es-alert--warning': {
+          backgroundColor: theme('colors.amber.50'),
+          borderInlineStartWidth: '4px',
+          borderInlineStartStyle: 'solid',
+          borderInlineStartColor: theme('colors.amber.500'),
+          color: theme('colors.amber.900'),
+        },
+        '.es-alert--info': {
+          backgroundColor: theme('colors.blue.50'),
+          borderInlineStartWidth: '4px',
+          borderInlineStartStyle: 'solid',
+          borderInlineStartColor: theme('colors.blue.500'),
+          color: theme('colors.blue.800'),
         },
       });
       addUtilities({

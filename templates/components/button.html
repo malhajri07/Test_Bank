@@ -22,7 +22,7 @@ Parameters:
 
 {% if style == "primary" or not style %}
   {% if size == "sm" %}
-    {% with btn_classes="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+    {% with btn_classes="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2" %}
       {% if href %}
         <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
       {% else %}
@@ -30,7 +30,7 @@ Parameters:
       {% endif %}
     {% endwith %}
   {% elif size == "lg" %}
-    {% with btn_classes="px-8 py-4 text-base font-semibold bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+    {% with btn_classes="px-8 py-4 text-base font-semibold bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2" %}
       {% if href %}
         <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
       {% else %}
@@ -38,7 +38,7 @@ Parameters:
       {% endif %}
     {% endwith %}
   {% else %}
-    {% with btn_classes="px-6 py-3 text-sm font-semibold bg-gradient-to-r from-[#5624d0] to-[#4a1fb8] hover:from-[#4a1fb8] hover:to-[#3d1a9e] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+    {% with btn_classes="px-6 py-3 text-sm font-semibold bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2" %}
       {% if href %}
         <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
       {% else %}
@@ -74,7 +74,7 @@ Parameters:
   {% endif %}
 {% elif style == "ghost" %}
   {% if size == "sm" %}
-    {% with btn_classes="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+    {% with btn_classes="px-4 py-2 text-sm font-normal text-gray-700 hover:text-brand-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2" %}
       {% if href %}
         <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
       {% else %}
@@ -82,7 +82,7 @@ Parameters:
       {% endif %}
     {% endwith %}
   {% elif size == "lg" %}
-    {% with btn_classes="px-8 py-4 text-base font-normal text-gray-700 hover:text-[#5624d0] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+    {% with btn_classes="px-8 py-4 text-base font-normal text-gray-700 hover:text-brand-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2" %}
       {% if href %}
         <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
       {% else %}
@@ -90,7 +90,7 @@ Parameters:
       {% endif %}
     {% endwith %}
   {% else %}
-    {% with btn_classes="px-6 py-3 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:ring-offset-2" %}
+    {% with btn_classes="px-6 py-3 text-sm font-normal text-gray-700 hover:text-brand-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2" %}
       {% if href %}
         <a href="{{ href }}" class="{{ btn_classes }} {{ class|default:'' }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>{{ text }}</a>
       {% else %}

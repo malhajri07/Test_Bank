@@ -69,7 +69,19 @@ class UserTestAccess(models.Model):
         verbose_name='Is Active',
         help_text='Whether access is currently active'
     )
-    
+
+    # Attempt limits — single source of truth for "can this user take this exam?"
+    attempts_allowed = models.PositiveIntegerField(
+        default=3,
+        verbose_name='Attempts Allowed',
+        help_text='Maximum number of exam attempts (e.g., 1, 3, or 999 for unlimited)'
+    )
+    attempts_used = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Attempts Used',
+        help_text='Number of exam attempts already used'
+    )
+
     class Meta:
         """Meta options for UserTestAccess model."""
         verbose_name = 'User Test Access'
@@ -102,6 +114,10 @@ class UserTestAccess(models.Model):
             return True
         from django.utils import timezone
         return self.expires_at > timezone.now()
+
+    def has_attempts_remaining(self):
+        """Check if user has remaining exam attempts."""
+        return self.attempts_used < self.attempts_allowed
 
 
 class UserTestSession(models.Model):

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ package.title }} - {% trans "Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="bg-white border-b border-gray-200">
+    <div class="page__inner py-3">
+        <nav aria-label="{% trans 'Breadcrumb' %}" class="flex items-center gap-2 text-sm flex-wrap">
+            <a href="{% url 'catalog:index' %}" class="text-brand-500 hover:text-brand-600">{% trans "Home" %}</a>
+            <span class="text-gray-400">/</span>
+            <span class="text-gray-900 font-medium" aria-current="page">{{ package.title }}</span>
+        </nav>
+    </div>
+</div>
+
+<section class="bg-white border-b border-gray-200">
+    <div class="page__inner py-10 lg:py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">{{ package.title }}</h1>
+                {% if package.description %}
+                <p class="text-gray-600">{{ package.description }}</p>
+                {% endif %}
+
+                <h2 class="text-xl font-semibold text-gray-900">{% trans "What's Included" %}</h2>
+                <ul class="space-y-3">
+                    {% for tb in test_banks %}
+                    <li class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <a href="{% url 'catalog:testbank_detail' slug=tb.slug %}" class="text-brand-500 hover:underline font-medium">{{ tb.title }}</a>
+                        <span class="text-sm text-gray-500">({{ tb.get_question_count }} {% trans "questions" %})</span>
+                    </li>
+                    {% empty %}
+                    <li class="text-gray-500">{% trans "No test banks in this package." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200 sticky top-4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">{% trans "Package Price" %}</h3>
+                    {% if savings > 0 %}
+                    <p class="text-sm text-gray-500 line-through mb-1">{% trans "Retail value:" %} ${{ retail_value|floatformat:2 }}</p>
+                    <p class="text-green-600 font-medium mb-2">{% blocktrans with amount=savings|floatformat:2 %}Save ${{ amount }}{% endblocktrans %}</p>
+                    {% endif %}
+                    <p class="text-2xl font-bold text-gray-900 mb-6">${{ package.package_price|floatformat:2 }}</p>
+
+                    {% if has_full_access %}
+                    <p class="text-green-600 font-medium mb-4">{% trans "You have access to all exams in this package." %}</p>
+                    <a href="{% url 'accounts:dashboard' %}" class="block w-full text-center py-3 px-4 bg-brand-500 text-white font-semibold rounded-xl hover:bg-brand-600 transition-colors">
+                        {% trans "Go to Dashboard" %}
+                    </a>
+                    {% elif request.user.is_authenticated %}
+                    <a href="{% url 'payments:create_checkout_package' package_slug=package.slug %}" class="block w-full text-center py-3 px-4 bg-brand-500 text-white font-semibold rounded-xl hover:bg-brand-600 transition-colors">
+                        {% trans "Buy Package" %} — ${{ package.package_price|floatformat:2 }}
+                    </a>
+                    {% else %}
+                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="block w-full text-center py-3 px-4 bg-brand-500 text-white font-semibold rounded-xl hover:bg-brand-600 transition-colors">
+                        {% trans "Log in to Purchase" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+{% endblock %}

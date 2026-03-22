@@ -15,15 +15,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-# Import admin configuration
+from .health import healthz, readyz
 
 urlpatterns = [
+    path('healthz/', healthz),
+    path('readyz/', readyz),
     # Admin interface
     path('admin/', admin.site.urls),
 
     # Accounts app URLs (authentication, profiles, dashboard)
     path('accounts/', include('accounts.urls')),
+    # django-allauth (social login) - /accounts/ prefix for OAuth callbacks
+    path('accounts/', include('allauth.urls')),
 
     # Catalog app URLs (browsing categories and test banks)
     path('', include('catalog.urls')),  # Root URL goes to catalog index
@@ -42,6 +47,13 @@ urlpatterns = [
 
     # CKEditor file upload URLs
     path('ckeditor/', include('ckeditor_uploader.urls')),
+
+    # REST API
+    path('api/', include('api.urls')),
+
+    # OpenAPI schema & docs
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 # Serve media files in development (not for production)

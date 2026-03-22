@@ -10,6 +10,8 @@ This configuration file includes:
 - Custom user model configuration
 """
 
+from datetime import timedelta
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -38,6 +40,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Third-party apps
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "drf_spectacular",
     "tailwind",  # Django Tailwind integration
     "theme",  # Tailwind theme app
     "ckeditor",  # Rich text editor for CMS
@@ -50,6 +60,7 @@ INSTALLED_APPS = [
     "practice",  # User test sessions and results
     "cms",       # Content Management System
     "forum",     # Forum and discussion boards
+    "api",       # REST API
 ]
 
 MIDDLEWARE = [
@@ -59,6 +70,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -107,6 +119,25 @@ DATABASES = {
 # if config('DATABASE_URL', default=None):
 #     DATABASES['default'] = dj_database_url.parse(config('DATABASE_URL'))
 
+
+# django-allauth
+SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
+LOGIN_REDIRECT_URL = "accounts:dashboard"
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "optional"
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    }
+}
 
 # Custom User Model
 # Using custom user model for better flexibility and future extensions
@@ -213,6 +244,15 @@ STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
 # Stripe currency (default to USD, can be changed per payment)
 STRIPE_CURRENCY = 'usd'
 
+# Payment gateway preference: 'auto' (default Stripe), 'stripe', or 'tap'
+PAYMENT_GATEWAY = config('PAYMENT_GATEWAY', default='auto')
+
+# Tap Payments (MEA) — set real keys only in environment / .env (never commit secrets)
+TAP_PUBLISHABLE_KEY = config('TAP_PUBLISHABLE_KEY', default='')
+TAP_SECRET_KEY = config('TAP_SECRET_KEY', default='')
+TAP_MERCHANT_ID = config('TAP_MERCHANT_ID', default='')
+TAP_CURRENCY = config('TAP_CURRENCY', default='USD')
+
 # VAT Configuration
 VAT_RATE = 0.15  # 15% VAT rate
 
@@ -245,6 +285,37 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+# JWT (simplejwt) - for API/mobile clients
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
+# drf-spectacular (OpenAPI)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Exam Stellar API',
+    'VERSION': '1.0.0',
+}
+
+# Celery Configuration
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
 
 # Logging Configuration
 LOGGING = {

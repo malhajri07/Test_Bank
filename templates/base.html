@@ -1,10 +1,14 @@
 {% load static tailwind_tags i18n %}
 <!DOCTYPE html>
-<html lang="{{ USER_LANGUAGE_CODE|default:'en' }}" dir="{% if IS_RTL %}rtl{% else %}ltr{% endif %}" class="overflow-x-hidden">
+<html lang="{{ USER_LANGUAGE_CODE|default:'en' }}" dir="{% if IS_RTL %}rtl{% else %}ltr{% endif %}" class="overflow-x-hidden" data-theme="">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#5624d0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
     <title>{% block title %}{% trans "Exam Stellar" %}{% endblock %}</title>
 
     <!-- Tailwind CSS -->
@@ -29,26 +33,37 @@
     {% endif %}
 
     {% block extra_css %}{% endblock %}
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
 </head>
 
 <body
-    class="min-h-screen flex flex-col bg-white antialiased font-normal tracking-apple text-apple-text bg-apple-bg pt-16 m-0 relative z-0 {% if IS_RTL %}font-arabic{% else %}font-sans{% endif %}" style="padding-top: 64px !important;">
+    class="min-h-screen flex flex-col bg-white dark:bg-dark-bg antialiased font-normal tracking-apple text-apple-text dark:text-gray-200 bg-apple-bg dark:bg-dark-bg pt-16 m-0 relative z-0 {% if IS_RTL %}font-arabic{% else %}font-sans{% endif %}">
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:start-4 focus:z-toast focus:rounded-md focus:bg-brand-500 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+        {% trans "Skip to main content" %}
+    </a>
     <!-- Navigation Bar - Udemy Style (Rebuilt) -->
-    <nav class="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 right-0 z-[9999] w-full m-0 p-0 h-16 overflow-hidden" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; scroll-behavior: auto !important; transform: none !important;">
+    <nav class="bg-white dark:bg-dark-surface border-b border-gray-200 dark:border-dark-border shadow-sm fixed inset-x-0 top-0 z-nav w-full m-0 p-0 h-16 overflow-hidden">
         <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
             <!-- Top Navigation Row -->
             <div class="flex justify-between items-center h-full min-h-0">
                 <!-- Logo/Brand -->
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="{% url 'catalog:index' %}" class="flex items-center space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <a href="{% url 'catalog:index' %}" class="flex items-center gap-3">
                         <div
-                            class="w-7 h-7 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] rounded-xl flex items-center justify-center shadow-sm">
+                            class="w-7 h-7 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-sm">
                             <span class="font-semibold text-xs"><span class="text-white">{</span><span
                                     class="text-white">E</span><span class="text-white">S</span><span
                                     class="text-white">}</span></span>
                         </div>
                         <span class="text-base font-semibold tracking-tight">
-                            <span class="text-[#666666] font-normal">Exam</span><span class="font-bold text-[#5624d0]">{Stellar}</span>
+                            <span class="text-[#666666] font-normal">Exam</span><span class="font-bold text-brand-500">{Stellar}</span>
                         </span>
                     </a>
                 </div>
@@ -56,10 +71,10 @@
                 <!-- Explore Dropdown Button with Mega Menu -->
                 <div class="hidden lg:block relative explore-menu-container">
                     <button type="button" id="explore-button"
-                        class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition-colors flex items-center"
+                        class="px-4 py-2 text-sm font-normal text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-purple-400 transition-colors flex items-center"
                         aria-label="{% trans 'Explore categories' %}" aria-expanded="false" aria-haspopup="true">
                         {% trans "Explore" %}
-                        <svg class="w-4 h-4 ml-1 {% if IS_RTL %}mr-1 ml-0{% endif %} transition-transform" fill="none"
+                        <svg class="w-4 h-4 ms-1 transition-transform" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -68,7 +83,7 @@
                     <!-- Mega Menu Dropdown -->
                     {% if categories %}
                     <div id="explore-mega-menu"
-                        class="fixed left-0 top-16 w-full bg-white border-t border-gray-200 shadow-xl opacity-0 invisible transition-all duration-200 pointer-events-none z-[10000]">
+                        class="fixed left-0 top-16 w-full bg-white dark:bg-dark-surface border-t border-gray-200 dark:border-dark-border shadow-xl opacity-0 invisible transition-all duration-200 pointer-events-none z-nav-mega">
                         <div class="max-w-9xl mx-auto px-6 py-8">
                             <div class="flex gap-8 relative">
                                 <!-- Categories Column (Left) -->
@@ -77,7 +92,7 @@
                                         {% for category in categories %}
                                         <li class="category-menu-item group">
                                             <a href="{% url 'catalog:category_detail' category_slug=category.slug %}"
-                                                class="block px-4 py-3 text-sm font-semibold text-gray-900 hover:text-[#5624d0] hover:bg-gray-50 rounded-lg transition-all duration-200"
+                                                class="block px-4 py-3 text-sm font-semibold text-gray-900 hover:text-brand-500 hover:bg-gray-50 rounded-lg transition-all duration-200"
                                                 data-category-id="category-{{ category.id }}">
                                                 {{ category.name }}
                                             </a>
@@ -96,7 +111,7 @@
                                         <div class="grid grid-cols-2 gap-4">
                                             {% for test_bank in test_banks_list %}
                                             <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}"
-                                               class="block px-3 py-2 text-sm text-gray-700 hover:text-[#5624d0] hover:bg-gray-50 rounded-lg transition-all duration-200 border border-gray-100 hover:border-gray-200">
+                                               class="block px-3 py-2 text-sm text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg transition-all duration-200 border border-gray-100 hover:border-gray-200">
                                                 <div class="flex gap-4">
                                                     <!-- Left side: Title and Difficulty -->
                                                     <div class="flex-shrink-0 w-32">
@@ -125,7 +140,7 @@
                                         {% if category.test_bank_count > 10 %}
                                         <div class="mt-4 pt-4 border-t border-gray-200">
                                             <a href="{% url 'catalog:category_detail' category_slug=category.slug %}" 
-                                               class="text-sm text-[#5624d0] hover:text-[#4a1fb8] font-medium hover:underline">
+                                               class="text-sm text-brand-500 hover:text-brand-600 font-medium hover:underline">
                                                 {% trans "For more, click this link" %}
                                             </a>
                                         </div>
@@ -149,10 +164,10 @@
                 <div class="flex-1 max-w-2xl mx-4 hidden md:block">
                     <form method="get" action="{% url 'catalog:search' %}" class="relative">
                         <input type="text" name="q" placeholder="{% trans 'Search for anything' %}"
-                            class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#5624d0] focus:border-transparent"
+                            class="w-full px-4 py-2 ps-10 pe-4 text-sm border border-gray-300 dark:border-dark-border dark:bg-dark-surface dark:text-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             value="{{ request.GET.q }}">
                         <button type="submit"
-                            class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#5624d0] transition-colors"
+                            class="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-brand-500 transition-colors"
                             aria-label="{% trans 'Search' %}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -163,10 +178,16 @@
                 </div>
 
                 <!-- Right Side Actions -->
-                <div class="flex items-center space-x-4 {% if IS_RTL %}space-x-reverse{% endif %}">
+                <div class="flex items-center gap-4">
+                    <!-- Theme Toggle -->
+                    <button type="button" id="theme-toggle" aria-label="{% trans 'Toggle dark mode' %}"
+                        class="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-dark-surface transition-colors">
+                        <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/></svg>
+                        <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+                    </button>
                     {% if user.is_authenticated %}
                     <!-- Cart Icon -->
-                    <a href="#" class="p-2 text-gray-700 hover:text-[#5624d0] transition-colors relative" aria-label="{% trans 'Shopping cart' %}">
+                    <a href="#" class="p-2 text-gray-700 hover:text-brand-500 transition-colors relative" aria-label="{% trans 'Shopping cart' %}">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -179,12 +200,12 @@
                             aria-label="{% trans 'User menu' %}"
                             aria-expanded="false"
                             aria-haspopup="true">
-                            <div class="w-8 h-8 bg-[#5624d0] rounded-full flex items-center justify-center">
+                            <div class="w-8 h-8 bg-brand-500 rounded-full flex items-center justify-center">
                                 <span class="text-white text-xs font-semibold" aria-hidden="true">{{ user.username|first|upper }}</span>
                             </div>
                         </button>
                         <div id="user-menu-dropdown"
-                            class="fixed {% if IS_RTL %}left-auto{% else %}right-4{% endif %} w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 opacity-0 invisible transition-all duration-200 z-[10001]" style="top: 64px !important; scroll-behavior: auto !important; position: fixed !important;">
+                            class="fixed top-16 end-4 w-56 bg-white dark:bg-dark-surface rounded-lg shadow-xl border border-gray-200 dark:border-dark-border py-2 opacity-0 invisible transition-all duration-200 z-nav-dropdown">
                             <a href="{% url 'accounts:profile' pk=user.pk %}"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                 {% trans "Profile" %}
@@ -203,11 +224,11 @@
                     {% else %}
                     <!-- Login/Register Links -->
                     <a href="{% url 'accounts:login' %}"
-                        class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-[#5624d0] transition">
+                        class="px-4 py-2 text-sm font-normal text-gray-700 hover:text-brand-500 transition">
                         {% trans "Log in" %}
                     </a>
                     <a href="{% url 'accounts:register' %}"
-                        class="px-4 py-2 text-sm font-semibold text-white bg-[#5624d0] hover:bg-[#4a1fb8] rounded transition-all">
+                        class="px-4 py-2 text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 rounded transition-all">
                         {% trans "Sign up" %}
                     </a>
                     {% endif %}
@@ -220,10 +241,10 @@
     {% if messages %}
     <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-50 border-l-4 border-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-500 text-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4 shadow-sm"
+        <div class="es-alert {% if message.tags == 'success' %}es-alert--success{% elif message.tags == 'error' %}es-alert--error{% elif message.tags == 'warning' %}es-alert--warning{% else %}es-alert--info{% endif %}"
             role="alert">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2 {% if IS_RTL %}ml-2 mr-0{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     {% if message.tags == 'success' %}
                     <path fill-rule="evenodd"
                         d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -252,12 +273,12 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main class="flex-grow relative z-0 mt-0 pt-0">
+    <main id="main-content" tabindex="-1" class="flex-grow relative z-0 mt-0 pt-0 outline-none">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer - Purple Background Style -->
-    <footer class="bg-gradient-to-r from-[#5525d0] to-[#4a1fb8] border-t border-[#4a1fb8] mt-20">
+    <footer class="bg-gradient-to-r from-brand-500 to-brand-600 border-t border-brand-600 mt-20">
         <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-8">
                 <!-- Platform -->
@@ -345,12 +366,12 @@
             </div>
             <div class="border-t border-white/20 pt-10">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div class="flex items-center space-x-3 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="flex items-center gap-3">
                         <div
                             class="w-7 h-7 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                            <span class="font-semibold text-xs"><span class="text-[#5525d0]">{</span><span
-                                    class="text-[#5525d0]">E</span><span class="text-[#5525d0]">S</span><span
-                                    class="text-[#5525d0]">}</span></span>
+                            <span class="font-semibold text-xs"><span class="text-brand-500">{</span><span
+                                    class="text-brand-500">E</span><span class="text-brand-500">S</span><span
+                                    class="text-brand-500">}</span></span>
                         </div>
                     <span class="text-base font-semibold tracking-tight">
                         <span class="text-white/90 font-normal">Exam</span><span class="font-bold text-white">{Stellar}</span>
@@ -358,7 +379,7 @@
                     </div>
                     
                     <!-- Social Media Icons -->
-                    <div class="flex items-center space-x-4 {% if IS_RTL %}space-x-reverse{% endif %}">
+                    <div class="flex items-center gap-4">
                         <a href="#" target="_blank" rel="noopener noreferrer" 
                             class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 group"
                             aria-label="{% trans 'Facebook' %}">
@@ -405,6 +426,15 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Theme Toggle -->
+    <script>
+      document.getElementById('theme-toggle')?.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      });
+    </script>
 
     <!-- Mega Menu JavaScript - Click Effect -->
     <script>
@@ -485,7 +515,7 @@
                             
                             // Remove active state from all other category links
                             categoryLinks.forEach(function(link) {
-                                link.classList.remove('bg-gray-50', 'text-[#5624d0]');
+                                link.classList.remove('bg-gray-50', 'text-brand-500');
                                 link.classList.add('text-gray-900');
                             });
                             
@@ -497,7 +527,7 @@
                             // Show this category's certifications
                             certificationPanel.classList.remove('hidden');
                             categoryLink.classList.remove('text-gray-900');
-                            categoryLink.classList.add('bg-gray-50', 'text-[#5624d0]');
+                            categoryLink.classList.add('bg-gray-50', 'text-brand-500');
                         });
                         
                         // Keep panel visible when hovering over it
@@ -508,7 +538,7 @@
                             }
                             certificationPanel.classList.remove('hidden');
                             categoryLink.classList.remove('text-gray-900');
-                            categoryLink.classList.add('bg-gray-50', 'text-[#5624d0]');
+                            categoryLink.classList.add('bg-gray-50', 'text-brand-500');
                         });
                         
                         // Hide panel when mouse leaves category link
@@ -516,7 +546,7 @@
                             hoverTimeout = setTimeout(function() {
                                 if (!certificationPanel.matches(':hover')) {
                                     certificationPanel.classList.add('hidden');
-                                    categoryLink.classList.remove('bg-gray-50', 'text-[#5624d0]');
+                                    categoryLink.classList.remove('bg-gray-50', 'text-brand-500');
                                     categoryLink.classList.add('text-gray-900');
                                 }
                             }, 150);
@@ -526,7 +556,7 @@
                         certificationPanel.addEventListener('mouseleave', function() {
                             hoverTimeout = setTimeout(function() {
                                 certificationPanel.classList.add('hidden');
-                                categoryLink.classList.remove('bg-gray-50', 'text-[#5624d0]');
+                                categoryLink.classList.remove('bg-gray-50', 'text-brand-500');
                                 categoryLink.classList.add('text-gray-900');
                             }, 150);
                         });

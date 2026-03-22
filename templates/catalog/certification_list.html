@@ -4,9 +4,10 @@
 {% block title %}{{ certification.name }} - {% trans "Exam Stellar" %}{% endblock %}
 
 {% block content %}
+<div class="page">
 <!-- Page Header -->
 <div class="bg-white border-b border-gray-200">
-    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="page__inner py-8">
         {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
         <h1 class="text-4xl font-bold text-[#000000] mt-4">
             {{ certification.name }}
@@ -19,7 +20,7 @@
             <a href="{{ certification.official_url }}" 
                target="_blank" 
                rel="noopener noreferrer"
-               class="inline-flex items-center gap-2 text-[#5624d0] hover:text-[#4a1fb8] font-semibold transition-colors">
+               class="inline-flex items-center gap-2 text-brand-500 hover:text-brand-600 font-semibold transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -31,7 +32,7 @@
 </div>
 
 <!-- Test Bank Grid -->
-<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="page__inner py-12">
     <div class="mb-6 flex items-center justify-between">
         <p class="text-[#666666]">
             {% blocktrans count count=test_banks|length %}{{ count }} test bank available{% plural %}{{ count }} test banks available{% endblocktrans %}
@@ -55,7 +56,7 @@
                     </span>
                 </div>
                 {% else %}
-                <div class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                <div class="h-40 bg-gradient-to-br from-brand-500 to-brand-600 relative overflow-hidden flex items-center justify-center">
                     <div class="text-white text-4xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
                     <!-- Difficulty Label -->
                     <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
@@ -127,6 +128,7 @@
         </div>
         {% endfor %}
     </div>
+</div>
 </div>
 {% endblock %}
 

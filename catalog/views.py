@@ -16,7 +16,7 @@ from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.http import JsonResponse
-from .models import Category, Certification, TestBank, TestBankRating, ReviewReply, ContactMessage
+from .models import Category, Certification, ExamPackage, TestBank, TestBankRating, ReviewReply, ContactMessage
 from .forms import TestBankReviewForm, ReviewReplyForm, ContactForm
 from practice.models import UserTestAccess
 
@@ -281,12 +281,14 @@ def testbank_detail(request, slug):
     
     # Check if user has access (if authenticated)
     has_access = False
+    user_access = None
     if request.user.is_authenticated:
-        has_access = UserTestAccess.objects.filter(
+        user_access = UserTestAccess.objects.filter(
             user=request.user,
             test_bank=test_bank,
             is_active=True
-        ).exists()
+        ).first()
+        has_access = user_access is not None and user_access.is_valid()
     
     # Get question count
     question_count = test_bank.get_question_count()
@@ -372,6 +374,7 @@ def testbank_detail(request, slug):
     return render(request, 'catalog/testbank_detail.html', {
         'test_bank': test_bank,
         'has_access': has_access,
+        'user_access': user_access,
         'question_count': question_count,
         'recent_sessions': recent_sessions,
         'related_test_banks': related_test_banks,
@@ -380,6 +383,39 @@ def testbank_detail(request, slug):
         'user_review': user_review,
         'review_form': review_form,
         'reply_form': reply_form,
+    })
+
+
+def package_detail(request, slug):
+    """
+    Exam package detail page.
+
+    Displays package contents, savings, and purchase option.
+    """
+    package = get_object_or_404(ExamPackage, slug=slug, is_active=True)
+    test_banks = package.test_banks.filter(is_active=True).order_by('exampackageitem__order')
+
+    # Check if user has access to all test banks in package
+    has_full_access = False
+    if request.user.is_authenticated:
+        from practice.models import UserTestAccess
+        tb_ids = list(test_banks.values_list('id', flat=True))
+        access_count = UserTestAccess.objects.filter(
+            user=request.user,
+            test_bank_id__in=tb_ids,
+            is_active=True,
+        ).count()
+        has_full_access = access_count == len(tb_ids) if tb_ids else False
+
+    retail_value = package.get_retail_value()
+    savings = package.get_savings()
+
+    return render(request, 'catalog/package_detail.html', {
+        'package': package,
+        'test_banks': test_banks,
+        'has_full_access': has_full_access,
+        'retail_value': retail_value,
+        'savings': savings,
     })
 
 

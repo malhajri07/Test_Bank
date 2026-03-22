@@ -4,13 +4,14 @@
 {% block title %}{{ category.name }} - {% trans "Exam Stellar" %}{% endblock %}
 
 {% block content %}
+<div class="page">
 <!-- Breadcrumb -->
 <div class="bg-white border-b border-gray-200">
-    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="page__inner py-4">
         {% if breadcrumbs %}
         {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
         {% else %}
-        <nav class="flex items-center space-x-2 text-sm {% if IS_RTL %}space-x-reverse{% endif %}">
+        <nav class="flex items-center gap-2 text-sm flex-wrap">
             <a href="{% url 'catalog:index' %}" class="text-[#e28f64] hover:text-[#df804f]">
                 {% trans "Home" %}
             </a>
@@ -26,14 +27,14 @@
 </div>
 
 <!-- Category Header - Apple Style with Image -->
-<div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white py-16 relative overflow-hidden">
+<div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white relative overflow-hidden">
     {% if category.image %}
     <div class="absolute inset-0 opacity-20">
         <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
     </div>
     {% endif %}
-    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
-        <div class="flex items-center space-x-6 {% if IS_RTL %}space-x-reverse{% endif %}">
+    <div class="page__inner py-12 md:py-16 relative z-10">
+        <div class="flex items-center gap-6 flex-wrap">
             {% if category.image %}
             <div class="flex-shrink-0">
                 <img src="{{ category.image.url }}" alt="{{ category.name }}"
@@ -52,7 +53,7 @@
 </div>
 
 <!-- Test Bank Grid -->
-<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="page__inner py-12">
     <div class="mb-6 flex items-center justify-between">
         <p class="text-[#666666]">
             {% blocktrans count count=test_banks|length %}{{ count }} test bank available{% plural %}{{ count }} test
@@ -78,7 +79,7 @@
                 </div>
                 {% else %}
                 <div
-                    class="h-40 bg-gradient-to-br from-[#5624d0] to-[#4a1fb8] relative overflow-hidden flex items-center justify-center">
+                    class="h-40 bg-gradient-to-br from-brand-500 to-brand-600 relative overflow-hidden flex items-center justify-center">
                     <div class="text-white text-4xl font-bold opacity-50">{{ test_bank.title|first|upper }}</div>
                     <!-- Difficulty Label -->
                     <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
@@ -155,5 +156,6 @@
         </div>
         {% endfor %}
     </div>
+</div>
 </div>
 {% endblock %}

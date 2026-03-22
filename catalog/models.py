@@ -352,6 +352,13 @@ class TestBank(models.Model):
         verbose_name='Time Limit (minutes)',
         help_text='Time limit for practice sessions in minutes (null for no time limit)'
     )
+
+    # Attempts per purchase (e.g., 1, 3, or 999 for unlimited)
+    attempts_per_purchase = models.PositiveIntegerField(
+        default=3,
+        verbose_name='Attempts Per Purchase',
+        help_text='Number of exam attempts granted per purchase (e.g., 1, 3, or 999 for unlimited)'
+    )
     
     # Active flag - only active test banks are shown to users
     is_active = models.BooleanField(
@@ -521,6 +528,97 @@ class TestBankRating(models.Model):
         test_bank = self.test_bank
         super().delete(*args, **kwargs)
         test_bank.update_rating()
+
+
+class ExamPackage(models.Model):
+    """
+    ExamPackage model for bundling multiple test banks at a discounted price.
+
+    Per 01_backend.md: ExamPackage bundles multiple certification exams sold together
+    at a discounted price (e.g., "CompTIA Starter Pack", "AWS Associate Bundle").
+    """
+
+    title = models.CharField(
+        max_length=200,
+        verbose_name='Title',
+        help_text='Package name (e.g., CompTIA Starter Pack)',
+    )
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        verbose_name='Slug',
+        help_text='URL-friendly version of the title',
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name='Description',
+        help_text='Detailed description of the package contents',
+    )
+    test_banks = models.ManyToManyField(
+        TestBank,
+        related_name='exam_packages',
+        through='ExamPackageItem',
+        blank=True,
+        verbose_name='Test Banks',
+        help_text='Test banks included in this package',
+    )
+    package_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Package Price',
+        help_text='Discounted price for the bundle',
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Is Active',
+        help_text='Whether this package is visible and purchasable',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Exam Package'
+        verbose_name_plural = 'Exam Packages'
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['slug']),
+                   models.Index(fields=['is_active'])]
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('catalog:package_detail', kwargs={'slug': self.slug})
+
+    def get_retail_value(self):
+        """Sum of individual test bank prices."""
+        return self.test_banks.aggregate(
+            total=models.Sum('price')
+        )['total'] or 0
+
+    def get_savings(self):
+        """Amount saved vs buying individually."""
+        retail = self.get_retail_value()
+        return max(0, retail - self.package_price)
+
+
+class ExamPackageItem(models.Model):
+    """Through model for ExamPackage M2M to TestBank (allows ordering)."""
+
+    exam_package = models.ForeignKey(
+        ExamPackage,
+        on_delete=models.CASCADE,
+        related_name='items',
+    )
+    test_bank = models.ForeignKey(
+        TestBank,
+        on_delete=models.CASCADE,
+        related_name='package_items',
+    )
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = [['exam_package', 'test_bank']]
 
 
 class ReviewReply(models.Model):

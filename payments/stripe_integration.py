@@ -17,9 +17,9 @@ import stripe
 import os
 from django.conf import settings
 from django.urls import reverse
-from .models import Payment, Purchase
-from practice.models import UserTestAccess
+from .models import Coupon, Order, OrderItem, Payment, Purchase
 from .email_utils import send_payment_invoice
+from .fulfillment import fulfill_payment
 
 
 def _ensure_stripe_configured():
@@ -74,43 +74,59 @@ def _make_stripe_request(func, *args, **kwargs):
         stripe.proxy = original_stripe_proxy
 
 
-def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
+def create_checkout_session(test_bank, user, request, order=None, discount_amount=None, coupon=None, ui_mode='hosted'):
     """
     Create a Stripe Checkout session for purchasing a test bank.
-    
-    This function:
-    1. Creates a Payment record with status='created'
-    2. Creates a Stripe Checkout session
-    3. Updates Payment with Stripe session ID
-    4. Returns the checkout session URL
-    
+
+    Optionally uses Order for cart-based flow and applies discount from promo code.
+
     Args:
         test_bank: TestBank instance to purchase
         user: User instance making the purchase
         request: Django HttpRequest object (for building absolute URLs)
-        ui_mode: 'hosted' for redirect-based checkout (only mode currently supported)
-    
+        order: Optional Order instance (creates Order+OrderItem if not provided)
+        discount_amount: Optional Decimal discount (from promo code)
+        ui_mode: 'hosted' for redirect-based checkout
+
     Returns:
         str: Stripe Checkout session URL
-    
-    Raises:
-        ValueError: If test bank price is invalid
-        stripe.error.StripeError: If Stripe API call fails
     """
     _ensure_stripe_configured()
 
-    # Validate test bank price
     if test_bank.price <= 0:
         raise ValueError('Test bank price must be greater than 0')
-    
-    # Create Payment record with initial status
+
+    from decimal import Decimal
+    discount_amount = discount_amount or Decimal('0')
+    amount_after_discount = max(Decimal('0'), test_bank.price - discount_amount)
+
+    if order is None:
+        order = Order.objects.create(
+            user=user,
+            subtotal=test_bank.price,
+            discount_amount=discount_amount,
+            currency=settings.STRIPE_CURRENCY,
+            coupon=coupon,
+        )
+        OrderItem.objects.create(
+            order=order,
+            test_bank=test_bank,
+            quantity=1,
+            unit_price=test_bank.price,
+        )
+        vat_rate = Decimal(str(getattr(settings, 'VAT_RATE', 0.15)))
+        order.tax_amount = (amount_after_discount * vat_rate).quantize(Decimal('0.01'))
+        order.total_amount = (amount_after_discount + order.tax_amount).quantize(Decimal('0.01'))
+        order.save()
+
     payment = Payment.objects.create(
         user=user,
+        order=order,
         test_bank=test_bank,
-        amount=test_bank.price,
+        amount=amount_after_discount,
         currency=settings.STRIPE_CURRENCY,
         payment_provider='stripe',
-        status='created'
+        status='created',
     )
     
     # Build success and cancel URLs
@@ -137,7 +153,7 @@ def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
                     'name': test_bank.title,
                     'description': description,
                 },
-                'unit_amount': int(test_bank.price * 100),  # Convert to cents
+                'unit_amount': int(float(amount_after_discount) * 100),  # Convert to cents
             },
             'quantity': 1,
         }],
@@ -147,6 +163,7 @@ def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
         'client_reference_id': str(payment.id),
         'metadata': {
             'payment_id': str(payment.id),
+            'order_id': str(order.id),
             'test_bank_id': str(test_bank.id),
             'user_id': str(user.id),
         }
@@ -182,6 +199,95 @@ def create_checkout_session(test_bank, user, request, ui_mode='hosted'):
             payment.save()
         
         raise e
+
+
+def create_checkout_session_for_package(exam_package, user, request, discount_amount=None, coupon=None):
+    """
+    Create Stripe Checkout session for purchasing an exam package.
+
+    Creates Order with one OrderItem per test bank, applies package discount,
+    and redirects to Stripe Checkout.
+    """
+    from decimal import Decimal
+
+    _ensure_stripe_configured()
+
+    test_banks = list(exam_package.test_banks.filter(is_active=True))
+    if not test_banks:
+        raise ValueError('Package has no active test banks')
+
+    retail = sum(tb.price for tb in test_banks)
+    discount_amount = discount_amount or Decimal('0')
+    package_discount = max(Decimal('0'), retail - exam_package.package_price)
+    total_discount = discount_amount + package_discount
+    amount_after_discount = max(Decimal('0'), retail - total_discount)
+
+    order = Order.objects.create(
+        user=user,
+        subtotal=retail,
+        discount_amount=total_discount,
+        currency=settings.STRIPE_CURRENCY,
+        coupon=coupon,
+    )
+    for tb in test_banks:
+        OrderItem.objects.create(
+            order=order,
+            test_bank=tb,
+            quantity=1,
+            unit_price=tb.price,
+        )
+
+    vat_rate = Decimal(str(getattr(settings, 'VAT_RATE', 0.15)))
+    order.tax_amount = (amount_after_discount * vat_rate).quantize(Decimal('0.01'))
+    order.total_amount = (amount_after_discount + order.tax_amount).quantize(Decimal('0.01'))
+    order.save()
+
+    payment = Payment.objects.create(
+        user=user,
+        order=order,
+        test_bank=test_banks[0],
+        amount=amount_after_discount,
+        currency=settings.STRIPE_CURRENCY,
+        payment_provider='stripe',
+        status='created',
+    )
+
+    success_url = request.build_absolute_uri(reverse('payments:payment_success')) + f'?session_id={{CHECKOUT_SESSION_ID}}'
+    cancel_url = request.build_absolute_uri(reverse('payments:payment_cancel'))
+
+    desc = exam_package.description or ''
+    if len(desc) > 500:
+        desc = desc[:500]
+
+    session_params = {
+        'payment_method_types': ['card'],
+        'line_items': [{
+            'price_data': {
+                'currency': settings.STRIPE_CURRENCY,
+                'product_data': {
+                    'name': f'Package: {exam_package.title}',
+                    'description': desc,
+                },
+                'unit_amount': int(float(amount_after_discount) * 100),
+            },
+            'quantity': 1,
+        }],
+        'mode': 'payment',
+        'success_url': success_url,
+        'cancel_url': cancel_url,
+        'client_reference_id': str(payment.id),
+        'metadata': {
+            'payment_id': str(payment.id),
+            'order_id': str(order.id),
+            'user_id': str(user.id),
+        },
+    }
+
+    checkout_session = _make_stripe_request(stripe.checkout.Session.create, **session_params)
+    payment.provider_session_id = checkout_session.id
+    payment.status = 'pending'
+    payment.save()
+    return checkout_session.url
 
 
 def verify_webhook_signature(request):
@@ -269,25 +375,14 @@ def handle_payment_success(session_id):
         
         # Only process if payment is not already succeeded
         if payment.status != 'succeeded':
-            # Update payment status
             payment.status = 'succeeded'
-            payment.provider_payment_id = checkout_session.payment_intent
+            pi = checkout_session.payment_intent
+            if pi:
+                payment.provider_payment_id = pi if isinstance(pi, str) else getattr(pi, 'id', None)
             payment.save()
-            
-            # Create Purchase record
-            purchase, created = Purchase.objects.get_or_create(
-                payment=payment,
-                defaults={
-                    'user': payment.user,
-                    'test_bank': payment.test_bank,
-                    'is_active': True,
-                }
-            )
-            
-            # Create UserTestAccess to grant user access
-            if created:
-                purchase.create_user_access()
-            
+
+            fulfill_payment(payment)
+
             # Send payment invoice email
             try:
                 send_payment_invoice(payment)
@@ -297,10 +392,9 @@ def handle_payment_success(session_id):
                 logger = logging.getLogger(__name__)
                 logger.error(f'Failed to send payment invoice email: {str(e)}')
             
-            return payment, purchase
+            return payment, payment.purchases.order_by('id').first()
         else:
-            # Payment already processed
-            return payment, payment.purchase
+            return payment, payment.purchases.order_by('id').first()
     except Exception as e:
         # Re-raise any exceptions (will be handled by views)
         raise e
@@ -330,36 +424,20 @@ def handle_webhook_event(event):
         return handle_payment_success(session_id)
     
     elif event_type == 'payment_intent.succeeded':
-        # Payment intent succeeded
         payment_intent_id = event_data['id']
         try:
             payment = Payment.objects.get(provider_payment_id=payment_intent_id)
             if payment.status != 'succeeded':
                 payment.status = 'succeeded'
                 payment.save()
-                
-                # Create purchase if not exists
-                purchase, created = Purchase.objects.get_or_create(
-                    payment=payment,
-                    defaults={
-                        'user': payment.user,
-                        'test_bank': payment.test_bank,
-                        'is_active': True,
-                    }
-                )
-                
-                if created:
-                    purchase.create_user_access()
-                
-                # Send payment invoice email
+                fulfill_payment(payment)
                 try:
                     send_payment_invoice(payment)
                 except Exception as e:
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.error(f'Failed to send payment invoice email: {str(e)}')
-                
-                return payment, purchase
+                return payment, payment.purchases.order_by('id').first()
         except Payment.DoesNotExist:
             pass
     

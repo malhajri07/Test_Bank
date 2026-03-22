@@ -17,11 +17,16 @@ app_name = 'payments'
 urlpatterns = [
     # Payment flow
     path('checkout/<slug:testbank_slug>/', views.create_checkout, name='create_checkout'),
+    path('checkout-package/<slug:package_slug>/', views.create_checkout_package, name='create_checkout_package'),
     path('success/', views.payment_success, name='payment_success'),
     path('cancel/', views.payment_cancel, name='payment_cancel'),
 
-    # Webhook endpoint (CSRF exempt - handled in view decorator)
+    # Webhook endpoints (CSRF exempt)
     path('webhook/stripe/', views.stripe_webhook, name='stripe_webhook'),
+
+    # Tap Payments
+    path('tap/create-charge/', views.tap_create_charge_ajax, name='tap_create_charge'),
+    path('tap/callback/<int:payment_id>/', views.tap_callback, name='tap_callback'),
 
     # Payment and purchase details
     path('payment/<int:pk>/', views.payment_detail, name='payment_detail'),

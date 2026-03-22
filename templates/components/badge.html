@@ -50,10 +50,10 @@ Parameters:
   {% endif %}
 {% else %}
   {% if size == "md" %}
-    <span class="px-3 py-1.5 text-sm font-semibold rounded-lg bg-[#5624d0]/10 text-[#5624d0] border border-[#5624d0]/20 shadow-sm {{ class|default:'' }}">{{ text }}</span>
+    <span class="px-3 py-1.5 text-sm font-semibold rounded-lg bg-brand-500/10 text-brand-500 border border-brand-500/20 shadow-sm {{ class|default:'' }}">{{ text }}</span>
   {% elif size == "lg" %}
-    <span class="px-4 py-2 text-base font-semibold rounded-lg bg-[#5624d0]/10 text-[#5624d0] border border-[#5624d0]/20 shadow-sm {{ class|default:'' }}">{{ text }}</span>
+    <span class="px-4 py-2 text-base font-semibold rounded-lg bg-brand-500/10 text-brand-500 border border-brand-500/20 shadow-sm {{ class|default:'' }}">{{ text }}</span>
   {% else %}
-    <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#5624d0]/10 text-[#5624d0] border border-[#5624d0]/20 shadow-sm {{ class|default:'' }}">{{ text }}</span>
+    <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-brand-500/10 text-brand-500 border border-brand-500/20 shadow-sm {{ class|default:'' }}">{{ text }}</span>
   {% endif %}
 {% endif %}

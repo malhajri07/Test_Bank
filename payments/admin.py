@@ -1,12 +1,39 @@
 """
 Admin configuration for payments app.
 
-Registers Payment and Purchase models with Django admin.
+Registers Order, OrderItem, Coupon, CouponProduct, Payment, and Purchase models.
 """
 
 from django.contrib import admin
 
-from .models import Payment, Purchase
+from .models import Coupon, CouponProduct, Order, OrderItem, Payment, Purchase
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('order_number', 'user', 'status', 'total_amount', 'currency', 'created_at')
+    list_filter = ('status', 'currency', 'created_at')
+    search_fields = ('order_number', 'user__username')
+    inlines = [OrderItemInline]
+    readonly_fields = ('order_number', 'created_at', 'updated_at')
+
+
+class CouponProductInline(admin.TabularInline):
+    model = CouponProduct
+    extra = 0
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('code', 'discount_type', 'discount_value', 'current_uses', 'max_uses', 'is_active', 'valid_until')
+    list_filter = ('discount_type', 'is_active')
+    search_fields = ('code',)
+    inlines = [CouponProductInline]
 
 
 @admin.register(Payment)
@@ -20,7 +47,7 @@ class PaymentAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Payment Info', {
-            'fields': ('user', 'test_bank', 'amount', 'currency', 'payment_provider')
+            'fields': ('user', 'order', 'test_bank', 'amount', 'currency', 'payment_provider')
         }),
         ('Provider Details', {
             'fields': ('provider_session_id', 'provider_payment_id', 'status')

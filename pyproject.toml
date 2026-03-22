@@ -36,7 +36,7 @@ ignore = [
 "manage.py" = ["F"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["accounts", "catalog", "payments", "practice", "cms", "forum", "theme", "testbank_platform"]
+known-first-party = ["accounts", "api", "catalog", "payments", "practice", "cms", "forum", "theme", "testbank_platform"]
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib"

@@ -4,13 +4,14 @@
 {% block title %}{% trans "Vocational - Exam Stellar" %}{% endblock %}
 
 {% block content %}
+<div class="page">
 <!-- Category Header - Udemy Style -->
 <div class="bg-white border-b border-gray-200 py-8">
-    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12">
+    <div class="page__inner">
         <div class="mb-4">
             {% include 'includes/breadcrumbs.html' with items=breadcrumbs %}
         </div>
-        <div class="flex items-center space-x-6 {% if IS_RTL %}space-x-reverse{% endif %}">
+        <div class="flex items-center gap-6 flex-wrap">
             {% if category.image %}
             <div class="flex-shrink-0 hidden md:block">
                 <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-24 h-24 rounded-lg object-cover shadow-md">
@@ -27,7 +28,7 @@
 </div>
 
 <!-- Certifications Grid - Apple Style -->
-<div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+<div class="page__inner py-12">
     <div class="mb-6">
         <p class="text-[#666666]">
             {% blocktrans count count=certifications|length %}{{ count }} certification available{% plural %}{{ count }} certifications available{% endblocktrans %}
@@ -47,7 +48,7 @@
                     <a href="{{ certification.official_url }}" 
                        target="_blank" 
                        rel="noopener noreferrer"
-                       class="inline-flex items-center gap-1.5 text-xs text-[#5624d0] hover:text-[#4a1fb8] font-medium transition-colors"
+                       class="inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-medium transition-colors"
                        onclick="event.stopPropagation();">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -78,6 +79,7 @@
         </div>
         {% endfor %}
     </div>
+</div>
 </div>
 {% endblock %}
 

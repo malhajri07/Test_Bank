@@ -114,8 +114,7 @@ All components follow these principles:
 
 ## Color Palette
 
-- **Primary**: `#5624d0` (purple)
-- **Primary Dark**: `#4a1fb8`
+- **Brand (Tailwind)**: `brand-500` / `brand-600` / `brand-700` — see `theme/static_src/tailwind.config.js` (same hex values as legacy Udemy purple)
 - **Success**: Green (`bg-green-100`, `text-green-800`)
 - **Warning**: Yellow (`bg-yellow-100`, `text-yellow-800`)
 - **Error**: Red (`bg-red-100`, `text-red-800`)

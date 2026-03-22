@@ -12,6 +12,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from django.http import JsonResponse
 from .models import UserTestSession, UserAnswer, UserTestAccess, Certificate
@@ -47,7 +48,14 @@ def start_practice(request, testbank_slug):
     if not access or not access.is_valid():
         messages.error(request, 'You do not have access to this test bank. Please purchase it first.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
-    
+
+    if not access.has_attempts_remaining():
+        messages.error(
+            request,
+            f'You have used all {access.attempts_allowed} attempts for this test bank. Purchase additional attempts to continue.'
+        )
+        return redirect('catalog:testbank_detail', slug=testbank_slug)
+
     # Get active questions
     questions = list(test_bank.questions.filter(is_active=True).order_by('order'))
     
@@ -64,8 +72,13 @@ def start_practice(request, testbank_slug):
     if test_bank.time_limit_minutes:
         time_remaining = test_bank.time_limit_minutes * 60  # Convert to seconds
     
-    # Create new practice session with randomized question order
+    # Create new practice session and atomically increment attempts_used
     with transaction.atomic():
+        access_for_update = UserTestAccess.objects.select_for_update().get(pk=access.pk)
+        if access_for_update.attempts_used >= access_for_update.attempts_allowed:
+            messages.error(request, 'No attempts remaining. Please purchase additional attempts.')
+            return redirect('catalog:testbank_detail', slug=testbank_slug)
+        UserTestAccess.objects.filter(pk=access.pk).update(attempts_used=F('attempts_used') + 1)
         session = UserTestSession.objects.create(
             user=user,
             test_bank=test_bank,
