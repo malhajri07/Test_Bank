@@ -50,6 +50,9 @@ urlpatterns = [
     # Rate test bank (AJAX)
     path('rate-test-bank/<slug:slug>/', views.rate_test_bank, name='rate_test_bank'),
 
+    # Question report (brain-dump / factual error flagging)
+    path('report-question/<int:question_id>/', views.report_question, name='report_question'),
+
     # Contact page
     path('contact/', views.contact, name='contact'),
 

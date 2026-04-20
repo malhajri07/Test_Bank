@@ -712,18 +712,83 @@ class ContactMessage(models.Model):
         return f'Contact from {self.name} - {self.subject}'
 
 
+class QuestionDomain(models.Model):
+    """
+    QuestionDomain model for grouping questions within a test bank by topic.
+
+    Enables per-topic analytics on practice results (e.g. "Networking: 60%",
+    "Security: 85%"). Scoped per test bank — each certification defines its
+    own domain structure (CompTIA A+ has different domains than PMP).
+    """
+
+    test_bank = models.ForeignKey(
+        TestBank,
+        on_delete=models.CASCADE,
+        related_name='domains',
+        verbose_name='Test Bank',
+        help_text='Test bank this domain belongs to',
+    )
+    name = models.CharField(
+        max_length=150,
+        verbose_name='Name',
+        help_text='Domain/topic name (e.g. "Networking Fundamentals")',
+    )
+    slug = models.SlugField(
+        max_length=150,
+        verbose_name='Slug',
+        help_text='URL-friendly identifier (unique per test bank)',
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name='Description',
+        help_text='Optional description shown in analytics',
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Order',
+        help_text='Display order in analytics breakdowns',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Question Domain'
+        verbose_name_plural = 'Question Domains'
+        ordering = ['order', 'name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['test_bank', 'slug'],
+                name='unique_domain_slug_per_testbank',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['test_bank', 'order']),
+        ]
+
+    def __str__(self):
+        return f'{self.test_bank.title} — {self.name}'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+
 class Question(models.Model):
     """
     Question model representing individual questions within a test bank.
-    
+
     Questions can be of different types:
     - MCQ single: Multiple choice with one correct answer
     - MCQ multi: Multiple choice with multiple correct answers
     - True/False: Boolean question
-    
+
     Each question has answer options (AnswerOption) and an explanation shown after answering.
+
+    Optionally tagged with a QuestionDomain for per-topic analytics on
+    practice results.
     """
-    
+
     # ForeignKey to TestBank - each question belongs to one test bank
     test_bank = models.ForeignKey(
         TestBank,
@@ -731,6 +796,19 @@ class Question(models.Model):
         related_name='questions',
         verbose_name='Test Bank',
         help_text='Test bank this question belongs to'
+    )
+
+    # ForeignKey to QuestionDomain — optional; enables weak-area analytics.
+    # Nullable so existing questions and test banks without domain taxonomy
+    # continue to work unchanged.
+    domain = models.ForeignKey(
+        'QuestionDomain',
+        on_delete=models.SET_NULL,
+        related_name='questions',
+        null=True,
+        blank=True,
+        verbose_name='Domain',
+        help_text='Topic/domain for analytics grouping (optional)',
     )
     
     question_text = models.TextField(
@@ -801,6 +879,92 @@ class Question(models.Model):
     def get_correct_answers(self):
         """Get all correct answer options for this question."""
         return self.answer_options.filter(is_correct=True)
+
+
+class QuestionReport(models.Model):
+    """
+    User-submitted report flagging a question for admin review.
+
+    Primary purpose is containment of "brain-dump" content risk: if a user
+    recognizes a question as copied verbatim from a real live certification
+    exam, they can flag it so admins can remove it before it draws a
+    cease-and-desist (or worse, gets legitimate users' certifications
+    revoked for NDA breach). Secondary uses: factual errors, wrong answer
+    keys, outdated content.
+    """
+
+    class Reason(models.TextChoices):
+        BRAIN_DUMP = 'brain_dump', 'Appears to be from a real exam (NDA/copyright concern)'
+        FACTUAL_ERROR = 'factual_error', 'Factually wrong'
+        WRONG_ANSWER = 'wrong_answer', 'Wrong answer marked as correct'
+        TYPO = 'typo', 'Typo or formatting issue'
+        OUTDATED = 'outdated', 'Outdated / no longer relevant'
+        OTHER = 'other', 'Other'
+
+    class Status(models.TextChoices):
+        OPEN = 'open', 'Open'
+        UNDER_REVIEW = 'under_review', 'Under review'
+        RESOLVED = 'resolved', 'Resolved — fixed'
+        DISMISSED = 'dismissed', 'Dismissed — no action'
+
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name='reports',
+        verbose_name='Question',
+        help_text='The question being reported',
+    )
+    reporter = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='question_reports',
+        null=True,
+        blank=True,
+        verbose_name='Reporter',
+        help_text='User who reported (null if user later deleted)',
+    )
+    reason = models.CharField(
+        max_length=32,
+        choices=Reason.choices,
+        default=Reason.FACTUAL_ERROR,
+        verbose_name='Reason',
+    )
+    details = models.TextField(
+        blank=True,
+        max_length=2000,
+        verbose_name='Details',
+        help_text='Optional extra context from the reporter',
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.OPEN,
+        verbose_name='Status',
+    )
+    resolution_note = models.TextField(
+        blank=True,
+        max_length=2000,
+        verbose_name='Resolution note',
+        help_text='Admin note describing what was done',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Question Report'
+        verbose_name_plural = 'Question Reports'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['question', 'status']),
+            models.Index(fields=['reason', 'status']),
+        ]
+
+    def __str__(self):
+        return f'{self.get_reason_display()} — Q#{self.question_id} ({self.get_status_display()})'
+
+    def is_open(self):
+        return self.status in (self.Status.OPEN, self.Status.UNDER_REVIEW)
 
 
 class AnswerOption(models.Model):

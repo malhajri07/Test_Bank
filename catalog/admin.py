@@ -12,7 +12,19 @@ from django.contrib import messages
 from django.urls import path
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-from .models import Category, Certification, ExamPackage, ExamPackageItem, TestBank, TestBankRating, Question, AnswerOption, ContactMessage
+from .models import (
+    Category,
+    Certification,
+    ExamPackage,
+    ExamPackageItem,
+    TestBank,
+    TestBankRating,
+    Question,
+    QuestionDomain,
+    QuestionReport,
+    AnswerOption,
+    ContactMessage,
+)
 from .forms import TestBankJSONUploadForm
 from .utils import import_test_bank_from_json, parse_json_file
 
@@ -240,19 +252,30 @@ class TestBankAdmin(admin.ModelAdmin):
         return render(request, 'admin/catalog/testbank/upload_json.html', context)
 
 
+@admin.register(QuestionDomain)
+class QuestionDomainAdmin(admin.ModelAdmin):
+    """Admin for per-test-bank question domains (enables analytics grouping)."""
+    list_display = ('name', 'test_bank', 'slug', 'order', 'created_at')
+    list_filter = ('test_bank',)
+    search_fields = ('name', 'slug', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+    prepopulated_fields = {'slug': ('name',)}
+
+
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     """Admin interface for Question model."""
-    list_display = ('question_text', 'test_bank', 'question_type', 'order', 'is_active', 'created_at')
-    list_filter = ('test_bank', 'question_type', 'is_active', 'created_at')
+    list_display = ('question_text', 'test_bank', 'domain', 'question_type', 'order', 'is_active', 'created_at')
+    list_filter = ('test_bank', 'domain', 'question_type', 'is_active', 'created_at')
     search_fields = ('question_text', 'explanation')
+    autocomplete_fields = ('domain',)
     inlines = [AnswerOptionInline]  # Show answer options inline
     readonly_fields = ('created_at', 'updated_at')
-    
+
     # Fieldsets for better organization
     fieldsets = (
         ('Question Details', {
-            'fields': ('test_bank', 'question_text', 'question_type', 'explanation')
+            'fields': ('test_bank', 'domain', 'question_text', 'question_type', 'explanation')
         }),
         ('Settings', {
             'fields': ('order', 'is_active')
@@ -320,5 +343,84 @@ class ContactMessageAdmin(admin.ModelAdmin):
         queryset.update(is_read=True)
         self.message_user(request, f'{queryset.count()} message(s) marked as read.')
     mark_as_read.short_description = 'Mark selected messages as read'
-    
+
     actions = [mark_as_read]
+
+
+@admin.register(QuestionReport)
+class QuestionReportAdmin(admin.ModelAdmin):
+    """
+    Admin triage for user-submitted question reports.
+
+    Brain-dump reports (reason='brain_dump') are the highest-risk category —
+    they imply a question may be verbatim from a real live exam, which is
+    both a copyright violation and an NDA risk. Review those first.
+    """
+    list_display = ('__str__', 'reason', 'status', 'reporter', 'created_at', 'question_link')
+    list_filter = ('status', 'reason', 'created_at')
+    search_fields = ('question__question_text', 'details', 'resolution_note', 'reporter__username')
+    readonly_fields = ('created_at', 'resolved_at', 'question_link')
+    date_hierarchy = 'created_at'
+    actions = ('mark_under_review', 'mark_resolved', 'mark_dismissed', 'deactivate_reported_question')
+
+    fieldsets = (
+        ('Report', {
+            'fields': ('question', 'question_link', 'reporter', 'reason', 'details'),
+        }),
+        ('Triage', {
+            'fields': ('status', 'resolution_note'),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'resolved_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    def question_link(self, obj):
+        """Admin link to the reported question."""
+        from django.urls import reverse
+        from django.utils.html import format_html
+        if not obj.question_id:
+            return '—'
+        url = reverse('admin:catalog_question_change', args=[obj.question_id])
+        preview = (obj.question.question_text or '')[:80]
+        return format_html('<a href="{}">Edit question #{}</a> — {}', url, obj.question_id, preview)
+    question_link.short_description = 'Question'
+
+    def _set_status(self, request, queryset, status, label):
+        from django.utils import timezone
+        terminal = status in (QuestionReport.Status.RESOLVED, QuestionReport.Status.DISMISSED)
+        updates = {'status': status}
+        if terminal:
+            updates['resolved_at'] = timezone.now()
+        n = queryset.update(**updates)
+        self.message_user(request, f'{n} report(s) marked {label}.', level=messages.SUCCESS)
+
+    @admin.action(description='Mark as under review')
+    def mark_under_review(self, request, queryset):
+        self._set_status(request, queryset, QuestionReport.Status.UNDER_REVIEW, 'under review')
+
+    @admin.action(description='Mark as resolved (fixed)')
+    def mark_resolved(self, request, queryset):
+        self._set_status(request, queryset, QuestionReport.Status.RESOLVED, 'resolved')
+
+    @admin.action(description='Dismiss (no action needed)')
+    def mark_dismissed(self, request, queryset):
+        self._set_status(request, queryset, QuestionReport.Status.DISMISSED, 'dismissed')
+
+    @admin.action(description='Deactivate the reported question (hide from practice)')
+    def deactivate_reported_question(self, request, queryset):
+        """Emergency brake: deactivate every Question referenced by selected reports.
+
+        Useful for brain-dump reports where the content needs to be pulled
+        from circulation immediately while a human reviews it.
+        """
+        from django.utils import timezone
+        q_ids = set(queryset.values_list('question_id', flat=True))
+        q_count = Question.objects.filter(id__in=q_ids, is_active=True).update(is_active=False)
+        queryset.update(status=QuestionReport.Status.UNDER_REVIEW)
+        self.message_user(
+            request,
+            f'Deactivated {q_count} question(s) and marked {queryset.count()} report(s) as under review.',
+            level=messages.WARNING,
+        )

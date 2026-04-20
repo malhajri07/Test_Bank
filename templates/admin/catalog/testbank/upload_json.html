@@ -13,21 +13,21 @@
 {% endblock %}
 
 {% block content %}
-<div class="content" style="max-width: 900px; margin: 0 auto;">
-    <h1 style="color: #4A70A9; margin-bottom: 20px;">Upload Test Bank from JSON</h1>
-    
+<div class="upload-json-page">
+    <h1 class="upload-json-title">Upload Test Bank from JSON</h1>
+
     <!-- Auto-Create Categories Info -->
-    <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #4caf50;">
-        <h2 style="color: #2e7d32; margin-top: 0; font-size: 18px; margin-bottom: 15px;">✨ Auto-Create Categories & Certifications</h2>
-        <p style="margin-bottom: 15px; color: #424242;">
+    <div class="upload-json-callout upload-json-callout--success">
+        <h2 class="upload-json-callout__title upload-json-callout__title--success">✨ Auto-Create Categories & Certifications</h2>
+        <p class="upload-json-callout__lead">
             <strong>Great news!</strong> You can use <strong>names</strong> or <strong>slugs</strong> for category and certification in your JSON file.
             The system will automatically create them if they don't exist!
         </p>
-        <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 10px;">
-            <p style="margin: 0; font-size: 14px; color: #666;">
+        <div class="upload-json-callout__inner">
+            <p class="upload-json-callout__inner-lead">
                 <strong>How it works:</strong>
             </p>
-            <ul style="margin: 10px 0 0 20px; font-size: 14px; color: #666;">
+            <ul class="upload-json-callout__list">
                 <li>Use category <strong>name</strong> (e.g., "Vocational") or <strong>slug</strong> (e.g., "vocational")</li>
                 <li>If category doesn't exist, it will be created automatically</li>
                 <li>Certifications require a category (will be created if missing)</li>
@@ -36,11 +36,11 @@
             </ul>
         </div>
     </div>
-    
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #8FABD4;">
-        <h2 style="color: #4A70A9; margin-top: 0; font-size: 18px;">JSON Format Guide</h2>
-        <p style="margin-bottom: 10px;">Your JSON file should follow this structure:</p>
-        <pre style="background: white; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px; line-height: 1.5; max-height: 400px; overflow-y: auto;">{
+
+    <div class="upload-json-callout upload-json-callout--info">
+        <h2 class="upload-json-callout__title upload-json-callout__title--info">JSON Format Guide</h2>
+        <p class="upload-json-callout__lead-sm">Your JSON file should follow this structure:</p>
+        <pre class="upload-json-code">{
   "test_bank": {
     "title": "Test Bank Title",
     "description": "Description of the test bank",
@@ -76,64 +76,64 @@
     }
   ]
 }</pre>
-        <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
-            <p style="margin: 0; font-size: 14px;">
+        <div class="upload-json-note">
+            <p class="upload-json-note__line">
                 <strong>⚠️ Required:</strong> At least one of <code>category</code> or <code>certification</code> must be specified. They will be created automatically if they don't exist.
             </p>
-            <p style="margin: 10px 0 0 0; font-size: 14px;">
+            <p class="upload-json-note__line">
                 <strong>Hierarchy:</strong> If you specify <code>certification</code>, you must also specify <code>category</code>. Certifications belong directly to categories.
             </p>
-            <p style="margin: 10px 0 0 0; font-size: 14px;">
+            <p class="upload-json-note__line">
                 <strong>Question types:</strong> <code>mcq_single</code>, <code>mcq_multi</code>, or <code>true_false</code>.
             </p>
-            <p style="margin: 10px 0 0 0; font-size: 14px;">
+            <p class="upload-json-note__line">
                 <strong>Difficulty levels:</strong> <code>easy</code>/<code>beginner</code>, <code>medium</code>/<code>intermediate</code>, or <code>hard</code>/<code>advanced</code>.
             </p>
         </div>
     </div>
-    
-    <form method="post" enctype="multipart/form-data" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+    <form method="post" enctype="multipart/form-data" class="upload-json-form">
         {% csrf_token %}
-        
-        <div style="margin-bottom: 25px;">
-            <label for="{{ form.json_file.id_for_label }}" style="display: block; font-weight: 600; color: #000; margin-bottom: 8px;">
+
+        <div class="upload-json-field">
+            <label for="{{ form.json_file.id_for_label }}" class="upload-json-field__label">
                 {{ form.json_file.label }}
             </label>
             {{ form.json_file }}
             {% if form.json_file.help_text %}
-            <p style="color: #666; font-size: 13px; margin-top: 5px;">{{ form.json_file.help_text }}</p>
+            <p class="upload-json-field__help">{{ form.json_file.help_text }}</p>
             {% endif %}
             {% if form.json_file.errors %}
-            <ul style="color: #dc3545; margin-top: 5px;">
+            <ul class="upload-json-field__errors">
                 {% for error in form.json_file.errors %}
                 <li>{{ error }}</li>
                 {% endfor %}
             </ul>
             {% endif %}
         </div>
-        
-        <div style="margin-bottom: 25px;">
-            <label for="{{ form.test_bank.id_for_label }}" style="display: block; font-weight: 600; color: #000; margin-bottom: 8px;">
+
+        <div class="upload-json-field">
+            <label for="{{ form.test_bank.id_for_label }}" class="upload-json-field__label">
                 {{ form.test_bank.label }}
             </label>
             {{ form.test_bank }}
             {% if form.test_bank.help_text %}
-            <p style="color: #666; font-size: 13px; margin-top: 5px;">{{ form.test_bank.help_text }}</p>
+            <p class="upload-json-field__help">{{ form.test_bank.help_text }}</p>
             {% endif %}
             {% if form.test_bank.errors %}
-            <ul style="color: #dc3545; margin-top: 5px;">
+            <ul class="upload-json-field__errors">
                 {% for error in form.test_bank.errors %}
                 <li>{{ error }}</li>
                 {% endfor %}
             </ul>
             {% endif %}
         </div>
-        
-        <div style="display: flex; gap: 10px; margin-top: 30px;">
-            <button type="submit" style="background: #8FABD4; color: white; padding: 12px 30px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+
+        <div class="upload-json-actions">
+            <button type="submit" class="upload-json-btn upload-json-btn--primary">
                 Upload & Import
             </button>
-            <a href="{% url 'admin:catalog_testbank_changelist' %}" style="background: #6c757d; color: white; padding: 12px 30px; border: none; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.3s;">
+            <a href="{% url 'admin:catalog_testbank_changelist' %}" class="upload-json-btn upload-json-btn--secondary">
                 Cancel
             </a>
         </div>
@@ -141,6 +141,70 @@
 </div>
 
 <style>
+.upload-json-page { max-width: 900px; margin: 0 auto; }
+.upload-json-title { color: #4A70A9; margin-bottom: 20px; }
+
+.upload-json-callout { padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+.upload-json-callout--success { background: #e8f5e9; border-left: 4px solid #4caf50; }
+.upload-json-callout--info    { background: #f8f9fa; border-left: 4px solid #8FABD4; }
+
+.upload-json-callout__title { margin-top: 0; font-size: 18px; margin-bottom: 15px; }
+.upload-json-callout__title--success { color: #2e7d32; }
+.upload-json-callout__title--info    { color: #4A70A9; }
+
+.upload-json-callout__lead    { margin-bottom: 15px; color: #424242; }
+.upload-json-callout__lead-sm { margin-bottom: 10px; }
+
+.upload-json-callout__inner { background: white; padding: 15px; border-radius: 6px; margin-top: 10px; }
+.upload-json-callout__inner-lead { margin: 0; font-size: 14px; color: #666; }
+.upload-json-callout__list { margin: 10px 0 0 20px; font-size: 14px; color: #666; }
+
+.upload-json-code {
+    background: white;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+}
+
+.upload-json-note { margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107; }
+.upload-json-note__line { margin: 0; font-size: 14px; }
+.upload-json-note__line + .upload-json-note__line { margin-top: 10px; }
+
+.upload-json-form {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.upload-json-field { margin-bottom: 25px; }
+.upload-json-field__label { display: block; font-weight: 600; color: #000; margin-bottom: 8px; }
+.upload-json-field__help   { color: #666; font-size: 13px; margin-top: 5px; }
+.upload-json-field__errors { color: #dc3545; margin-top: 5px; }
+
+.upload-json-actions { display: flex; gap: 10px; margin-top: 30px; }
+
+.upload-json-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.3s;
+}
+.upload-json-btn--primary   { background: #8FABD4; }
+.upload-json-btn--primary:hover   { background: #4A70A9; }
+.upload-json-btn--secondary { background: #6c757d; }
+.upload-json-btn--secondary:hover { background: #5a6268; }
+
 input[type="file"] {
     width: 100%;
     padding: 10px;
@@ -161,18 +225,6 @@ select.form-control {
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
-}
-
-button[type="submit"]:hover {
-    background: #4A70A9 !important;
-}
-
-a[href*="changelist"]:hover {
-    background: #5a6268 !important;
-}
-
-pre {
-    font-family: 'Courier New', monospace;
 }
 </style>
 {% endblock %}

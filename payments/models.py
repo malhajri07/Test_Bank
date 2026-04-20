@@ -604,3 +604,50 @@ class Purchase(models.Model):
     def get_absolute_url(self):
         """Get URL for purchase detail page."""
         return reverse('payments:purchase_detail', kwargs={'pk': self.pk})
+
+
+class ProcessedWebhookEvent(models.Model):
+    """
+    Tracks webhook events that have been processed, for idempotency.
+
+    Prevents double-fulfillment when payment providers retry webhooks.
+    Unique on (provider, event_id).
+    """
+
+    PROVIDER_CHOICES = [
+        ('stripe', 'Stripe'),
+        ('tap', 'Tap'),
+    ]
+
+    provider = models.CharField(
+        max_length=20,
+        choices=PROVIDER_CHOICES,
+        verbose_name='Provider',
+    )
+    event_id = models.CharField(
+        max_length=255,
+        verbose_name='Provider Event ID',
+        help_text='e.g. evt_1Xxx for Stripe, charge id for Tap',
+    )
+    event_type = models.CharField(
+        max_length=100,
+        verbose_name='Event Type',
+    )
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Processed Webhook Event'
+        verbose_name_plural = 'Processed Webhook Events'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['provider', 'event_id'],
+                name='unique_provider_event',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['provider', 'event_id']),
+            models.Index(fields=['received_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.provider}:{self.event_id} ({self.event_type})'

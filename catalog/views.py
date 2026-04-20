@@ -16,7 +16,8 @@ from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.http import JsonResponse
-from .models import Category, Certification, ExamPackage, TestBank, TestBankRating, ReviewReply, ContactMessage
+from django_ratelimit.decorators import ratelimit
+from .models import Category, Certification, ExamPackage, Question, QuestionReport, TestBank, TestBankRating, ReviewReply, ContactMessage
 from .forms import TestBankReviewForm, ReviewReplyForm, ContactForm
 from practice.models import UserTestAccess
 
@@ -82,45 +83,297 @@ def index(request):
     
     # Testimonials are now loaded from CMS via context processor
     
-    # Partner/Institution data (static for now)
+    # Certifying / training organizations whose exams we cover.
+    # Rendered in a 3-row marquee on the homepage (alternating directions).
+    # `logo_url` left blank so the template falls back to a text badge;
+    # replace with hosted logo paths when available.
     partners = [
-        {'name': 'Google', 'logo_url': ''},
-        {'name': 'Microsoft', 'logo_url': ''},
-        {'name': 'IBM', 'logo_url': ''},
-        {'name': 'Stanford', 'logo_url': ''},
-        {'name': 'Meta', 'logo_url': ''},
-        {'name': 'Amazon', 'logo_url': ''},
-        {'name': 'Adobe', 'logo_url': ''},
-        {'name': 'University of Michigan', 'logo_url': ''},
+        {'name': 'Project Management Institute', 'url': 'https://www.pmi.org', 'logo_url': ''},
+        {'name': 'AXELOS / PeopleCert', 'url': 'https://www.axelos.com', 'logo_url': ''},
+        {'name': 'Scrum Alliance', 'url': 'https://www.scrumalliance.org', 'logo_url': ''},
+        {'name': 'Scrum.org', 'url': 'https://www.scrum.org', 'logo_url': ''},
+        {'name': 'Scaled Agile', 'url': 'https://www.scaledagile.com', 'logo_url': ''},
+        {'name': 'Amazon Web Services', 'url': 'https://aws.amazon.com/certification', 'logo_url': ''},
+        {'name': 'Microsoft', 'url': 'https://learn.microsoft.com/certifications', 'logo_url': ''},
+        {'name': 'Google Cloud', 'url': 'https://cloud.google.com/certification', 'logo_url': ''},
+        {'name': 'CompTIA', 'url': 'https://www.comptia.org', 'logo_url': ''},
+        {'name': 'Cloud Native Computing Foundation', 'url': 'https://www.cncf.io/certification/cka', 'logo_url': ''},
+        {'name': '(ISC)²', 'url': 'https://www.isc2.org', 'logo_url': ''},
+        {'name': 'ISACA', 'url': 'https://www.isaca.org', 'logo_url': ''},
+        {'name': 'EC-Council', 'url': 'https://www.eccouncil.org', 'logo_url': ''},
+        {'name': 'Offensive Security', 'url': 'https://www.offsec.com', 'logo_url': ''},
+        {'name': 'PECB / IRCA', 'url': 'https://pecb.com', 'logo_url': ''},
+        {'name': 'Cisco', 'url': 'https://www.cisco.com/go/certifications', 'logo_url': ''},
+        {'name': 'Juniper Networks', 'url': 'https://www.juniper.net/certification', 'logo_url': ''},
+        {'name': 'TM Forum', 'url': 'https://www.tmforum.org', 'logo_url': ''},
+        {'name': 'CWNP', 'url': 'https://www.cwnp.com', 'logo_url': ''},
+        {'name': 'Telecoms Academy', 'url': 'https://www.telecomsacademy.com', 'logo_url': ''},
+        {'name': 'Huawei', 'url': 'https://e.huawei.com/en/talent', 'logo_url': ''},
+        {'name': 'Databricks', 'url': 'https://www.databricks.com/learn/certification', 'logo_url': ''},
+        {'name': 'Tableau (Salesforce)', 'url': 'https://www.tableau.com/learn/certification', 'logo_url': ''},
+        {'name': 'INFORMS', 'url': 'https://www.certifiedanalytics.org', 'logo_url': ''},
+        {'name': 'The Open Group', 'url': 'https://www.opengroup.org', 'logo_url': ''},
+        {'name': 'Oracle', 'url': 'https://education.oracle.com', 'logo_url': ''},
+        {'name': 'GitHub', 'url': 'https://resources.github.com/learn/certifications', 'logo_url': ''},
+        {'name': 'IIBA', 'url': 'https://www.iiba.org', 'logo_url': ''},
+        {'name': 'ASQ / IASSC', 'url': 'https://asq.org', 'logo_url': ''},
+        {'name': 'IRCA / Exemplar Global', 'url': 'https://www.irca.org', 'logo_url': ''},
+        {'name': 'CFA Institute', 'url': 'https://www.cfainstitute.org', 'logo_url': ''},
+        {'name': 'AICPA', 'url': 'https://www.aicpa-cima.com', 'logo_url': ''},
+        {'name': 'ACCA', 'url': 'https://www.accaglobal.com', 'logo_url': ''},
+        {'name': 'IMA', 'url': 'https://www.imanet.org', 'logo_url': ''},
+        {'name': 'GARP', 'url': 'https://www.garp.org', 'logo_url': ''},
+        {'name': 'The IIA', 'url': 'https://www.theiia.org', 'logo_url': ''},
+        {'name': 'SHRM', 'url': 'https://www.shrm.org', 'logo_url': ''},
+        {'name': 'CIPD', 'url': 'https://www.cipd.co.uk', 'logo_url': ''},
+        {'name': 'ASCM / APICS', 'url': 'https://www.ascm.org', 'logo_url': ''},
+        {'name': 'CIPS', 'url': 'https://www.cips.org', 'logo_url': ''},
+        {'name': 'Google', 'url': 'https://skillshop.withgoogle.com', 'logo_url': ''},
+        {'name': 'Meta', 'url': 'https://www.facebook.com/business/learn/certification', 'logo_url': ''},
+        {'name': 'HubSpot Academy', 'url': 'https://academy.hubspot.com', 'logo_url': ''},
+        {'name': 'CXPA', 'url': 'https://www.cxpa.org', 'logo_url': ''},
+        {'name': 'Salesforce', 'url': 'https://trailhead.salesforce.com/credentials', 'logo_url': ''},
+        {'name': 'NEBOSH', 'url': 'https://www.nebosh.org.uk', 'logo_url': ''},
+        {'name': 'IOSH', 'url': 'https://iosh.com', 'logo_url': ''},
+        {'name': 'OSHA', 'url': 'https://www.osha.gov', 'logo_url': ''},
+        {'name': 'NCEES', 'url': 'https://ncees.org', 'logo_url': ''},
+        {'name': 'USGBC / GBCI', 'url': 'https://www.usgbc.org', 'logo_url': ''},
+        {'name': 'Saudi Council of Engineers', 'url': 'https://www.saudieng.sa', 'logo_url': ''},
+        {'name': 'IWCF', 'url': 'https://www.iwcf.org', 'logo_url': ''},
+        {'name': 'American Petroleum Institute', 'url': 'https://www.api.org', 'logo_url': ''},
+        {'name': 'AEE', 'url': 'https://www.aeecenter.org', 'logo_url': ''},
+        {'name': 'SCFHS', 'url': 'https://www.scfhs.org.sa', 'logo_url': ''},
+        {'name': 'American Heart Association', 'url': 'https://cpr.heart.org', 'logo_url': ''},
+        {'name': 'AAPC', 'url': 'https://www.aapc.com', 'logo_url': ''},
+        {'name': 'AHLEI', 'url': 'https://www.ahlei.org', 'logo_url': ''},
+        {'name': 'IATA', 'url': 'https://www.iata.org/training', 'logo_url': ''},
+        {'name': 'American Welding Society', 'url': 'https://www.aws.org', 'logo_url': ''},
+        {'name': 'ASE', 'url': 'https://www.ase.com', 'logo_url': ''},
+        {'name': 'CCIM Institute', 'url': 'https://www.ccim.com', 'logo_url': ''},
+        {'name': 'Adobe / Certiport', 'url': 'https://certiport.pearsonvue.com', 'logo_url': ''},
+        {'name': 'Autodesk', 'url': 'https://www.autodesk.com/certification', 'logo_url': ''},
+        {'name': 'Cambridge English', 'url': 'https://www.cambridgeenglish.org', 'logo_url': ''},
+        {'name': 'ATD', 'url': 'https://www.td.org/certification', 'logo_url': ''},
+        {'name': 'Challenger Inc.', 'url': 'https://challengerinc.com', 'logo_url': ''},
+        {'name': 'NVIDIA', 'url': 'https://www.nvidia.com/en-us/training/certification', 'logo_url': ''},
     ]
     
+    # Split the partner list into 3 rows (round-robin) for the marquee.
+    # Round-robin keeps visual density balanced even if the list grows.
+    partner_rows = [partners[i::3] for i in range(3)]
+
+    # Category explorer tree — powers the 3-column drilldown on the homepage.
+    # Shape:  [
+    #   {
+    #     'category': Category,
+    #     'total_banks': int,
+    #     'certifications': [
+    #       {
+    #         'name': str,           # deduped display name (one row per name)
+    #         'slug_base': str,       # slug without difficulty suffix
+    #         'difficulty_options': [
+    #           {
+    #             'level': 'easy'|'medium'|'advanced',
+    #             'display': 'Easy'|'Medium'|'Advanced',
+    #             'bank_count': int,
+    #             'certification': Certification,  # the actual row to link to
+    #           },
+    #           ...
+    #         ],
+    #       },
+    #       ...
+    #     ],
+    #   },
+    #   ...
+    # ]
+    # A single "certification name" like "PMP" may exist as multiple
+    # Certification rows (one per difficulty level) — we roll those up here.
+    category_tree = []
+    from collections import OrderedDict
+    _diff_order = {'easy': 0, 'medium': 1, 'advanced': 2}
+    testbank_counts = dict(
+        TestBank.objects.filter(is_active=True)
+        .values_list('certification_id')
+        .annotate(n=Count('id'))
+        .values_list('certification_id', 'n')
+    )
+    for cat in categories:
+        cert_buckets = OrderedDict()
+        for cert in cat.certifications.all().order_by('order', 'name', 'difficulty_level'):
+            bucket = cert_buckets.setdefault(cert.name, {
+                'name': cert.name,
+                'slug_base': cert.name.lower().replace(' ', '-'),
+                'difficulty_options': [],
+            })
+            bucket['difficulty_options'].append({
+                'level': cert.difficulty_level,
+                'display': cert.get_difficulty_level_display(),
+                'bank_count': testbank_counts.get(cert.id, 0),
+                'certification': cert,
+            })
+        # Stable sort within each bucket by easy → medium → advanced
+        for bucket in cert_buckets.values():
+            bucket['difficulty_options'].sort(key=lambda d: _diff_order.get(d['level'], 99))
+        category_tree.append({
+            'category': cat,
+            'total_banks': getattr(cat, 'test_bank_count', 0),
+            'certifications': list(cert_buckets.values()),
+        })
+
+    # Popular exams — top 6 test banks by user count (enrollments).
+    # Rendered as quick-jump pills above the category explorer so users
+    # who know what they want can skip the drilldown entirely. B2C
+    # exam-prep users typically arrive with a specific exam in mind.
+    popular_exams = list(
+        TestBank.objects.filter(is_active=True)
+        .select_related('category')
+        .annotate(enrolls=Count('user_accesses', filter=Q(user_accesses__is_active=True)))
+        .order_by('-enrolls', '-average_rating')[:6]
+    )
+
     return render(request, 'catalog/index.html', {
         'categories': categories,
         'featured_test_banks': featured_test_banks,
         'trending_test_banks': trending_test_banks,
         'partners': partners,
+        'partner_rows': partner_rows,
+        'category_tree': category_tree,
+        'popular_exams': popular_exams,
     })
 
 
 def category_list(request):
     """
-    Category listing view.
-    
-    Displays all categories as cards.
-    Each category shows:
-    - Name and description
-    - Number of test banks
-    - Number of certifications (if any)
-    - Link to appropriate page (vocational_index, certification list, or test bank list)
+    Full browse page — same 3-column explorer pattern used on the homepage,
+    plus a paginated, sortable, filterable grid of all active test banks
+    below it.
+
+    Query params:
+      - category=<slug>  filter the bank grid to one category
+      - sort=popular|newest|price_asc|price_desc|rating (default: popular)
+      - q=<str>          optional text search over title/description
+      - page=<n>         pagination
     """
-    # Get all categories with test bank counts and certification counts
-    categories = Category.objects.annotate(
-        test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True)),
-        certification_count=Count('certifications')
-    ).order_by('name')
-    
+    from collections import OrderedDict
+
+    # Hide categories with zero active test banks — they're admin cleanup
+    # debris, not a useful browse option.
+    categories = list(
+        Category.objects
+        .annotate(
+            test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True)),
+            certification_count=Count('certifications'),
+        )
+        .filter(test_bank_count__gt=0)
+        .order_by('-test_bank_count', 'name')
+    )
+
+    # Category explorer tree (same shape as homepage).
+    testbank_counts = dict(
+        TestBank.objects.filter(is_active=True)
+        .values_list('certification_id')
+        .annotate(n=Count('id'))
+        .values_list('certification_id', 'n')
+    )
+    _diff_order = {'easy': 0, 'medium': 1, 'advanced': 2}
+    category_tree = []
+    for cat in categories:
+        cert_buckets = OrderedDict()
+        for cert in cat.certifications.all().order_by('order', 'name', 'difficulty_level'):
+            bucket = cert_buckets.setdefault(cert.name, {
+                'name': cert.name,
+                'slug_base': cert.name.lower().replace(' ', '-'),
+                'difficulty_options': [],
+            })
+            bucket['difficulty_options'].append({
+                'level': cert.difficulty_level,
+                'display': cert.get_difficulty_level_display(),
+                'bank_count': testbank_counts.get(cert.id, 0),
+                'certification': cert,
+            })
+        for bucket in cert_buckets.values():
+            bucket['difficulty_options'].sort(key=lambda d: _diff_order.get(d['level'], 99))
+        category_tree.append({
+            'category': cat,
+            'total_banks': getattr(cat, 'test_bank_count', 0),
+            'certifications': list(cert_buckets.values()),
+        })
+
+    # Popular exams for quick-jump pills (same pattern as homepage).
+    popular_exams = list(
+        TestBank.objects.filter(is_active=True)
+        .select_related('category')
+        .annotate(enrolls=Count('user_accesses', filter=Q(user_accesses__is_active=True)))
+        .order_by('-enrolls', '-average_rating')[:6]
+    )
+
+    # Sortable test-bank grid.
+    SORT_CHOICES = [
+        ('popular', _('Most popular')),
+        ('newest', _('Newest')),
+        ('rating', _('Top rated')),
+        ('price_asc', _('Price: low to high')),
+        ('price_desc', _('Price: high to low')),
+        ('az', _('A–Z')),
+    ]
+    sort_keys = {k for k, _label in SORT_CHOICES}
+    current_sort = request.GET.get('sort') or 'popular'
+    if current_sort not in sort_keys:
+        current_sort = 'popular'
+
+    sort_order_map = {
+        'popular': ('-enrolls', '-average_rating', '-created_at'),
+        'newest': ('-created_at',),
+        'rating': ('-average_rating', '-total_ratings'),
+        'price_asc': ('price', '-average_rating'),
+        'price_desc': ('-price', '-average_rating'),
+        'az': ('title',),
+    }
+
+    current_category_slug = (request.GET.get('category') or '').strip()
+    query = (request.GET.get('q') or '').strip()
+
+    banks_qs = (
+        TestBank.objects.filter(is_active=True)
+        .select_related('category', 'certification')
+        .annotate(enrolls=Count('user_accesses', filter=Q(user_accesses__is_active=True)))
+    )
+    if current_category_slug:
+        banks_qs = banks_qs.filter(category__slug=current_category_slug)
+    if query:
+        banks_qs = banks_qs.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        )
+
+    # Per-user access + rating annotations so the shared card template
+    # renders state-aware CTAs (Start Practicing / View Details).
+    if request.user.is_authenticated:
+        from django.db.models import Exists, IntegerField, OuterRef, Subquery
+        access_subquery = UserTestAccess.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'), is_active=True,
+        )
+        rating_subquery = TestBankRating.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'),
+        ).values('rating')[:1]
+        banks_qs = banks_qs.annotate(
+            has_access=Exists(access_subquery),
+            user_rating=Subquery(rating_subquery, output_field=IntegerField()),
+        )
+
+    banks_qs = banks_qs.order_by(*sort_order_map[current_sort])
+
+    paginator = Paginator(banks_qs, 24)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'catalog/category_list.html', {
         'categories': categories,
+        'category_tree': category_tree,
+        'popular_exams': popular_exams,
+        'banks_page': page_obj,
+        'sort_choices': SORT_CHOICES,
+        'current_sort': current_sort,
+        'current_category_slug': current_category_slug,
+        'query': query,
     })
 
 
@@ -133,27 +386,100 @@ def category_detail(request, category_slug):
     """
     category = get_object_or_404(Category, slug=category_slug)
     
-    # Get all certifications with test bank counts
+    # All certifications under this category (flat rows — one per difficulty).
     certifications = Certification.objects.filter(
         category=category
     ).annotate(
         test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True))
-    ).order_by('order', 'name')
-    
-    # If no certifications, redirect to test bank list
+    ).order_by('order', 'name', 'difficulty_level')
+
+    # If no certifications, redirect to test bank list (covers categories
+    # that skipped the certification layer entirely).
     if not certifications.exists():
         from django.shortcuts import redirect
         return redirect('catalog:testbank_list', category_slug=category.slug)
-    
-    # Build breadcrumbs
+
+    # Roll up duplicate names into one card with 3 difficulty chips.
+    # Without this, users see "Certified ScrumMaster (CSM)" 3× in a row
+    # with no visible distinction, which is the current UX problem.
+    from collections import OrderedDict
+    _diff_order = {'easy': 0, 'medium': 1, 'advanced': 2}
+    cert_buckets = OrderedDict()
+    for cert in certifications:
+        bucket = cert_buckets.setdefault(cert.name, {
+            'name': cert.name,
+            'description': cert.description,
+            'official_url': cert.official_url,
+            'total_banks': 0,
+            'difficulty_options': [],
+        })
+        bucket['total_banks'] += getattr(cert, 'test_bank_count', 0) or 0
+        bucket['difficulty_options'].append({
+            'level': cert.difficulty_level,
+            'display': cert.get_difficulty_level_display(),
+            'bank_count': getattr(cert, 'test_bank_count', 0) or 0,
+            'certification': cert,
+        })
+    for bucket in cert_buckets.values():
+        bucket['difficulty_options'].sort(key=lambda d: _diff_order.get(d['level'], 99))
+    certification_groups = list(cert_buckets.values())
+
+    # Sortable, paginated test-bank grid scoped to this category.
+    SORT_CHOICES = [
+        ('popular', _('Most popular')),
+        ('newest', _('Newest')),
+        ('rating', _('Top rated')),
+        ('price_asc', _('Price: low to high')),
+        ('price_desc', _('Price: high to low')),
+        ('az', _('A–Z')),
+    ]
+    current_sort = request.GET.get('sort') or 'popular'
+    sort_order_map = {
+        'popular': ('-enrolls', '-average_rating', '-created_at'),
+        'newest': ('-created_at',),
+        'rating': ('-average_rating', '-total_ratings'),
+        'price_asc': ('price', '-average_rating'),
+        'price_desc': ('-price', '-average_rating'),
+        'az': ('title',),
+    }
+    if current_sort not in sort_order_map:
+        current_sort = 'popular'
+
+    banks_qs = (
+        TestBank.objects.filter(is_active=True, category=category)
+        .select_related('category', 'certification')
+        .annotate(enrolls=Count('user_accesses', filter=Q(user_accesses__is_active=True)))
+    )
+    if request.user.is_authenticated:
+        from django.db.models import Exists, IntegerField, OuterRef, Subquery
+        access_sq = UserTestAccess.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'), is_active=True,
+        )
+        rating_sq = TestBankRating.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'),
+        ).values('rating')[:1]
+        banks_qs = banks_qs.annotate(
+            has_access=Exists(access_sq),
+            user_rating=Subquery(rating_sq, output_field=IntegerField()),
+        )
+
+    banks_qs = banks_qs.order_by(*sort_order_map[current_sort])
+    paginator = Paginator(banks_qs, 24)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     breadcrumbs = [
         {'label': _('Home'), 'url': reverse('catalog:index')},
+        {'label': _('Browse'), 'url': reverse('catalog:category_list')},
         {'label': category.name, 'url': ''},
     ]
-    
+
     return render(request, 'catalog/vocational_index.html', {
         'category': category,
-        'certifications': certifications,
+        'certifications': certifications,                # kept for any legacy usage
+        'certification_groups': certification_groups,    # new: deduped rollups
+        'banks_page': page_obj,
+        'sort_choices': SORT_CHOICES,
+        'current_sort': current_sort,
         'breadcrumbs': breadcrumbs,
     })
 
@@ -424,12 +750,16 @@ import json
 
 @require_POST
 @login_required
+@ratelimit(key='user', rate='30/m', method='POST', block=True)
 def rate_test_bank(request, slug):
     """
     Handle AJAX request to rate a test bank.
+
+    Rate-limited: 30/min per user — generous for legitimate rapid-fire updates,
+    tight enough to stop automated rating abuse.
     """
-    # Validate JSON size to prevent DoS attacks
-    MAX_JSON_SIZE = 1024 * 1024  # 1MB
+    # Validate JSON size to prevent DoS attacks — rating payload is tiny.
+    MAX_JSON_SIZE = 1024  # 1 KB
     if len(request.body) > MAX_JSON_SIZE:
         return JsonResponse({'status': 'error', 'message': 'Payload too large'}, status=413)
     
@@ -468,11 +798,65 @@ def rate_test_bank(request, slug):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
+@ratelimit(key='ip', rate='5/h', method='POST', block=True)
+@login_required
+@require_POST
+@ratelimit(key='user', rate='10/h', method='POST', block=True)
+def report_question(request, question_id):
+    """
+    Accept a user-submitted report flagging a question.
+
+    Brain-dump reports are the highest-risk — they mean a user recognizes
+    the question as lifted verbatim from a real live exam, which is a
+    copyright + NDA exposure. Admin triage happens via the QuestionReport
+    admin changelist.
+
+    Size-capped to 1 KB; rate-limited to 10/h per user.
+    """
+    MAX_JSON_SIZE = 1024
+    if len(request.body) > MAX_JSON_SIZE:
+        return JsonResponse({'status': 'error', 'message': 'Payload too large'}, status=413)
+
+    question = get_object_or_404(Question, pk=question_id, is_active=True)
+
+    try:
+        data = json.loads(request.body)
+    except (ValueError, json.JSONDecodeError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+    reason = (data.get('reason') or '').strip()
+    details = (data.get('details') or '').strip()[:2000]
+
+    valid_reasons = {choice[0] for choice in QuestionReport.Reason.choices}
+    if reason not in valid_reasons:
+        return JsonResponse({'status': 'error', 'message': 'Invalid reason'}, status=400)
+
+    # Dedupe: if the same user already has an open report for this question
+    # with the same reason, don't create a duplicate row.
+    existing = QuestionReport.objects.filter(
+        question=question,
+        reporter=request.user,
+        reason=reason,
+        status__in=(QuestionReport.Status.OPEN, QuestionReport.Status.UNDER_REVIEW),
+    ).first()
+    if existing:
+        return JsonResponse({'status': 'ok', 'message': 'Already reported — thanks.', 'duplicate': True})
+
+    QuestionReport.objects.create(
+        question=question,
+        reporter=request.user,
+        reason=reason,
+        details=details,
+    )
+    return JsonResponse({'status': 'ok', 'message': 'Reported. Thanks — our team will review it.'})
+
+
 def contact(request):
     """
     Contact page view.
-    
+
     Displays a contact form for users to send messages.
+    Rate-limited to 5 POSTs per hour per IP to stop spam submissions.
     """
     if request.method == 'POST':
         form = ContactForm(request.POST)

@@ -5,6 +5,9 @@
 /* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind utilities;
 
+/* Note: Swiper CSS is served separately via a <link> tag in base.html,
+   ordered BEFORE {% tailwind_css %} so Tailwind/custom rules win on ties. */
+
 @layer base {
   /* Base styles are handled in Tailwind config plugin */
 }
@@ -100,13 +103,24 @@
   /* Swiper Navigation Buttons */
   .swiper-button-next,
   .swiper-button-prev {
-    @apply text-udemy-purple bg-white w-12 h-12 rounded-full shadow-swiper-button m-0 transition-all duration-300 border border-black/5;
+    @apply text-brand-500 bg-white w-12 h-12 rounded-full shadow-swiper-button m-0 transition-all duration-300 border border-black/5;
     color: #5624d0 !important;
+  }
+
+  /* Dark-mode variant for the default Swiper nav buttons */
+  .dark .swiper-button-next,
+  .dark .swiper-button-prev {
+    @apply bg-dark-surface border-dark-border;
   }
 
   .swiper-button-next:hover,
   .swiper-button-prev:hover {
     @apply bg-gray-100 shadow-swiper-button-hover scale-105;
+  }
+
+  .dark .swiper-button-next:hover,
+  .dark .swiper-button-prev:hover {
+    @apply bg-dark-bg;
   }
 
   .swiper-button-next:active,

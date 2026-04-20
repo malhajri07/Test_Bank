@@ -45,8 +45,8 @@ urlpatterns = [
     # Forum app URLs (discussion boards)
     path('forum/', include('forum.urls')),
 
-    # CKEditor file upload URLs
-    path('ckeditor/', include('ckeditor_uploader.urls')),
+    # CKEditor 5 URLs (image upload endpoint lives under this prefix)
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
 
     # REST API
     path('api/', include('api.urls')),

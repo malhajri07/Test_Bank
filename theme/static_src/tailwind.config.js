@@ -20,36 +20,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Main color palette
+        // Main color palette — canonical tokens
         'primary': '#8FABD4',
         'primary-dark': '#4A70A9',
         'accent': '#EFECE3',
         'text': '#000000',
         'text-light': '#666666',
         'bg': 'rgb(245, 245, 247)',
-        // Legacy color names for backward compatibility
-        'coursera-blue': '#8FABD4',
-        'coursera-blue-dark': '#4A70A9',
-        'coursera-text': '#000000',
-        'coursera-text-light': '#666666',
-        'coursera-bg': 'rgb(245, 245, 247)',
-        'coursera-accent': '#EFECE3',
-        'purple-accent': '#EFECE3',
-        // Apple-style colors
-        'apple-bg': 'rgb(245, 245, 247)',
-        'apple-text': '#1d1d1f',
-        'apple-text-secondary': '#86868b',
-        'apple-border': 'rgba(0, 0, 0, 0.1)',
-        // Brand (Exam Stellar) — prefer `brand-*` in templates; udemy-* kept for compatibility
+        // Brand (Exam Stellar) — use brand-500/600/700
         brand: {
           500: '#5624d0',
           600: '#4a1fb8',
           700: '#3d1a9e',
         },
-        // Udemy colors (alias)
-        'udemy-purple': '#5624d0',
-        'udemy-purple-dark': '#4a1fb8',
-        // Dark mode (slate-900 base per skill spec)
+        // Dark mode surfaces
         'dark-bg': '#0F172A',
         'dark-surface': '#1E293B',
         'dark-border': '#334155',
@@ -59,8 +43,11 @@ module.exports = {
         'default': 'rgb(245, 245, 247)',
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        arabic: ['Cairo', 'sans-serif'],
+        // Variable-weight self-hosted fonts via @fontsource-variable/*
+        // Family names come from fontsource: "Inter Variable", "Cairo Variable"
+        // Fallbacks kept for graceful degradation before font loads.
+        sans: ['"Inter Variable"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        arabic: ['"Cairo Variable"', 'Cairo', 'sans-serif'],
       },
       maxWidth: {
         '7xl': '960px', // Override default to match custom requirement

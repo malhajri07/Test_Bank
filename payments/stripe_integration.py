@@ -13,13 +13,19 @@ Security Considerations:
 - Use server-side verification for all payment operations
 """
 
-import stripe
+import logging
 import os
+
+import stripe
 from django.conf import settings
+from django.db import IntegrityError, transaction
 from django.urls import reverse
-from .models import Coupon, Order, OrderItem, Payment, Purchase
+
 from .email_utils import send_payment_invoice
 from .fulfillment import fulfill_payment
+from .models import Coupon, Order, OrderItem, Payment, ProcessedWebhookEvent, Purchase
+
+logger = logging.getLogger(__name__)
 
 
 def _ensure_stripe_configured():
@@ -366,15 +372,19 @@ def handle_payment_success(session_id):
             stripe.checkout.Session.retrieve,
             session_id
         )
-        
-        # Find payment record by session ID
-        try:
-            payment = Payment.objects.get(provider_session_id=session_id)
-        except Payment.DoesNotExist:
-            raise Payment.DoesNotExist(f'Payment not found for session {session_id}')
-        
-        # Only process if payment is not already succeeded
-        if payment.status != 'succeeded':
+
+        # Lock the payment row so concurrent webhook/success calls can't race.
+        with transaction.atomic():
+            try:
+                payment = Payment.objects.select_for_update().get(
+                    provider_session_id=session_id
+                )
+            except Payment.DoesNotExist:
+                raise Payment.DoesNotExist(f'Payment not found for session {session_id}')
+
+            if payment.status == 'succeeded':
+                return payment, payment.purchases.order_by('id').first()
+
             payment.status = 'succeeded'
             pi = checkout_session.payment_intent
             if pi:
@@ -383,18 +393,13 @@ def handle_payment_success(session_id):
 
             fulfill_payment(payment)
 
-            # Send payment invoice email
-            try:
-                send_payment_invoice(payment)
-            except Exception as e:
-                # Log error but don't fail payment processing
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f'Failed to send payment invoice email: {str(e)}')
-            
-            return payment, payment.purchases.order_by('id').first()
-        else:
-            return payment, payment.purchases.order_by('id').first()
+        # Email outside the DB transaction — don't hold the lock over network I/O
+        try:
+            send_payment_invoice(payment)
+        except Exception as e:
+            logger.error(f'Failed to send payment invoice email: {str(e)}')
+
+        return payment, payment.purchases.order_by('id').first()
     except Exception as e:
         # Re-raise any exceptions (will be handled by views)
         raise e
@@ -402,47 +407,60 @@ def handle_payment_success(session_id):
 
 def handle_webhook_event(event):
     """
-    Handle Stripe webhook events.
-    
-    This function processes different types of Stripe webhook events:
-    - checkout.session.completed: Payment succeeded
-    - payment_intent.succeeded: Payment confirmed
-    - payment_intent.payment_failed: Payment failed
-    
-    Args:
-        event: Stripe Event object from verified webhook
-    
+    Handle Stripe webhook events with idempotency and refund support.
+
+    Events handled:
+    - checkout.session.completed       → fulfill payment
+    - payment_intent.succeeded         → fulfill payment
+    - payment_intent.payment_failed    → mark failed
+    - payment_intent.canceled          → mark cancelled
+    - charge.refunded                  → revoke access
+
     Returns:
-        tuple: (Payment instance, Purchase instance or None)
+        tuple: (Payment or None, Purchase or None)
     """
+    event_id = event.get('id')
     event_type = event['type']
     event_data = event['data']['object']
-    
+
+    # Idempotency guard — first-write-wins on (provider, event_id).
+    if event_id:
+        try:
+            ProcessedWebhookEvent.objects.create(
+                provider='stripe',
+                event_id=event_id,
+                event_type=event_type,
+            )
+        except IntegrityError:
+            logger.info(f'Duplicate Stripe event {event_id} ({event_type}) ignored')
+            return None, None
+
     if event_type == 'checkout.session.completed':
-        # Payment completed via Checkout
         session_id = event_data['id']
         return handle_payment_success(session_id)
-    
-    elif event_type == 'payment_intent.succeeded':
+
+    if event_type == 'payment_intent.succeeded':
         payment_intent_id = event_data['id']
         try:
-            payment = Payment.objects.get(provider_payment_id=payment_intent_id)
-            if payment.status != 'succeeded':
+            with transaction.atomic():
+                payment = Payment.objects.select_for_update().get(
+                    provider_payment_id=payment_intent_id
+                )
+                if payment.status == 'succeeded':
+                    return payment, payment.purchases.order_by('id').first()
                 payment.status = 'succeeded'
                 payment.save()
                 fulfill_payment(payment)
-                try:
-                    send_payment_invoice(payment)
-                except Exception as e:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f'Failed to send payment invoice email: {str(e)}')
-                return payment, payment.purchases.order_by('id').first()
+            try:
+                send_payment_invoice(payment)
+            except Exception as e:
+                logger.error(f'Failed to send payment invoice email: {str(e)}')
+            return payment, payment.purchases.order_by('id').first()
         except Payment.DoesNotExist:
-            pass
-    
-    elif event_type == 'payment_intent.payment_failed':
-        # Payment failed
+            logger.warning(f'payment_intent.succeeded for unknown PI {payment_intent_id}')
+            return None, None
+
+    if event_type == 'payment_intent.payment_failed':
         payment_intent_id = event_data['id']
         try:
             payment = Payment.objects.get(provider_payment_id=payment_intent_id)
@@ -450,6 +468,52 @@ def handle_webhook_event(event):
             payment.save()
             return payment, None
         except Payment.DoesNotExist:
-            pass
-    
+            return None, None
+
+    if event_type == 'payment_intent.canceled':
+        payment_intent_id = event_data['id']
+        try:
+            payment = Payment.objects.get(provider_payment_id=payment_intent_id)
+            payment.status = 'cancelled'
+            payment.save()
+            return payment, None
+        except Payment.DoesNotExist:
+            return None, None
+
+    if event_type == 'charge.refunded':
+        payment_intent_id = event_data.get('payment_intent')
+        if payment_intent_id:
+            try:
+                payment = Payment.objects.get(provider_payment_id=payment_intent_id)
+                _handle_refund(payment)
+                return payment, None
+            except Payment.DoesNotExist:
+                logger.warning(f'charge.refunded for unknown PI {payment_intent_id}')
+
     return None, None
+
+
+def _handle_refund(payment):
+    """
+    Process a refund: mark order refunded, deactivate Purchase and UserTestAccess.
+
+    Does NOT delete records — preserves audit trail. Access is revoked by flipping
+    is_active=False on Purchase and UserTestAccess rows.
+    """
+    from practice.models import UserTestAccess
+
+    with transaction.atomic():
+        if payment.order:
+            payment.order.status = 'refunded'
+            payment.order.save(update_fields=['status', 'updated_at'])
+
+        for purchase in payment.purchases.all():
+            purchase.is_active = False
+            purchase.save(update_fields=['is_active'])
+
+            UserTestAccess.objects.filter(
+                user=purchase.user,
+                test_bank=purchase.test_bank,
+            ).update(is_active=False)
+
+    logger.info(f'Refund processed for payment {payment.id} → access revoked')

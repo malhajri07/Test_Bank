@@ -326,7 +326,31 @@ class UserAnswer(models.Model):
         verbose_name='Answered At',
         help_text='When the answer was submitted'
     )
-    
+
+    # Historical snapshot of the question + options at the moment this answer
+    # was recorded. Protects past session results from admin edits to question
+    # text, answer options, or correctness flags.
+    #
+    # Shape:
+    #   {
+    #     "question_text": "...",
+    #     "question_type": "mcq_single",
+    #     "explanation": "...",
+    #     "options": [
+    #       {"id": 1, "text": "Paris", "is_correct": true, "order": 1},
+    #       ...
+    #     ],
+    #     "selected_option_ids": [1],
+    #     "correct_option_ids": [1],
+    #     "version": 1,   // bump if schema changes
+    #   }
+    question_snapshot = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name='Question Snapshot',
+        help_text='Frozen copy of question text/options at answer time — authoritative for historical review',
+    )
+
     class Meta:
         """Meta options for UserAnswer model."""
         verbose_name = 'User Answer'
@@ -340,6 +364,39 @@ class UserAnswer(models.Model):
             models.Index(fields=['session', 'question']),
             models.Index(fields=['answered_at']),  # Added for ordering optimization
         ]
+
+    def build_snapshot(self):
+        """Build a snapshot dict from the current live question + selected options.
+
+        Call this at answer-save time. The snapshot is the source of truth for
+        the historical review page; live data can drift afterward.
+
+        Version 2 adds domain_id / domain_name so per-domain analytics still
+        resolve even after the domain gets renamed or the question gets
+        re-tagged.
+        """
+        all_options = list(self.question.answer_options.all().order_by('order'))
+        selected_ids = list(self.selected_options.values_list('id', flat=True))
+        domain = self.question.domain
+        return {
+            'version': 2,
+            'question_text': self.question.question_text,
+            'question_type': self.question.question_type,
+            'explanation': self.question.explanation or '',
+            'domain_id': domain.id if domain else None,
+            'domain_name': domain.name if domain else None,
+            'options': [
+                {
+                    'id': opt.id,
+                    'text': opt.option_text,
+                    'is_correct': opt.is_correct,
+                    'order': opt.order,
+                }
+                for opt in all_options
+            ],
+            'selected_option_ids': selected_ids,
+            'correct_option_ids': [opt.id for opt in all_options if opt.is_correct],
+        }
     
     def __str__(self):
         """String representation of the answer."""

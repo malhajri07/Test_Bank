@@ -11,26 +11,21 @@
     <link rel="manifest" href="{% static 'manifest.json' %}">
     <title>{% block title %}{% trans "Exam Stellar" %}{% endblock %}</title>
 
+    <!-- Swiper CSS — self-hosted; loaded BEFORE Tailwind so Tailwind/custom rules win on ties -->
+    <link rel="stylesheet" href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" />
+
+    <!-- Self-hosted variable fonts (Inter for LTR, Cairo for RTL). No Google Fonts CDN. -->
+    {% if IS_RTL %}
+    <link rel="stylesheet" href="{% static 'vendor/fonts/cairo/wght.css' %}" />
+    {% else %}
+    <link rel="stylesheet" href="{% static 'vendor/fonts/inter/wght.css' %}" />
+    {% endif %}
+
     <!-- Tailwind CSS -->
     {% tailwind_css %}
 
-    <!-- Swiper.js CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-
-    <!-- Swiper.js JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
-    <!-- Apple-style Fonts: SF Pro Display/Text -->
-    {% if IS_RTL %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    {% else %}
-    <!-- Apple System Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    {% endif %}
+    <!-- Swiper JS — self-hosted; deferred so it runs after DOM is parsed -->
+    <script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}" defer></script>
 
     {% block extra_css %}{% endblock %}
     <script>
@@ -40,16 +35,28 @@
         document.documentElement.setAttribute('data-theme', theme);
       })();
     </script>
+
+    <!-- Self-hosted fonts (fontsource-variable). Preload the most common weight for faster first paint. -->
+    {% if IS_RTL %}
+    <link rel="preload" href="{% static 'vendor/fonts/cairo/files/cairo-arabic-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+    {% else %}
+    <link rel="preload" href="{% static 'vendor/fonts/inter/files/inter-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+    {% endif %}
 </head>
 
 <body
-    class="min-h-screen flex flex-col bg-white dark:bg-dark-bg antialiased font-normal tracking-apple text-apple-text dark:text-gray-200 bg-apple-bg dark:bg-dark-bg pt-16 m-0 relative z-0 {% if IS_RTL %}font-arabic{% else %}font-sans{% endif %}">
+    class="min-h-screen flex flex-col bg-bg dark:bg-dark-bg antialiased font-normal tracking-apple text-black dark:text-gray-200 pt-16 m-0 relative z-0 {% if IS_RTL %}font-arabic{% else %}font-sans{% endif %}">
     <a href="#main-content"
         class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:start-4 focus:z-toast focus:rounded-md focus:bg-brand-500 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
         {% trans "Skip to main content" %}
     </a>
-    <!-- Navigation Bar - Udemy Style (Rebuilt) -->
-    <nav class="bg-white dark:bg-dark-surface border-b border-gray-200 dark:border-dark-border shadow-sm fixed inset-x-0 top-0 z-nav w-full m-0 p-0 h-16 overflow-hidden">
+    <!-- Navigation Bar - Udemy Style (Rebuilt)
+         NOTE: do NOT add overflow-hidden here. The <nav> has
+         `transform: translateZ(0)` in theme styles.css which makes it a
+         containing block for fixed-position descendants. Combining that
+         with overflow-hidden clips the user-menu dropdown and the Explore
+         mega-menu. -->
+    <nav class="bg-white dark:bg-dark-surface border-b border-gray-200 dark:border-dark-border shadow-sm fixed inset-x-0 top-0 z-nav w-full m-0 p-0 h-16">
         <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
             <!-- Top Navigation Row -->
             <div class="flex justify-between items-center h-full min-h-0">
@@ -185,14 +192,17 @@
                         <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/></svg>
                         <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
                     </button>
-                    {% if user.is_authenticated %}
-                    <!-- Cart Icon -->
-                    <a href="#" class="p-2 text-gray-700 hover:text-brand-500 transition-colors relative" aria-label="{% trans 'Shopping cart' %}">
+                    <!-- Cart Icon (session-based; available to all visitors) -->
+                    <a href="{% url 'payments:cart_view' %}" class="p-2 text-gray-700 hover:text-brand-500 transition-colors relative" aria-label="{% trans 'Shopping cart' %}">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
+                        {% if cart_count %}
+                        <span class="absolute -top-0.5 -right-0.5 bg-brand-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center" aria-label="{{ cart_count }} items in cart">{{ cart_count }}</span>
+                        {% endif %}
                     </a>
+                    {% if user.is_authenticated %}
                     <!-- User Menu -->
                     <div class="relative group user-menu-container">
                         <button type="button" id="user-menu-button"
@@ -421,6 +431,11 @@
                         {% blocktrans %}&copy; 2025 Exam Stellar. All rights reserved.{% endblocktrans %}
                     </p>
                 </div>
+
+                <!-- Site-wide trademark disclaimer: declares platform is independent -->
+                <p class="mt-6 text-[11px] text-white/70 leading-relaxed text-center md:text-left">
+                    {% trans "Exam Stellar is an independent exam preparation platform. We are not affiliated with, endorsed by, sponsored by, or authorized by any of the certifying organizations whose exams we cover. All certification names, organization names, and related marks are trademarks of their respective owners and appear here solely for identification purposes." %}
+                </p>
             </div>
         </div>
     </footer>

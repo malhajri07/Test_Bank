@@ -8,7 +8,7 @@ This module defines models for:
 - ContentBlock: Reusable content blocks for pages
 """
 
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -50,10 +50,11 @@ class Page(models.Model):
         help_text='URL-friendly version of the title (e.g., "about-us")'
     )
 
-    content = RichTextField(
+    content = CKEditor5Field(
         verbose_name='Content',
         help_text='Page content (rich text editor)',
-        blank=True
+        blank=True,
+        config_name='default',
     )
 
     # Meta fields for SEO
@@ -181,10 +182,11 @@ class Announcement(models.Model):
         help_text='Announcement title'
     )
 
-    content = RichTextField(
+    content = CKEditor5Field(
         verbose_name='Content',
         help_text='Announcement content (rich text editor)',
-        blank=True
+        blank=True,
+        config_name='default',
     )
 
     announcement_type = models.CharField(
@@ -402,10 +404,11 @@ class ContentBlock(models.Model):
         help_text='URL-friendly identifier'
     )
 
-    content = RichTextField(
+    content = CKEditor5Field(
         verbose_name='Content',
         help_text='Block content (rich text editor)',
-        blank=True
+        blank=True,
+        config_name='default',
     )
 
     # Block type for categorization
@@ -685,10 +688,11 @@ class BlogPost(models.Model):
         blank=True
     )
 
-    content = RichTextField(
+    content = CKEditor5Field(
         verbose_name='Content',
         help_text='Blog post content (rich text editor)',
-        blank=True
+        blank=True,
+        config_name='default',
     )
 
     # Featured image
