@@ -7,7 +7,7 @@ This module defines models for:
 - ForumPost: Posts/replies within topics
 """
 
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
@@ -124,9 +124,10 @@ class ForumTopic(models.Model):
         help_text='URL-friendly version of the title'
     )
 
-    content = RichTextField(
+    content = CKEditor5Field(
         verbose_name='Content',
-        help_text='Initial post content'
+        help_text='Initial post content',
+        config_name='user',
     )
 
     author = models.ForeignKey(
@@ -233,9 +234,10 @@ class ForumPost(models.Model):
         help_text='User who wrote this post'
     )
 
-    content = RichTextField(
+    content = CKEditor5Field(
         verbose_name='Content',
-        help_text='Post content'
+        help_text='Post content',
+        config_name='user',
     )
 
     is_edited = models.BooleanField(

@@ -15,7 +15,13 @@ from . import views
 app_name = 'payments'
 
 urlpatterns = [
-    # Payment flow
+    # Cart
+    path('cart/', views.cart_view, name='cart_view'),
+    path('cart/add/<slug:testbank_slug>/', views.cart_add, name='cart_add'),
+    path('cart/remove/<int:testbank_id>/', views.cart_remove, name='cart_remove'),
+    path('cart/checkout/', views.cart_checkout, name='cart_checkout'),
+
+    # Payment flow (single-item and package)
     path('checkout/<slug:testbank_slug>/', views.create_checkout, name='create_checkout'),
     path('checkout-package/<slug:package_slug>/', views.create_checkout_package, name='create_checkout_package'),
     path('success/', views.payment_success, name='payment_success'),

@@ -3,14 +3,22 @@
   "version": "1.0.0",
   "description": "Tailwind CSS theme for Test Bank Platform",
   "scripts": {
-    "build": "tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --minify",
+    "build": "npm run build:css && npm run build:vendor",
+    "build:css": "tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --minify",
+    "build:vendor": "npm run build:swiper && npm run build:fonts",
+    "build:swiper": "mkdir -p ../static/vendor/swiper && cp node_modules/swiper/swiper-bundle.min.js node_modules/swiper/swiper-bundle.min.css ../static/vendor/swiper/",
+    "build:fonts": "mkdir -p ../static/vendor/fonts/inter/files ../static/vendor/fonts/cairo/files && cp node_modules/@fontsource-variable/inter/wght.css ../static/vendor/fonts/inter/ && cp node_modules/@fontsource-variable/inter/files/*-wght-normal.woff2 ../static/vendor/fonts/inter/files/ && cp node_modules/@fontsource-variable/cairo/wght.css ../static/vendor/fonts/cairo/ && cp node_modules/@fontsource-variable/cairo/files/*-wght-normal.woff2 ../static/vendor/fonts/cairo/files/",
     "start": "tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "swiper": "^11.1.0",
     "tailwindcss": "^3.4.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/cairo": "^5.2.7",
+    "@fontsource-variable/inter": "^5.2.8"
   }
 }
-

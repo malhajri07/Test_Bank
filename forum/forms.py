@@ -2,8 +2,8 @@
 Forms for Forum app.
 """
 
-from ckeditor.widgets import CKEditorWidget
 from django import forms
+from django_ckeditor_5.widgets import CKEditor5Widget
 
 from .models import ForumCategory, ForumPost, ForumTopic
 
@@ -42,7 +42,7 @@ class ForumTopicForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5525d0] focus:border-transparent',
                 'placeholder': 'Enter topic title...'
             }),
-            'content': CKEditorWidget(attrs={
+            'content': CKEditor5Widget(config_name='user', attrs={
                 'class': 'w-full',
             }),
         }
@@ -55,7 +55,7 @@ class ForumPostForm(forms.ModelForm):
         model = ForumPost
         fields = ['content']
         widgets = {
-            'content': CKEditorWidget(attrs={
+            'content': CKEditor5Widget(config_name='user', attrs={
                 'class': 'w-full',
             }),
         }

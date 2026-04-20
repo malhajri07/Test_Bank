@@ -21,11 +21,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Using python-decouple to load from .env file
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-!0h*3@_zmuva+t7drhoq$vsui0^sf35ksvc@c5&$$sefgo+o#f')
+# SECRET_KEY must come from the environment. No insecure default.
+# Dev convenience: allow an insecure default only when DEBUG is explicitly True.
+_DEBUG_ENV = config('DEBUG', default='False')
+DEBUG = str(_DEBUG_ENV).lower() in ('true', '1', 'yes', 'on')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+SECRET_KEY = config('SECRET_KEY', default='' if not DEBUG else 'django-insecure-dev-only-do-not-use-in-production')
+if not SECRET_KEY:
+    raise RuntimeError(
+        'SECRET_KEY environment variable is required in production. '
+        'Generate one with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
+    )
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
@@ -50,8 +56,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "tailwind",  # Django Tailwind integration
     "theme",  # Tailwind theme app
-    "ckeditor",  # Rich text editor for CMS
-    "ckeditor_uploader",  # File uploads for CKEditor
+    "django_ckeditor_5",  # Rich text editor for CMS (CKEditor 5 — supported branch)
 
     # Local apps
     "accounts",  # Authentication and user profiles
@@ -65,6 +70,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "csp.middleware.CSPMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",  # For RTL/LTR language switching
     "django.middleware.common.CommonMiddleware",
@@ -92,6 +98,7 @@ TEMPLATES = [
                 "accounts.context_processors.user_language",
                 "cms.context_processors.cms_content",  # CMS content (announcements, pages)
                 "catalog.context_processors.categories",  # Categories for navigation
+                "payments.context_processors.cart",  # Cart count badge in nav
             ],
         },
     },
@@ -126,11 +133,15 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+# Email verification is handled by the custom EmailVerificationToken flow
+# in accounts/views.py (see register/verify_email). Allauth verification is
+# disabled here to avoid duplicate verification emails and token races.
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
 LOGIN_REDIRECT_URL = "accounts:dashboard"
 SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = "optional"
+# Social (Google) OAuth: Google already verified the email, so trust it.
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -194,27 +205,52 @@ STATICFILES_DIRS = [
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# CKEditor Configuration
-CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_CONFIGS = {
+# CKEditor 5 Configuration (django-ckeditor-5)
+# CKEditor 4 is EOL; CKEditor 5 is the supported branch. See upgrade notes in
+# AUDIT_STATUS.md for the migration context.
+#
+# Config format differs from CKEditor 4 — items are top-level toolbar entries
+# (no nested groups), and plugins are implicit based on what's in the toolbar.
+CKEDITOR_5_CONFIGS = {
     'default': {
-        'toolbar': 'full',
-        'height': 300,
-        'width': '100%',
-        'toolbar_Full': [
-            ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
-            ['Link', 'Unlink', 'Anchor'],
-            ['Image', 'Flash', 'Table', 'HorizontalRule'],
-            ['TextColor', 'BGColor'],
-            ['Smiley', 'SpecialChar'], ['Source'],
-            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-            ['NumberedList', 'BulletedList'],
-            ['Indent', 'Outdent'],
-            ['Maximize'],
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'link', 'bulletedList', 'numberedList', '|',
+            'blockQuote', 'code', 'codeBlock', '|',
+            'insertTable', 'horizontalLine', '|',
+            'undo', 'redo',
         ],
-        'extraPlugins': 'justify,liststyle,indent',
+        'heading': {
+            'options': [
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'},
+                {'model': 'heading4', 'view': 'h4', 'title': 'Heading 4', 'class': 'ck-heading_heading4'},
+            ],
+        },
+        'image': {
+            'toolbar': ['imageTextAlternative', '|', 'imageStyle:alignLeft', 'imageStyle:alignRight', 'imageStyle:alignCenter', 'imageStyle:side'],
+            'styles': ['full', 'side', 'alignLeft', 'alignRight', 'alignCenter'],
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells'],
+        },
+        'language': 'en',
+    },
+    # A lighter profile for user-facing inputs (forum posts / comments).
+    'user': {
+        'toolbar': [
+            'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'code', '|',
+            'undo', 'redo',
+        ],
+        'language': 'en',
     },
 }
+
+# Allowed file types for CKEditor 5 image upload (admin-only uploads).
+CKEDITOR_5_FILE_STORAGE = config('CKEDITOR_5_FILE_STORAGE', default='django.core.files.storage.FileSystemStorage')
+CKEDITOR_5_CUSTOM_CSS = ''
 
 
 # Default primary key field type
@@ -284,6 +320,54 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    SECURE_REFERRER_POLICY = 'same-origin'
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    X_FRAME_OPTIONS = 'DENY'
+
+
+# Content Security Policy (django-csp 4.x)
+# Tightens what the browser will load. Fonts + Swiper are self-hosted, so 'self'
+# covers them. We still need:
+#   - Stripe for hosted Checkout iframes/redirects
+#   - Tap Payments for MEA card processing
+#   - data: URIs for inline SVG icons + small base64 backgrounds
+#   - https: for user-uploaded images (Cloud Storage signed URLs etc.)
+#   - 'unsafe-inline' on style-src temporarily: Django admin + a handful of
+#     remaining inline style="..." attrs still need it. Once those are cleaned
+#     this can be tightened to 'self'.
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        # script-src: 'unsafe-inline' is required today because templates
+        # (catalog/index.html, testbank_detail.html, base.html) contain inline
+        # <script> blocks that call `new Swiper(...)` + UI glue. Migrate those
+        # to external files or per-request nonces (django-csp supports
+        # request.csp_nonce) to tighten this to just 'self'. Tracking in
+        # AUDIT_STATUS.md.
+        'script-src': ("'self'", "'unsafe-inline'"),
+        # style-src: 'unsafe-inline' covers Django admin + remaining inline
+        # style="..." attrs. Drop once admin/base_site.html, components, and
+        # payments/checkout.html are cleaned.
+        'style-src': ("'self'", "'unsafe-inline'"),
+        'font-src': ("'self'", 'data:'),
+        'img-src': ("'self'", 'data:', 'https:'),
+        'connect-src': (
+            "'self'",
+            'https://api.stripe.com',
+            'https://api.tap.company',
+            'https://checkout.stripe.com',
+        ),
+        'frame-src': (
+            'https://js.stripe.com',
+            'https://hooks.stripe.com',
+            'https://checkout.stripe.com',
+            'https://card.tap.company',
+        ),
+        'frame-ancestors': ("'none'",),
+        'base-uri': ("'self'",),
+        'form-action': ("'self'", 'https://checkout.stripe.com'),
+    },
+}
 
 
 # Django REST Framework
@@ -318,6 +402,13 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
 # Logging Configuration
+#
+# Format switches between human-readable (dev) and single-line JSON (prod or
+# when LOG_JSON=True). JSON output is meant for log aggregators (GCP Cloud
+# Logging, Datadog, Loki) that parse structured fields natively.
+LOG_JSON = config('LOG_JSON', default=not DEBUG, cast=bool)
+_LOG_FORMATTER = 'json' if LOG_JSON else 'verbose'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -326,11 +417,14 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
+        'json': {
+            '()': 'testbank_platform.logging_config.JSONFormatter',
+        },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': _LOG_FORMATTER,
         },
     },
     'root': {
@@ -365,3 +459,15 @@ LOGGING = {
         },
     },
 }
+
+
+# Sentry — opt-in via SENTRY_DSN. No DSN means the SDK is never loaded.
+SENTRY_DSN = config('SENTRY_DSN', default='')
+if SENTRY_DSN:
+    from .logging_config import init_sentry
+    init_sentry(
+        dsn=SENTRY_DSN,
+        environment=config('SENTRY_ENVIRONMENT', default='development' if DEBUG else 'production'),
+        release=config('SENTRY_RELEASE', default=None),
+        traces_sample_rate=config('SENTRY_TRACES_SAMPLE_RATE', default=0.1, cast=float),
+    )

@@ -453,7 +453,189 @@ def purchase_list(request):
     purchases = Purchase.objects.filter(
         user=request.user
     ).select_related('test_bank', 'payment').order_by('-purchased_at')
-    
+
     return render(request, 'payments/purchase_list.html', {
         'purchases': purchases,
     })
+
+
+# ------------------------------------------------------------------
+# Shopping cart (session-based)
+# ------------------------------------------------------------------
+
+def cart_view(request):
+    """
+    Display the user's cart with subtotal and a checkout button.
+
+    Unauthenticated users can view and modify their cart (session-backed);
+    they'll be prompted to log in when clicking checkout.
+    """
+    from .cart import Cart
+    cart = Cart(request)
+    test_banks = list(cart.get_test_banks().select_related('category', 'certification'))
+    subtotal = cart.get_subtotal()
+
+    vat_rate = Decimal(str(getattr(settings, 'VAT_RATE', 0.15)))
+    tax = (subtotal * vat_rate).quantize(Decimal('0.01'))
+    total = (subtotal + tax).quantize(Decimal('0.01'))
+
+    return render(request, 'payments/cart.html', {
+        'cart_items': test_banks,
+        'subtotal': subtotal,
+        'tax': tax,
+        'total': total,
+        'vat_rate_pct': int(float(vat_rate) * 100),
+    })
+
+
+@require_http_methods(["POST"])
+def cart_add(request, testbank_slug):
+    """Add a test bank to the cart. Idempotent."""
+    from .cart import Cart
+    test_bank = get_object_or_404(TestBank, slug=testbank_slug, is_active=True)
+    cart = Cart(request)
+    added = cart.add(test_bank.id)
+    if added:
+        messages.success(request, f'"{test_bank.title}" added to cart.')
+    else:
+        messages.info(request, f'"{test_bank.title}" is already in your cart.')
+    next_url = request.POST.get('next') or reverse('payments:cart_view')
+    return redirect(next_url)
+
+
+@require_http_methods(["POST"])
+def cart_remove(request, testbank_id):
+    """Remove a test bank from the cart by ID. Idempotent."""
+    from .cart import Cart
+    cart = Cart(request)
+    cart.remove(testbank_id)
+    messages.success(request, 'Item removed from cart.')
+    return redirect('payments:cart_view')
+
+
+@login_required
+@require_http_methods(["POST"])
+def cart_checkout(request):
+    """
+    Convert the cart to a Stripe Checkout session.
+
+    Creates an Order with one OrderItem per cart item, then a single Stripe
+    Checkout session for the total. Reuses the existing multi-item fulfillment
+    path (all purchases created on webhook). Clears the cart on success.
+    """
+    from .cart import Cart
+    from .models import Order, OrderItem
+    cart = Cart(request)
+    test_banks = list(cart.get_test_banks())
+    if not test_banks:
+        messages.error(request, 'Your cart is empty.')
+        return redirect('payments:cart_view')
+
+    # Skip items the user already owns — avoids double-charging for same access.
+    from practice.models import UserTestAccess
+    owned_ids = set(
+        UserTestAccess.objects.filter(
+            user=request.user,
+            test_bank_id__in=[tb.id for tb in test_banks],
+            is_active=True,
+        ).values_list('test_bank_id', flat=True)
+    )
+    payable = [tb for tb in test_banks if tb.id not in owned_ids]
+    for tb in test_banks:
+        if tb.id in owned_ids:
+            cart.remove(tb.id)
+
+    if not payable:
+        messages.info(request, 'You already own every item in your cart.')
+        return redirect('payments:cart_view')
+
+    subtotal = sum((tb.price for tb in payable), Decimal('0'))
+    vat_rate = Decimal(str(getattr(settings, 'VAT_RATE', 0.15)))
+    amount_after_discount = subtotal
+    tax = (amount_after_discount * vat_rate).quantize(Decimal('0.01'))
+    total = (amount_after_discount + tax).quantize(Decimal('0.01'))
+
+    order = Order.objects.create(
+        user=request.user,
+        subtotal=subtotal,
+        discount_amount=Decimal('0'),
+        tax_amount=tax,
+        total_amount=total,
+        currency=settings.STRIPE_CURRENCY,
+    )
+    for tb in payable:
+        OrderItem.objects.create(
+            order=order,
+            test_bank=tb,
+            quantity=1,
+            unit_price=tb.price,
+        )
+
+    if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_PUBLIC_KEY:
+        messages.error(request, 'Payment processing is not configured. Please contact support.')
+        return redirect('payments:cart_view')
+
+    # Build a single-line Stripe session bundling all items by title.
+    _ensure_stripe_available()
+    import stripe as stripe_mod
+    from .stripe_integration import _make_stripe_request, _ensure_stripe_configured
+    _ensure_stripe_configured()
+
+    payment = Payment.objects.create(
+        user=request.user,
+        order=order,
+        test_bank=payable[0],
+        amount=amount_after_discount,
+        currency=settings.STRIPE_CURRENCY,
+        payment_provider='stripe',
+        status='created',
+    )
+
+    success_url = request.build_absolute_uri(reverse('payments:payment_success')) + '?session_id={CHECKOUT_SESSION_ID}'
+    cancel_url = request.build_absolute_uri(reverse('payments:cart_view'))
+
+    bundle_name = payable[0].title if len(payable) == 1 else f'{len(payable)} test banks'
+    bundle_desc = ', '.join(tb.title for tb in payable)[:500]
+
+    session_params = {
+        'payment_method_types': ['card'],
+        'line_items': [{
+            'price_data': {
+                'currency': settings.STRIPE_CURRENCY,
+                'product_data': {
+                    'name': bundle_name,
+                    'description': bundle_desc,
+                },
+                'unit_amount': int(float(amount_after_discount) * 100),
+            },
+            'quantity': 1,
+        }],
+        'mode': 'payment',
+        'success_url': success_url,
+        'cancel_url': cancel_url,
+        'client_reference_id': str(payment.id),
+        'metadata': {
+            'payment_id': str(payment.id),
+            'order_id': str(order.id),
+            'user_id': str(request.user.id),
+            'cart_checkout': '1',
+        },
+    }
+
+    try:
+        checkout_session = _make_stripe_request(stripe_mod.checkout.Session.create, **session_params)
+        payment.provider_session_id = checkout_session.id
+        payment.status = 'pending'
+        payment.save()
+        cart.clear()
+        return redirect(checkout_session.url)
+    except Exception as e:
+        logger.error(f'Cart checkout Stripe error: {e}', exc_info=True)
+        messages.error(request, 'Unable to start checkout. Please try again.')
+        return redirect('payments:cart_view')
+
+
+def _ensure_stripe_available():
+    """Defensive: raise early if Stripe config is missing at request time."""
+    if not settings.STRIPE_SECRET_KEY:
+        raise RuntimeError('Stripe is not configured (missing STRIPE_SECRET_KEY).')

@@ -1,0 +1,26 @@
+{% comment %}
+    Single partner logo cell used by the marquee.
+    Expected ctx: `partner` with keys `name`, optional `url`, optional `logo_url`.
+{% endcomment %}
+{% if partner.url %}
+<a class="partner-marquee__item"
+   href="{{ partner.url }}"
+   target="_blank"
+   rel="noopener noreferrer"
+   {% if aria_hidden_duplicate %}aria-hidden="true" tabindex="-1"{% else %}aria-label="{{ partner.name }}"{% endif %}>
+    {% if partner.logo_url %}
+    <img src="{{ partner.logo_url }}" alt="{{ partner.name }}" loading="lazy">
+    {% else %}
+    <span>{{ partner.name }}</span>
+    {% endif %}
+</a>
+{% else %}
+<div class="partner-marquee__item"
+     {% if aria_hidden_duplicate %}aria-hidden="true"{% else %}aria-label="{{ partner.name }}"{% endif %}>
+    {% if partner.logo_url %}
+    <img src="{{ partner.logo_url }}" alt="{{ partner.name }}" loading="lazy">
+    {% else %}
+    <span>{{ partner.name }}</span>
+    {% endif %}
+</div>
+{% endif %}

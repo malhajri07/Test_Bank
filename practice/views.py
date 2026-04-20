@@ -8,17 +8,38 @@ This module provides views for:
 - Reviewing results and explanations
 """
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.db import transaction
-from django.db.models import F
-from django.utils import timezone
-from django.http import JsonResponse
-from .models import UserTestSession, UserAnswer, UserTestAccess, Certificate
-from catalog.models import TestBank, Question
+import json
 import random
-from django.db.models import Count, Q, Avg
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.db.models import Avg, Count, F, Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
+
+from catalog.models import Question, TestBank
+from .models import Certificate, UserAnswer, UserTestAccess, UserTestSession
+
+# Hard cap on AJAX JSON body size — protects against memory-exhaustion payloads.
+# 10 KB is generous for our endpoints (question id + flags).
+MAX_AJAX_JSON_BYTES = 10 * 1024
+
+
+def _parse_json_body(request):
+    """Safely parse a JSON request body with a size cap.
+
+    Returns (data, error_response). If error_response is not None, return it
+    from the view immediately.
+    """
+    if len(request.body) > MAX_AJAX_JSON_BYTES:
+        return None, JsonResponse({'error': 'Payload too large'}, status=413)
+    try:
+        return json.loads(request.body), None
+    except (ValueError, TypeError):
+        return None, JsonResponse({'error': 'Invalid JSON'}, status=400)
 
 
 @login_required
@@ -200,13 +221,17 @@ def practice_session(request, session_id):
 
 
 @login_required
+@ratelimit(key='user', rate='180/m', method='POST', block=True)
 def save_answer(request, session_id):
     """
     Save user's answer to a question (AJAX endpoint).
-    
+
     This view handles saving answers during practice without submitting the entire session.
     Allows users to navigate back and forth between questions.
-    
+
+    Rate-limited: 180 saves/min per user (3/sec) — well above normal clicking cadence,
+    below what an automated scraper would produce.
+
     Args:
         session_id: Primary key of the UserTestSession
     """
@@ -246,14 +271,18 @@ def save_answer(request, session_id):
                 'is_correct': False,  # Will be updated below
             }
         )
-        
+
         # Update selected options
         answer.selected_options.set(selected_options)
-        
+
         # Check correctness
         answer.is_correct = answer.check_correctness()
+
+        # Freeze a snapshot of the question + options so later admin edits
+        # don't alter this user's historical session record.
+        answer.question_snapshot = answer.build_snapshot()
         answer.save()
-    
+
     return JsonResponse({
         'success': True,
         'is_correct': answer.is_correct,
@@ -261,10 +290,13 @@ def save_answer(request, session_id):
 
 
 @login_required
+@ratelimit(key='user', rate='120/m', method='POST', block=True)
 def save_time(request, session_id):
     """
     Save time remaining for a practice session (AJAX endpoint).
-    
+
+    Rate-limited: 120/min per user — timers tick once/sec but client batches.
+
     Args:
         session_id: Primary key of the UserTestSession
     """
@@ -277,28 +309,31 @@ def save_time(request, session_id):
     if session.status == 'completed':
         return JsonResponse({'error': 'Session already completed'}, status=400)
     
+    data, err = _parse_json_body(request)
+    if err:
+        return err
+
+    time_remaining = data.get('time_remaining')
+    if time_remaining is None:
+        return JsonResponse({'error': 'Missing time_remaining'}, status=400)
+
     try:
-        import json
-        data = json.loads(request.body)
-        time_remaining = data.get('time_remaining')
-        
-        if time_remaining is None:
-            return JsonResponse({'error': 'Missing time_remaining'}, status=400)
-        
-        # Update time remaining
         session.time_remaining_seconds = int(time_remaining)
-        session.save(update_fields=['time_remaining_seconds'])
-        
-        return JsonResponse({'success': True})
-    except (ValueError, KeyError) as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid time_remaining'}, status=400)
+    session.save(update_fields=['time_remaining_seconds'])
+
+    return JsonResponse({'success': True})
 
 
 @login_required
+@ratelimit(key='user', rate='120/m', method='POST', block=True)
 def mark_for_review(request, session_id):
     """
     Mark or unmark a question for review (AJAX endpoint).
-    
+
+    Rate-limited: 120/min per user.
+
     Args:
         session_id: Primary key of the UserTestSession
     """
@@ -311,34 +346,30 @@ def mark_for_review(request, session_id):
     if session.status == 'completed':
         return JsonResponse({'error': 'Session already completed'}, status=400)
     
-    try:
-        import json
-        data = json.loads(request.body)
-        question_id = data.get('question_id')
-        marked = data.get('marked', False)
-        
-        if not question_id:
-            return JsonResponse({'error': 'Missing question_id'}, status=400)
-        
-        question = get_object_or_404(Question, pk=question_id, test_bank=session.test_bank)
-        
-        # Get or create answer
-        answer, created = UserAnswer.objects.get_or_create(
-            session=session,
-            question=question,
-            defaults={
-                'is_correct': False,
-                'marked_for_review': marked,
-            }
-        )
-        
-        # Update mark for review status
-        answer.marked_for_review = marked
-        answer.save(update_fields=['marked_for_review'])
-        
-        return JsonResponse({'success': True, 'marked': marked})
-    except (ValueError, KeyError) as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    data, err = _parse_json_body(request)
+    if err:
+        return err
+
+    question_id = data.get('question_id')
+    marked = bool(data.get('marked', False))
+
+    if not question_id:
+        return JsonResponse({'error': 'Missing question_id'}, status=400)
+
+    question = get_object_or_404(Question, pk=question_id, test_bank=session.test_bank)
+
+    answer, _ = UserAnswer.objects.get_or_create(
+        session=session,
+        question=question,
+        defaults={
+            'is_correct': False,
+            'marked_for_review': marked,
+        },
+    )
+    answer.marked_for_review = marked
+    answer.save(update_fields=['marked_for_review'])
+
+    return JsonResponse({'success': True, 'marked': marked})
 
 
 @login_required
@@ -442,77 +473,125 @@ def practice_results(request, session_id):
     answers = UserAnswer.objects.filter(
         session=session
     ).select_related('question').prefetch_related('selected_options', 'question__answer_options')
-    
+
     # Create a dict of answers by question ID for quick lookup
     answers_dict = {answer.question.id: answer for answer in answers}
-    
-    # Prepare review data in randomized order (if stored) or original order
-    review_data = []
-    if session.question_order:
-        # Use stored randomized order
-        for question_id in session.question_order:
-            if question_id in answers_dict:
-                answer = answers_dict[question_id]
-                correct_options = answer.question.get_correct_answers()
-                review_data.append({
-                    'question': answer.question,
-                    'user_answer': answer,
-                    'selected_options': answer.selected_options.all(),
-                    'correct_options': correct_options,
-                    'is_correct': answer.is_correct,
-                    'marked_for_review': answer.marked_for_review,
-                })
-    else:
-        # Fallback: use answers in their natural order
-        for answer in answers:
-            correct_options = answer.question.get_correct_answers()
-            review_data.append({
-                'question': answer.question,
+
+    def _build_review_row(answer):
+        """Assemble one review row, preferring the frozen snapshot over live
+        data so admin edits to questions/options after the fact don't alter
+        what the user sees on their results page.
+
+        Option dicts use the key `option_text` (not `text`) so existing
+        template markup using `{{ option.option_text }}` keeps working for
+        both snapshot and legacy rows.
+        """
+        def _opt_dict(oid, text, is_correct, order):
+            return {'id': oid, 'option_text': text, 'is_correct': is_correct, 'order': order}
+
+        snap = answer.question_snapshot or {}
+        if snap.get('options'):
+            selected_ids = set(snap.get('selected_option_ids') or [])
+            correct_ids = set(snap.get('correct_option_ids') or [])
+            selected_snapshots = [
+                _opt_dict(o['id'], o['text'], o['is_correct'], o['order'])
+                for o in snap['options'] if o['id'] in selected_ids
+            ]
+            correct_snapshots = [
+                _opt_dict(o['id'], o['text'], o['is_correct'], o['order'])
+                for o in snap['options'] if o['id'] in correct_ids
+            ]
+            return {
+                'question': answer.question,  # FK kept for metadata/links
+                'question_text': snap.get('question_text', answer.question.question_text),
+                'question_type': snap.get('question_type', answer.question.question_type),
+                'explanation': snap.get('explanation', answer.question.explanation or ''),
                 'user_answer': answer,
-                'selected_options': answer.selected_options.all(),
-                'correct_options': correct_options,
+                'selected_options': selected_snapshots,
+                'correct_options': correct_snapshots,
                 'is_correct': answer.is_correct,
                 'marked_for_review': answer.marked_for_review,
-            })
+                'from_snapshot': True,
+            }
+
+        # Legacy answers (recorded before snapshot landed): fall back to live
+        # data. Same dict shape so the template path is the same.
+        correct_options = answer.question.get_correct_answers()
+        return {
+            'question': answer.question,
+            'question_text': answer.question.question_text,
+            'question_type': answer.question.question_type,
+            'explanation': answer.question.explanation or '',
+            'user_answer': answer,
+            'selected_options': [
+                _opt_dict(o.id, o.option_text, o.is_correct, o.order)
+                for o in answer.selected_options.all()
+            ],
+            'correct_options': [
+                _opt_dict(o.id, o.option_text, True, o.order)
+                for o in correct_options
+            ],
+            'is_correct': answer.is_correct,
+            'marked_for_review': answer.marked_for_review,
+            'from_snapshot': False,
+        }
+
+    review_data = []
+    if session.question_order:
+        for question_id in session.question_order:
+            if question_id in answers_dict:
+                review_data.append(_build_review_row(answers_dict[question_id]))
+    else:
+        for answer in answers:
+            review_data.append(_build_review_row(answer))
     
-    # Calculate weak area insights based on question categories
-    # Group answers by test bank category to identify weak areas
+    # Per-domain performance breakdown.
+    #
+    # Each answer is bucketed by its QuestionDomain (preferring the name
+    # captured in the snapshot so rename/retag doesn't reshape history).
+    # Answers without a domain are bucketed as "Uncategorized" so they still
+    # appear in the total but don't pollute domain-specific stats.
+    WEAK_THRESHOLD_PCT = 60
+    domain_buckets = {}  # name -> {"correct": int, "total": int}
+    for review in review_data:
+        snap = review['user_answer'].question_snapshot or {}
+        name = snap.get('domain_name')
+        if not name:
+            # Legacy answer without snapshot, or question with no domain set.
+            live_domain = getattr(review['question'], 'domain', None)
+            name = live_domain.name if live_domain else 'Uncategorized'
+        bucket = domain_buckets.setdefault(name, {'correct': 0, 'total': 0})
+        bucket['total'] += 1
+        if review['is_correct']:
+            bucket['correct'] += 1
+
+    domain_breakdown = []
     weak_areas = []
-    if review_data:
-        # Group by category (using test bank's category)
-        category_performance = {}
-        for review in review_data:
-            category = review['question'].test_bank.category
-            if category:
-                category_name = category.name
-                if category_name not in category_performance:
-                    category_performance[category_name] = {'correct': 0, 'total': 0}
-                category_performance[category_name]['total'] += 1
-                if review['is_correct']:
-                    category_performance[category_name]['correct'] += 1
-        
-        # Calculate percentage for each category and identify weak areas (< 60%)
-        for category_name, stats in category_performance.items():
-            if stats['total'] > 0:
-                percentage = (stats['correct'] / stats['total']) * 100
-                if percentage < 60:  # Weak area threshold
-                    weak_areas.append({
-                        'category': category_name,
-                        'percentage': round(percentage, 1),
-                        'correct': stats['correct'],
-                        'total': stats['total']
-                    })
-        
-        # Sort by percentage (lowest first)
-        weak_areas.sort(key=lambda x: x['percentage'])
-    
+    for name, stats in domain_buckets.items():
+        if stats['total'] == 0:
+            continue
+        pct = (stats['correct'] / stats['total']) * 100
+        row = {
+            'domain': name,
+            'correct': stats['correct'],
+            'total': stats['total'],
+            'percentage': round(pct, 1),
+        }
+        domain_breakdown.append(row)
+        if pct < WEAK_THRESHOLD_PCT and name != 'Uncategorized':
+            weak_areas.append(row)
+
+    # Strongest first on the breakdown, weakest first on the weak_areas list
+    domain_breakdown.sort(key=lambda r: r['percentage'], reverse=True)
+    weak_areas.sort(key=lambda r: r['percentage'])
+
     # Check if certificate was generated
     certificate = None
     try:
         certificate = Certificate.objects.get(session=session)
     except Certificate.DoesNotExist:
         pass
-    
+
     return render(request, 'practice/practice_results.html', {
         'session': session,
         'review_data': review_data,
@@ -520,6 +599,8 @@ def practice_results(request, session_id):
         'correct_answers': session.correct_answers,
         'incorrect_answers': session.total_questions - session.correct_answers,
         'weak_areas': weak_areas,
+        'domain_breakdown': domain_breakdown,
+        'weak_threshold_pct': WEAK_THRESHOLD_PCT,
         'certificate': certificate,
     })
 

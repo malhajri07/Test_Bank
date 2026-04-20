@@ -1,3 +1,6 @@
+# Claude Code session state (per-worktree)
+.claude/
+
 # Python
 __pycache__/
 *.py[cod]

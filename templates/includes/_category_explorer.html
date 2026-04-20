@@ -1,0 +1,324 @@
+{% load i18n %}
+{% comment %}
+    Homepage "Explore categories" panel — inline drilldown inspired by the
+    global Explore mega-menu in base.html.
+
+    Three columns:
+      1. Categories (always visible).
+      2. Certifications for the hovered/active category.
+      3. Difficulty levels for the hovered/active certification.
+
+    First category + first certification are pre-selected on initial render
+    so the panel never looks empty. Clicking a category or certification
+    "locks" it (updates the active state); hover previews the next level.
+
+    Accessibility:
+      - Keyboard: Tab focuses list items in column order. Enter/Space locks.
+      - aria-controls links category/cert buttons to the panels they reveal.
+      - aria-selected reflects the active state.
+
+    Expected context: `category_tree` (list of dicts — see catalog/views.py).
+{% endcomment %}
+{% if category_tree %}
+{% comment %}
+    Quick-jump pills: hottest exams by enrollment count. Lets users who
+    know what they want skip the drilldown entirely. Hidden when empty.
+{% endcomment %}
+{% if popular_exams %}
+<div class="mb-5 flex flex-wrap items-center gap-2" data-popular-pills>
+    <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 me-1">
+        {% trans "Popular:" %}
+    </span>
+    {% for exam in popular_exams %}
+    <a href="{% url 'catalog:testbank_detail' slug=exam.slug %}"
+       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-brand-500/5 dark:bg-brand-500/10 text-brand-500 dark:text-brand-500 hover:bg-brand-500 hover:text-white dark:hover:bg-brand-500 dark:hover:text-white transition-colors">
+        {{ exam.title }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="category-explorer bg-white dark:bg-dark-surface rounded-2xl border border-gray-200 dark:border-dark-border shadow-sm overflow-hidden"
+     data-explorer-root
+     role="region"
+     aria-label="{% trans 'Browse categories, certifications, and difficulty levels' %}">
+
+    {% comment %}
+        Sticky search — filters the tree live. Typing 'PMP' shrinks the
+        category + cert lists to just matches. Empty state if no match.
+    {% endcomment %}
+    <div class="border-b border-gray-100 dark:border-dark-border p-3">
+        <label class="relative block" for="explorer-search">
+            <span class="sr-only">{% trans "Search exams" %}</span>
+            <svg class="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="search"
+                   id="explorer-search"
+                   data-explorer-search
+                   autocomplete="off"
+                   placeholder="{% trans 'Search exams (e.g. PMP, AWS SAA, CompTIA)…' %}"
+                   class="w-full ps-10 pe-3 py-2.5 text-sm border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+        </label>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400 hidden" data-explorer-no-matches>
+            {% trans "No certifications match that search." %}
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-[minmax(200px,240px)_minmax(220px,260px)_1fr] min-h-[22rem]">
+
+        <!-- Column 1: Categories -->
+        <ul class="category-explorer__col bg-gray-50 dark:bg-dark-bg/40 border-b md:border-b-0 md:border-e border-gray-200 dark:border-dark-border p-2"
+            role="tablist"
+            aria-label="{% trans 'Categories' %}">
+            {% for node in category_tree %}
+            <li data-explorer-cat-wrap data-cat-name="{{ node.category.name|lower }}">
+                <button type="button"
+                        class="category-explorer__item w-full text-start px-4 py-3 rounded-lg flex items-center justify-between gap-2 text-sm font-medium transition-colors
+                            {% if forloop.first %}bg-white dark:bg-dark-surface text-brand-500 shadow-sm{% else %}text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-dark-surface hover:text-brand-500 dark:hover:text-brand-500{% endif %}"
+                        data-category-index="{{ forloop.counter0 }}"
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                        role="tab">
+                    <span class="truncate">{{ node.category.name }}</span>
+                    <span class="flex items-center gap-1.5 flex-shrink-0">
+                        {% if node.total_banks %}
+                        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300">{{ node.total_banks }}</span>
+                        {% endif %}
+                        <svg class="w-4 h-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </span>
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Column 2: Certifications (one panel per category; only one visible) -->
+        <div class="category-explorer__col bg-white dark:bg-dark-surface border-b md:border-b-0 md:border-e border-gray-100 dark:border-dark-border p-2"
+             aria-live="polite">
+            {% for node in category_tree %}
+            <ul class="category-explorer__certs {% if not forloop.first %}hidden{% endif %}"
+                data-category-index="{{ forloop.counter0 }}"
+                role="tablist"
+                aria-label="{% blocktrans with cat=node.category.name %}Certifications in {{ cat }}{% endblocktrans %}">
+                {% if node.certifications %}
+                    {% for cert in node.certifications %}
+                    <li data-explorer-cert-wrap data-cert-name="{{ cert.name|lower }}">
+                        <button type="button"
+                                class="category-explorer__item w-full text-start px-4 py-3 rounded-lg flex items-center justify-between gap-2 text-sm transition-colors
+                                    {% if forloop.first %}bg-brand-500/5 dark:bg-brand-500/10 text-brand-500 font-semibold{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-bg/60 hover:text-brand-500 dark:hover:text-brand-500 font-medium{% endif %}"
+                                data-category-index="{{ forloop.parentloop.counter0 }}"
+                                data-cert-index="{{ forloop.counter0 }}"
+                                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                                role="tab">
+                            <span class="truncate">{{ cert.name }}</span>
+                            <svg class="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="px-4 py-6 text-sm text-gray-500 dark:text-gray-400 italic">
+                        {% blocktrans with cat=node.category.name %}No certifications yet in {{ cat }}.{% endblocktrans %}
+                    </li>
+                {% endif %}
+            </ul>
+            {% endfor %}
+        </div>
+
+        <!-- Column 3: Difficulty levels (one panel per certification) -->
+        <div class="category-explorer__col p-4" aria-live="polite">
+            {% for node in category_tree %}
+                {% for cert in node.certifications %}
+                <div class="category-explorer__levels {% if not forloop.parentloop.first or not forloop.first %}hidden{% endif %}"
+                     data-category-index="{{ forloop.parentloop.counter0 }}"
+                     data-cert-index="{{ forloop.counter0 }}"
+                     role="tabpanel">
+                    <div class="mb-3">
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                            {{ node.category.name }} &rsaquo; {{ cert.name }}
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            {% trans "Pick the level that matches your readiness." %}
+                        </p>
+                    </div>
+                    <div class="grid gap-2">
+                        {% for opt in cert.difficulty_options %}
+                        <a href="{% url 'catalog:certification_list_full' category_slug=node.category.slug certification_slug=opt.certification.slug %}"
+                           class="flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-dark-border hover:border-brand-500 dark:hover:border-brand-500 hover:bg-brand-500/5 dark:hover:bg-brand-500/10 transition-colors group">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="px-2 py-0.5 text-[11px] font-bold rounded-md flex-shrink-0
+                                    {% if opt.level == 'easy' %}bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300
+                                    {% elif opt.level == 'medium' %}bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300
+                                    {% else %}bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300{% endif %}">
+                                    {{ opt.display }}
+                                </span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-brand-500 dark:group-hover:text-brand-500 font-medium truncate">
+                                    {% blocktrans count n=opt.bank_count %}{{ n }} test bank{% plural %}{{ n }} test banks{% endblocktrans %}
+                                </span>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-brand-500 dark:group-hover:text-brand-500 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                        {% empty %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400 italic">{% trans "No difficulty levels configured for this certification yet." %}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    // Scoped handler so re-inclusion or multiple explorers on one page don't clobber each other.
+    document.querySelectorAll('[data-explorer-root]').forEach(function (root) {
+        var catButtons = root.querySelectorAll('[data-category-index]:not([data-cert-index])');
+        var certLists = root.querySelectorAll('.category-explorer__certs');
+        var certButtons = root.querySelectorAll('[data-category-index][data-cert-index]');
+        var levelPanels = root.querySelectorAll('.category-explorer__levels');
+
+        function setActiveCategory(idx) {
+            catButtons.forEach(function (btn) {
+                var isActive = parseInt(btn.dataset.categoryIndex, 10) === idx;
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                btn.classList.toggle('bg-white', isActive);
+                btn.classList.toggle('dark:bg-dark-surface', isActive);
+                btn.classList.toggle('text-brand-500', isActive);
+                btn.classList.toggle('shadow-sm', isActive);
+                btn.classList.toggle('text-gray-700', !isActive);
+                btn.classList.toggle('dark:text-gray-300', !isActive);
+            });
+            certLists.forEach(function (list) {
+                list.classList.toggle('hidden', parseInt(list.dataset.categoryIndex, 10) !== idx);
+            });
+            // Activate first cert in the newly-shown category
+            var firstCertBtn = root.querySelector(
+                '.category-explorer__certs[data-category-index="' + idx + '"] [data-cert-index]'
+            );
+            if (firstCertBtn) {
+                setActiveCert(idx, parseInt(firstCertBtn.dataset.certIndex, 10));
+            } else {
+                // No certs — hide all level panels
+                levelPanels.forEach(function (p) { p.classList.add('hidden'); });
+            }
+        }
+
+        function setActiveCert(catIdx, certIdx) {
+            certButtons.forEach(function (btn) {
+                var isActive =
+                    parseInt(btn.dataset.categoryIndex, 10) === catIdx &&
+                    parseInt(btn.dataset.certIndex, 10) === certIdx;
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                btn.classList.toggle('bg-brand-500/5', isActive);
+                btn.classList.toggle('dark:bg-brand-500/10', isActive);
+                btn.classList.toggle('text-brand-500', isActive);
+                btn.classList.toggle('font-semibold', isActive);
+                btn.classList.toggle('font-medium', !isActive);
+                btn.classList.toggle('text-gray-700', !isActive);
+                btn.classList.toggle('dark:text-gray-300', !isActive);
+            });
+            levelPanels.forEach(function (panel) {
+                var match =
+                    parseInt(panel.dataset.categoryIndex, 10) === catIdx &&
+                    parseInt(panel.dataset.certIndex, 10) === certIdx;
+                panel.classList.toggle('hidden', !match);
+            });
+        }
+
+        catButtons.forEach(function (btn) {
+            var idx = parseInt(btn.dataset.categoryIndex, 10);
+            btn.addEventListener('mouseenter', function () { setActiveCategory(idx); });
+            btn.addEventListener('focus', function () { setActiveCategory(idx); });
+            btn.addEventListener('click', function (e) { e.preventDefault(); setActiveCategory(idx); });
+        });
+        certButtons.forEach(function (btn) {
+            var catIdx = parseInt(btn.dataset.categoryIndex, 10);
+            var certIdx = parseInt(btn.dataset.certIndex, 10);
+            btn.addEventListener('mouseenter', function () { setActiveCert(catIdx, certIdx); });
+            btn.addEventListener('focus', function () { setActiveCert(catIdx, certIdx); });
+            btn.addEventListener('click', function (e) { e.preventDefault(); setActiveCert(catIdx, certIdx); });
+        });
+
+        // ------- Live search -------
+        // Filters category + cert lists to only those whose name contains
+        // the query (case-insensitive). Auto-switches the active category
+        // to the first match so the right column stays in sync.
+        var searchInput = root.querySelector('[data-explorer-search]');
+        var noMatchEl = root.querySelector('[data-explorer-no-matches]');
+        var catWrappers = root.querySelectorAll('[data-explorer-cat-wrap]');
+        var certWrappers = root.querySelectorAll('[data-explorer-cert-wrap]');
+
+        function applyFilter(q) {
+            q = (q || '').trim().toLowerCase();
+            var anyMatch = false;
+            var firstMatchCatIdx = null;
+
+            // Filter certs first so we know which categories still have hits.
+            var catsWithMatches = {};
+            certWrappers.forEach(function (li) {
+                var name = li.dataset.certName || '';
+                var btn = li.querySelector('[data-category-index]');
+                var catIdx = btn ? parseInt(btn.dataset.categoryIndex, 10) : null;
+                var match = !q || name.indexOf(q) !== -1;
+                li.classList.toggle('hidden', !match);
+                if (match && catIdx !== null) {
+                    catsWithMatches[catIdx] = true;
+                    anyMatch = true;
+                }
+            });
+
+            // Then filter categories: show if its own name matches OR it
+            // has any matching certs inside.
+            catWrappers.forEach(function (li) {
+                var btn = li.querySelector('[data-category-index]');
+                var catIdx = btn ? parseInt(btn.dataset.categoryIndex, 10) : null;
+                var nameMatch = !q || (li.dataset.catName || '').indexOf(q) !== -1;
+                var certMatch = catIdx !== null && catsWithMatches[catIdx];
+                var match = nameMatch || certMatch;
+                li.classList.toggle('hidden', !match);
+                if (match && firstMatchCatIdx === null && catIdx !== null) {
+                    firstMatchCatIdx = catIdx;
+                }
+                if (match) { anyMatch = true; }
+            });
+
+            if (noMatchEl) {
+                noMatchEl.classList.toggle('hidden', !q || anyMatch);
+            }
+
+            // Auto-focus the first matching category so the right column
+            // shows relevant content, not a stale selection.
+            if (q && firstMatchCatIdx !== null) {
+                setActiveCategory(firstMatchCatIdx);
+                // Also jump to the first visible cert within that category
+                var firstVisibleCert = root.querySelector(
+                    '.category-explorer__certs[data-category-index="' + firstMatchCatIdx + '"] [data-explorer-cert-wrap]:not(.hidden) [data-cert-index]'
+                );
+                if (firstVisibleCert) {
+                    setActiveCert(firstMatchCatIdx, parseInt(firstVisibleCert.dataset.certIndex, 10));
+                }
+            }
+        }
+
+        if (searchInput) {
+            var debounceTimer = null;
+            searchInput.addEventListener('input', function (e) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () { applyFilter(e.target.value); }, 80);
+            });
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    e.target.value = '';
+                    applyFilter('');
+                }
+            });
+        }
+    });
+})();
+</script>
+{% endif %}

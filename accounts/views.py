@@ -22,6 +22,7 @@ from django.utils import translation
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
 from datetime import timedelta
@@ -37,6 +38,7 @@ from .forms import UserProfileForm, UserRegistrationForm
 from .models import CustomUser, EmailVerificationToken, UserProfile
 
 
+@ratelimit(key='ip', rate='5/h', method='POST', block=True)
 def register(request):
     """
     User registration view.
@@ -48,6 +50,8 @@ def register(request):
     - Creates email verification token
     - Sends verification email
     - Shows message to check email (does NOT log user in)
+
+    Rate-limited to 5 POSTs per hour per IP to slow down spam signups.
     """
     if request.user.is_authenticated:
         # Redirect authenticated users to dashboard
@@ -114,11 +118,13 @@ def register(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 def custom_login(request):
     """
     Custom login view that checks if account is activated.
 
     Shows appropriate message if account is not activated.
+    Rate-limited to 10 POSTs per minute per IP to slow brute-force attempts.
     """
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
