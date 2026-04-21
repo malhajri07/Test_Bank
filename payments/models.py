@@ -5,7 +5,7 @@ This module defines models for:
 - Order: Cart/checkout container (status: pending → paid → fulfilled → refunded)
 - OrderItem: Line items linking Order to TestBank with quantity and price
 - Coupon: Promo codes with usage limits and product applicability
-- Payment: Tracks payment transactions with Stripe (or other providers)
+- Payment: Tracks payment transactions
 - Purchase: Links successful payments to test bank purchases and grants access
 """
 
@@ -295,14 +295,11 @@ class Payment(models.Model):
     """
     Payment model tracking payment transactions.
 
-    This model stores payment information from payment providers (e.g., Stripe):
+    This model stores payment information:
     - Payment amount and currency
     - Provider-specific IDs (session ID, payment ID)
     - Payment status (created, pending, succeeded, failed)
     - Timestamps for tracking payment lifecycle
-
-    Security Note: Never trust client-only data. Always verify payment status
-    via webhook callbacks from the payment provider.
     """
 
     # ForeignKey to User - tracks which user made the payment
@@ -353,10 +350,7 @@ class Payment(models.Model):
 
     # Payment provider choices
     PAYMENT_PROVIDER_CHOICES = [
-        ('stripe', 'Stripe'),
-        ('moyasar', 'Moyasar (legacy)'),  # historical records only; integration removed
-        ('tap', 'Tap'),
-        ('paypal', 'PayPal'),
+        ('paylink', 'Paylink'),
         ('free', 'Free'),
         ('other', 'Other'),
     ]
@@ -364,27 +358,27 @@ class Payment(models.Model):
     payment_provider = models.CharField(
         max_length=20,
         choices=PAYMENT_PROVIDER_CHOICES,
-        default='stripe',
+        default='paylink',
         verbose_name='Payment Provider',
         help_text='Payment gateway used'
     )
 
-    # Provider-specific session ID (e.g., Stripe Checkout Session ID)
+    # Provider-specific session ID
     provider_session_id = models.CharField(
         max_length=255,
         blank=True,
         null=True,
         verbose_name='Provider Session ID',
-        help_text='Payment provider session ID (e.g., Stripe Checkout Session ID)'
+        help_text='Payment provider session ID'
     )
 
-    # Provider-specific payment ID (e.g., Stripe Payment Intent ID)
+    # Provider-specific payment ID
     provider_payment_id = models.CharField(
         max_length=255,
         blank=True,
         null=True,
         verbose_name='Provider Payment ID',
-        help_text='Payment provider payment ID (e.g., Stripe Payment Intent ID)'
+        help_text='Payment provider payment ID'
     )
 
     # Payment status choices
@@ -402,6 +396,31 @@ class Payment(models.Model):
         default='created',
         verbose_name='Status',
         help_text='Current payment status'
+    )
+
+    # Receipt data (populated from Paylink callback)
+    payment_method = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        verbose_name='Payment Method',
+        help_text='e.g. MADA, VISA, STC_PAY, MASTERCARD',
+    )
+
+    card_last_four = models.CharField(
+        max_length=4,
+        blank=True,
+        default='',
+        verbose_name='Card Last 4',
+        help_text='Last four digits of the card used',
+    )
+
+    receipt_url = models.URLField(
+        max_length=500,
+        blank=True,
+        default='',
+        verbose_name='Receipt URL',
+        help_text='Link to the payment receipt from the gateway',
     )
 
     # Timestamps
@@ -606,48 +625,3 @@ class Purchase(models.Model):
         return reverse('payments:purchase_detail', kwargs={'pk': self.pk})
 
 
-class ProcessedWebhookEvent(models.Model):
-    """
-    Tracks webhook events that have been processed, for idempotency.
-
-    Prevents double-fulfillment when payment providers retry webhooks.
-    Unique on (provider, event_id).
-    """
-
-    PROVIDER_CHOICES = [
-        ('stripe', 'Stripe'),
-        ('tap', 'Tap'),
-    ]
-
-    provider = models.CharField(
-        max_length=20,
-        choices=PROVIDER_CHOICES,
-        verbose_name='Provider',
-    )
-    event_id = models.CharField(
-        max_length=255,
-        verbose_name='Provider Event ID',
-        help_text='e.g. evt_1Xxx for Stripe, charge id for Tap',
-    )
-    event_type = models.CharField(
-        max_length=100,
-        verbose_name='Event Type',
-    )
-    received_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = 'Processed Webhook Event'
-        verbose_name_plural = 'Processed Webhook Events'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['provider', 'event_id'],
-                name='unique_provider_event',
-            ),
-        ]
-        indexes = [
-            models.Index(fields=['provider', 'event_id']),
-            models.Index(fields=['received_at']),
-        ]
-
-    def __str__(self):
-        return f'{self.provider}:{self.event_id} ({self.event_type})'

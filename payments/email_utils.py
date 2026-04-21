@@ -69,6 +69,14 @@ def send_payment_invoice(payment):
         cta_url = f"{site_url}/accounts/dashboard/"
         if payment.test_bank:
             cta_url = f"{site_url}/test-bank/{payment.test_bank.slug}/"
+        payment_method_str = payment.payment_method or payment.get_payment_provider_display()
+        if payment.card_last_four:
+            payment_method_str += f' (****{payment.card_last_four})'
+        net_price = payment.get_net_price()
+        vat_amount = payment.get_vat_amount()
+        total_amount = payment.get_total_amount()
+        receipt_line = f'\nReceipt: {payment.receipt_url}' if payment.receipt_url else ''
+
         email_text = f"""
 Payment Invoice - {product_title}
 
@@ -79,15 +87,17 @@ Dear {payment.user.get_full_name() or payment.user.username},
 Thank you for your purchase! This email confirms your payment and serves as your invoice.
 
 Payment Details:
-- Payment ID: #{payment.id}
-- Transaction ID: {payment.provider_payment_id or 'N/A'}
+- Transaction ID: {payment.provider_session_id or 'N/A'}
 - Payment Date: {payment.created_at.strftime('%B %d, %Y %I:%M %p')}
-- Payment Method: {payment.get_payment_provider_display()}
+- Payment Method: {payment_method_str}
 - Status: Paid
 
 Product: {product_title}
 
-Total Paid: ${payment.amount:.2f} {payment.currency.upper()}
+Subtotal: {net_price:.2f} {payment.currency.upper()}
+VAT (15%): {vat_amount:.2f} {payment.currency.upper()}
+Total Paid: {total_amount:.2f} {payment.currency.upper()}
+{receipt_line}
 
 You now have full access. You can start practicing immediately from your dashboard.
 

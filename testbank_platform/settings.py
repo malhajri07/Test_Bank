@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     # Local apps
     "accounts",  # Authentication and user profiles
     "catalog",   # Categories, test banks, and questions
-    "payments",  # Purchase and Stripe integration
+    "payments",  # Purchase and payment processing
     "practice",  # User test sessions and results
     "cms",       # Content Management System
     "forum",     # Forum and discussion boards
@@ -271,23 +271,12 @@ INTERNAL_IPS = [
 NPM_BIN_PATH = config('NPM_BIN_PATH', default='/opt/homebrew/bin/npm')
 
 
-# Stripe Payment Configuration
-# Load Stripe keys from environment variables for security
-STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')
-STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
-STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
-
-# Stripe currency (default to USD, can be changed per payment)
-STRIPE_CURRENCY = 'usd'
-
-# Payment gateway preference: 'auto' (default Stripe), 'stripe', or 'tap'
-PAYMENT_GATEWAY = config('PAYMENT_GATEWAY', default='auto')
-
-# Tap Payments (MEA) — set real keys only in environment / .env (never commit secrets)
-TAP_PUBLISHABLE_KEY = config('TAP_PUBLISHABLE_KEY', default='')
-TAP_SECRET_KEY = config('TAP_SECRET_KEY', default='')
-TAP_MERCHANT_ID = config('TAP_MERCHANT_ID', default='')
-TAP_CURRENCY = config('TAP_CURRENCY', default='USD')
+# Paylink Payment Gateway
+# Testing: https://restpilot.paylink.sa  Production: https://restapi.paylink.sa
+PAYLINK_BASE_URL = config('PAYLINK_BASE_URL', default='https://restpilot.paylink.sa')
+PAYLINK_APP_ID = config('PAYLINK_APP_ID', default='')
+PAYLINK_SECRET_KEY = config('PAYLINK_SECRET_KEY', default='')
+PAYLINK_CURRENCY = config('PAYLINK_CURRENCY', default='SAR')
 
 # VAT Configuration
 VAT_RATE = 0.15  # 15% VAT rate
@@ -326,46 +315,18 @@ if not DEBUG:
 
 
 # Content Security Policy (django-csp 4.x)
-# Tightens what the browser will load. Fonts + Swiper are self-hosted, so 'self'
-# covers them. We still need:
-#   - Stripe for hosted Checkout iframes/redirects
-#   - Tap Payments for MEA card processing
-#   - data: URIs for inline SVG icons + small base64 backgrounds
-#   - https: for user-uploaded images (Cloud Storage signed URLs etc.)
-#   - 'unsafe-inline' on style-src temporarily: Django admin + a handful of
-#     remaining inline style="..." attrs still need it. Once those are cleaned
-#     this can be tightened to 'self'.
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
         'default-src': ("'self'",),
-        # script-src: 'unsafe-inline' is required today because templates
-        # (catalog/index.html, testbank_detail.html, base.html) contain inline
-        # <script> blocks that call `new Swiper(...)` + UI glue. Migrate those
-        # to external files or per-request nonces (django-csp supports
-        # request.csp_nonce) to tighten this to just 'self'. Tracking in
-        # AUDIT_STATUS.md.
         'script-src': ("'self'", "'unsafe-inline'"),
-        # style-src: 'unsafe-inline' covers Django admin + remaining inline
-        # style="..." attrs. Drop once admin/base_site.html, components, and
-        # payments/checkout.html are cleaned.
         'style-src': ("'self'", "'unsafe-inline'"),
         'font-src': ("'self'", 'data:'),
         'img-src': ("'self'", 'data:', 'https:'),
-        'connect-src': (
-            "'self'",
-            'https://api.stripe.com',
-            'https://api.tap.company',
-            'https://checkout.stripe.com',
-        ),
-        'frame-src': (
-            'https://js.stripe.com',
-            'https://hooks.stripe.com',
-            'https://checkout.stripe.com',
-            'https://card.tap.company',
-        ),
+        'connect-src': ("'self'", 'https://restpilot.paylink.sa', 'https://restapi.paylink.sa'),
+        'frame-src': ('https://payment.paylink.sa', 'https://paymentpilot.paylink.sa'),
         'frame-ancestors': ("'none'",),
         'base-uri': ("'self'",),
-        'form-action': ("'self'", 'https://checkout.stripe.com'),
+        'form-action': ("'self'", 'https://payment.paylink.sa', 'https://paymentpilot.paylink.sa'),
     },
 }
 

@@ -1,4 +1,4 @@
-# Core
+# Production dependencies only (no dev/test tools)
 Django>=4.2.0
 django-allauth>=0.57.0
 djangorestframework-simplejwt>=5.3.0
@@ -7,32 +7,16 @@ drf-spectacular>=0.27.0
 psycopg2-binary>=2.9.0
 python-decouple>=3.8
 gunicorn>=21.2.0
-
-# App dependencies
 django-tailwind>=3.5.0
-django-browser-reload>=1.9.0
 Pillow>=10.0.0
 django-ckeditor-5>=0.2.20
+django-ckeditor>=6.7.0
 httpx>=0.25.0
 nh3>=0.2.0
 django-ratelimit>=4.1.0
 django-csp>=4.0
 sentry-sdk[django]>=2.0
 whitenoise>=6.5.0
-
-# GCP / Cloud
 django-storages[google]>=1.14.0
 google-cloud-storage>=2.10.0
 google-cloud-secret-manager>=2.16.0
-celery[redis]>=5.3.0
-
-# Dev / Testing (not needed in production Docker image)
-pytest-django>=4.5.0
-pytest-cov>=4.1.0
-playwright>=1.40.0
-pytest-playwright>=0.4.0
-factory-boy>=3.3.0
-pytest-benchmark>=4.0.0
-locust>=2.0.0
-faker>=20.0.0
-

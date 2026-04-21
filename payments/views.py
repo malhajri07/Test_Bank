@@ -2,230 +2,169 @@
 Payments app views for payment processing and purchase management.
 
 This module provides views for:
-- Creating checkout sessions (initiating payment)
-- Handling payment success callbacks
-- Handling payment cancellation
-- Processing Stripe webhooks
+- Creating Paylink invoices (initiating payment)
+- Handling payment callbacks from Paylink
+- Payment and purchase detail pages
+- Shopping cart (session-based)
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse
 from django.contrib import messages
 from django.conf import settings
-import stripe
 from decimal import Decimal
 
 from catalog.models import ExamPackage, TestBank
-from .models import Coupon, Payment, Purchase
-from .stripe_integration import (
-    create_checkout_session,
-    create_checkout_session_for_package,
-    verify_webhook_signature,
-    handle_webhook_event,
-    handle_payment_success,
-)
-from .tap_integration import create_charge as tap_create_charge, handle_tap_callback
+from .models import Coupon, Order, OrderItem, Payment, Purchase
+from .paylink_integration import create_invoice, get_invoice
+from .fulfillment import fulfill_payment
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def _tap_checkout(request, test_bank, user):
-    """Render Tap checkout page with Card SDK v2."""
-    publishable_key = getattr(settings, 'TAP_PUBLISHABLE_KEY', '') or ''
-    merchant_id = getattr(settings, 'TAP_MERCHANT_ID', '') or ''
-    if not publishable_key or not merchant_id:
-        messages.error(request, 'Tap payment is not configured.')
-        return redirect('catalog:testbank_detail', slug=test_bank.slug)
-
-    amount_after_discount = max(Decimal('0'), test_bank.price)
-    currency = getattr(settings, 'TAP_CURRENCY', 'USD')
-    amount_smallest = int(float(amount_after_discount) * 100)  # cents/halalas
-
-    payment = Payment.objects.create(
-        user=user,
-        test_bank=test_bank,
-        amount=amount_after_discount,
-        currency=currency,
-        payment_provider='tap',
-        status='created',
-    )
-
-    callback_url = request.build_absolute_uri(
-        reverse('payments:tap_callback', kwargs={'payment_id': payment.id})
-    )
-
-    return render(request, 'payments/tap_checkout.html', {
-        'test_bank': test_bank,
-        'payment': payment,
-        'amount': amount_after_discount,
-        'amount_smallest': amount_smallest,
-        'currency': currency,
-        'publishable_key': publishable_key,
-        'merchant_id': merchant_id,
-        'callback_url': callback_url,
-        'user': user,
-    })
+def _paylink_configured():
+    return bool(getattr(settings, 'PAYLINK_APP_ID', '') and getattr(settings, 'PAYLINK_SECRET_KEY', ''))
 
 
 def grant_free_access(test_bank, user):
-    """
-    Grant free access to a test bank (when price is 0).
-    
-    Args:
-        test_bank: TestBank instance (must have price=0)
-        user: User instance to grant access to
-    
-    Returns:
-        tuple: (Payment instance, Purchase instance)
-    """
+    """Grant free access to a test bank (when price is 0)."""
     from practice.models import UserTestAccess
-    
-    # Create Payment record for free access
+
     payment = Payment.objects.create(
         user=user,
         test_bank=test_bank,
         amount=0,
-        currency=settings.STRIPE_CURRENCY if hasattr(settings, 'STRIPE_CURRENCY') else 'usd',
+        currency=getattr(settings, 'PAYLINK_CURRENCY', 'SAR'),
         payment_provider='free',
         status='succeeded',
         provider_session_id=f'free_{test_bank.id}_{user.id}',
     )
-    
-    # Create Purchase record
+
     purchase, created = Purchase.objects.get_or_create(
         payment=payment,
         test_bank=test_bank,
-        defaults={
-            'user': user,
-            'is_active': True,
-        }
+        defaults={'user': user, 'is_active': True},
     )
-    
-    # Create UserTestAccess to grant user access
+
     if created:
         purchase.create_user_access()
-    
+
     return payment, purchase
 
 
 @login_required
 def create_checkout(request, testbank_slug):
-    """
-    Start checkout for a test bank.
-
-    - Default: Stripe Checkout (redirect to hosted payment page).
-    - ``?gateway=tap``: Tap Payments (Card SDK + Charge API).
-
-    Args:
-        testbank_slug: Slug of the test bank to purchase
-    """
+    """Start checkout for a test bank via Paylink."""
     test_bank = get_object_or_404(TestBank, slug=testbank_slug, is_active=True)
     user = request.user
-    
-    # Check if user already has access
+
     from practice.models import UserTestAccess
     existing_access = UserTestAccess.objects.filter(
-        user=user,
-        test_bank=test_bank,
-        is_active=True
+        user=user, test_bank=test_bank, is_active=True
     ).first()
-    
+
     if existing_access and existing_access.is_valid():
         messages.info(request, 'You already have access to this test bank.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
-    
-    # If price is 0 (free), grant access immediately
+
+    # Free items
     if test_bank.price == 0:
         try:
-            payment, purchase = grant_free_access(test_bank, user)
-            messages.success(
-                request,
-                f'You now have free access to {test_bank.title}!'
-            )
+            grant_free_access(test_bank, user)
+            messages.success(request, f'You now have free access to {test_bank.title}!')
             return redirect('catalog:testbank_detail', slug=testbank_slug)
         except Exception as e:
-            logger.error(f'Error granting free access: {str(e)}')
+            logger.error(f'Error granting free access: {e}')
             messages.error(request, 'An error occurred while granting access. Please try again.')
             return redirect('catalog:testbank_detail', slug=testbank_slug)
-    
-    # Optional: ?gateway=tap for Tap Payments (MEA cards); default is Stripe Checkout
-    gateway = request.GET.get('gateway', '').lower()
-    if gateway == 'tap':
-        return _tap_checkout(request, test_bank, user)
 
-    # For paid test banks, proceed with Stripe checkout
-    try:
-        if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_PUBLIC_KEY:
-            logger.error('Stripe keys not configured')
-            messages.error(request, 'Payment processing is not configured. Please contact support.')
-            return redirect('catalog:testbank_detail', slug=testbank_slug)
-
-        discount_amount = Decimal('0')
-        coupon = None
-        promo_code = request.GET.get('promo', '').strip().upper()
-        if promo_code:
-            try:
-                coupon = Coupon.objects.get(code__iexact=promo_code)
-                discount, err = coupon.validate_for_order(
-                    subtotal=test_bank.price,
-                    test_bank_ids=[test_bank.id],
-                )
-                if err:
-                    messages.warning(request, err)
-                else:
-                    discount_amount = discount
-                    if discount_amount > 0:
-                        messages.success(request, f'Promo code applied: ${discount_amount} off.')
-            except Coupon.DoesNotExist:
-                messages.warning(request, 'Invalid promo code.')
-
-        checkout_url = create_checkout_session(
-            test_bank, user, request,
-            discount_amount=discount_amount,
-            coupon=coupon,
-        )
-        return redirect(checkout_url)
-        
-    except ValueError as e:
-        # Validation errors
-        logger.error(f'Validation error: {str(e)}')
-        messages.error(request, f'Invalid payment configuration: {str(e)}')
+    if not _paylink_configured():
+        messages.error(request, 'Payment processing is not configured. Please contact support.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
-    except Exception as e:
-        # Check if it's a Stripe-related error
-        error_type = type(e).__name__
-        error_str = str(type(e)).lower()
-        is_stripe_error = (
-            'stripe' in error_str or
-            'Stripe' in error_type or
-            'APIConnectionError' in error_type or
-            'Connection' in error_type or
-            hasattr(e, '__class__') and 'stripe' in str(e.__class__.__module__).lower()
+
+    # Coupon handling
+    discount_amount = Decimal('0')
+    coupon = None
+    promo_code = request.GET.get('promo', '').strip().upper()
+    if promo_code:
+        try:
+            coupon = Coupon.objects.get(code__iexact=promo_code)
+            discount, err = coupon.validate_for_order(
+                subtotal=test_bank.price, test_bank_ids=[test_bank.id],
+            )
+            if err:
+                messages.warning(request, err)
+            elif discount > 0:
+                discount_amount = discount
+                messages.success(request, f'Promo code applied: {discount_amount} off.')
+        except Coupon.DoesNotExist:
+            messages.warning(request, 'Invalid promo code.')
+
+    amount = max(Decimal('0'), test_bank.price - discount_amount)
+    SUPPORTED_CURRENCIES = {'SAR', 'USD', 'AED', 'KWD', 'BHD', 'QAR', 'OMR', 'EGP'}
+    currency = request.GET.get('currency', '').upper()
+    if currency not in SUPPORTED_CURRENCIES:
+        currency = getattr(settings, 'PAYLINK_CURRENCY', 'SAR')
+
+    # Create Payment record
+    payment = Payment.objects.create(
+        user=user,
+        test_bank=test_bank,
+        amount=amount,
+        currency=currency,
+        payment_provider='paylink',
+        status='created',
+    )
+
+    callback_url = request.build_absolute_uri(
+        reverse('payments:paylink_callback', kwargs={'payment_id': payment.id})
+    )
+    cancel_url = request.build_absolute_uri(
+        reverse('catalog:testbank_detail', kwargs={'slug': testbank_slug})
+    )
+
+    try:
+        invoice = create_invoice(
+            order_number=str(payment.id),
+            amount=amount,
+            callback_url=callback_url,
+            cancel_url=cancel_url,
+            client_name=user.get_full_name() or user.username,
+            client_email=user.email,
+            client_mobile=getattr(user, 'phone', '') or '0500000000',
+            products=[{
+                'title': test_bank.title,
+                'price': float(amount),
+                'qty': 1,
+                'description': test_bank.description[:200] if test_bank.description else '',
+                'is_digital': True,
+            }],
+            currency=currency,
         )
-        
-        if is_stripe_error:
-            error_msg = str(e)
-            if hasattr(e, 'user_message'):
-                error_msg = e.user_message
-            logger.error(f'Stripe API error: {error_msg}', exc_info=True)
-            if 'APIConnectionError' in error_type or 'Connection' in error_type or 'Proxy' in error_type:
-                messages.error(request, 'Unable to connect to payment service. Please check your internet connection and try again.')
-            else:
-                messages.error(request, f'Payment processing error: {error_msg}')
-        else:
-            logger.error(f'Unexpected error: {str(e)}', exc_info=True)
-            messages.error(request, 'An error occurred while processing your payment. Please try again.')
+
+        transaction_no = invoice.get('transactionNo')
+        payment_url = invoice.get('url')
+
+        payment.provider_session_id = transaction_no
+        payment.status = 'pending'
+        payment.save()
+
+        return redirect(payment_url)
+
+    except Exception as e:
+        logger.error(f'Paylink create invoice error: {e}', exc_info=True)
+        payment.status = 'failed'
+        payment.save()
+        messages.error(request, 'An error occurred while processing your payment. Please try again.')
         return redirect('catalog:testbank_detail', slug=testbank_slug)
 
 
 @login_required
 def create_checkout_package(request, package_slug):
-    """Create Stripe Checkout for an exam package."""
+    """Create Paylink checkout for an exam package."""
     package = get_object_or_404(ExamPackage, slug=package_slug, is_active=True)
     user = request.user
 
@@ -238,6 +177,11 @@ def create_checkout_package(request, package_slug):
         messages.info(request, 'You already have access to all exams in this package.')
         return redirect('catalog:package_detail', slug=package_slug)
 
+    if not _paylink_configured():
+        messages.error(request, 'Payment processing is not configured. Please contact support.')
+        return redirect('catalog:package_detail', slug=package_slug)
+
+    # Coupon handling
     discount_amount = Decimal('0')
     coupon = None
     promo_code = request.GET.get('promo', '').strip().upper()
@@ -245,218 +189,188 @@ def create_checkout_package(request, package_slug):
         try:
             coupon = Coupon.objects.get(code__iexact=promo_code)
             discount, err = coupon.validate_for_order(
-                subtotal=package.package_price,
-                test_bank_ids=list(tb_ids),
+                subtotal=package.package_price, test_bank_ids=list(tb_ids),
             )
             if not err:
                 discount_amount = discount
         except Coupon.DoesNotExist:
             pass
 
-    try:
-        if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_PUBLIC_KEY:
-            messages.error(request, 'Payment system is not configured.')
-            return redirect('catalog:package_detail', slug=package_slug)
+    payable_banks = list(package.test_banks.filter(is_active=True))
+    amount = max(Decimal('0'), package.package_price - discount_amount)
+    currency = getattr(settings, 'PAYLINK_CURRENCY', 'SAR')
 
-        checkout_url = create_checkout_session_for_package(
-            package, user, request, discount_amount=discount_amount, coupon=coupon
+    # Create Order + OrderItems
+    vat_rate = Decimal(str(getattr(settings, 'VAT_RATE', 0.15)))
+    tax = (amount * vat_rate).quantize(Decimal('0.01'))
+    total = (amount + tax).quantize(Decimal('0.01'))
+
+    order = Order.objects.create(
+        user=user,
+        subtotal=package.package_price,
+        discount_amount=discount_amount,
+        tax_amount=tax,
+        total_amount=total,
+        currency=currency,
+        coupon=coupon,
+    )
+    for tb in payable_banks:
+        OrderItem.objects.create(order=order, test_bank=tb, quantity=1, unit_price=tb.price)
+
+    payment = Payment.objects.create(
+        user=user,
+        order=order,
+        test_bank=payable_banks[0] if payable_banks else None,
+        amount=amount,
+        currency=currency,
+        payment_provider='paylink',
+        status='created',
+    )
+
+    callback_url = request.build_absolute_uri(
+        reverse('payments:paylink_callback', kwargs={'payment_id': payment.id})
+    )
+    cancel_url = request.build_absolute_uri(
+        reverse('catalog:package_detail', kwargs={'slug': package_slug})
+    )
+
+    try:
+        invoice = create_invoice(
+            order_number=str(payment.id),
+            amount=amount,
+            callback_url=callback_url,
+            cancel_url=cancel_url,
+            client_name=user.get_full_name() or user.username,
+            client_email=user.email,
+            client_mobile=getattr(user, 'phone', '') or '0500000000',
+            products=[
+                {
+                    'title': tb.title,
+                    'price': float(tb.price),
+                    'qty': 1,
+                    'is_digital': True,
+                }
+                for tb in payable_banks
+            ],
+            currency=currency,
         )
-        return redirect(checkout_url)
+
+        payment.provider_session_id = invoice.get('transactionNo')
+        payment.status = 'pending'
+        payment.save()
+
+        return redirect(invoice.get('url'))
+
     except Exception as e:
-        logger.error(f'Package checkout error: {str(e)}', exc_info=True)
+        logger.error(f'Paylink package checkout error: {e}', exc_info=True)
+        payment.status = 'failed'
+        payment.save()
         messages.error(request, 'An error occurred while processing your payment.')
         return redirect('catalog:package_detail', slug=package_slug)
 
 
 @login_required
-def payment_success(request):
+def paylink_callback(request, payment_id):
     """
-    Handle successful payment return from Stripe Checkout.
+    Handle return from Paylink after payment.
+
+    Paylink redirects the customer back to callBackUrl after payment.
+    We verify the invoice status via getInvoice API.
     """
-    session_id = request.GET.get('session_id')
-    
-    if not session_id:
+    payment = get_object_or_404(Payment, pk=payment_id, user=request.user)
+
+    if payment.status == 'succeeded':
+        messages.info(request, 'This payment has already been processed.')
+        if payment.test_bank:
+            return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
+        return redirect('accounts:dashboard')
+
+    transaction_no = payment.provider_session_id
+    if not transaction_no:
         messages.error(request, 'Invalid payment session.')
         return redirect('accounts:dashboard')
-    
+
     try:
-        # Handle payment success
-        payment, purchase = handle_payment_success(session_id)
-        
-        if payment and purchase:
-            if payment.order and payment.order.items.count() > 1:
-                messages.success(
-                    request,
-                    'Payment successful! You now have access to all exams in your package.'
-                )
-                return redirect('accounts:dashboard')
-            elif payment.test_bank:
-                messages.success(
-                    request,
-                    f'Payment successful! You now have access to {payment.test_bank.title}.'
-                )
-                return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
-            else:
-                messages.success(request, 'Payment successful!')
-                return redirect('accounts:dashboard')
-        else:
-            messages.warning(request, 'Payment is being processed. Please wait a moment.')
+        invoice_data = get_invoice(transaction_no)
+        order_status = (invoice_data.get('orderStatus') or '').lower()
+
+        if order_status == 'paid':
+            # Payment succeeded — store receipt data and fulfill
+            receipt = invoice_data.get('paymentReceipt') or {}
+
+            payment.provider_payment_id = transaction_no
+            payment.status = 'succeeded'
+            payment.payment_method = receipt.get('paymentMethod', '')
+            payment.card_last_four = (receipt.get('bankCardNumber', '') or '')[-4:]
+            payment.receipt_url = receipt.get('receiptUrl', '')
+            payment.save()
+
+            purchase = fulfill_payment(payment)
+
+            if purchase:
+                from .email_utils import send_payment_invoice
+                try:
+                    send_payment_invoice(payment)
+                except Exception:
+                    logger.warning('Failed to send invoice email', exc_info=True)
+
+                if payment.order and payment.order.items.count() > 1:
+                    messages.success(request, 'Payment successful! You now have access to all exams in your package.')
+                    return redirect('accounts:dashboard')
+                elif payment.test_bank:
+                    messages.success(request, f'Payment successful! You now have access to {payment.test_bank.title}.')
+                    return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
+
+            messages.success(request, 'Payment successful!')
             return redirect('accounts:dashboard')
-            
-    except Exception as e:
-        # Check if it's a Stripe-related error
-        error_type = type(e).__name__
-        error_str = str(type(e)).lower()
-        is_stripe_error = (
-            'stripe' in error_str or
-            'Stripe' in error_type or
-            hasattr(e, '__class__') and 'stripe' in str(e.__class__.__module__).lower()
-        )
-        
-        logger.error(f'Error processing payment success: {str(e)}', exc_info=True)
-        if is_stripe_error:
-            if 'InvalidRequestError' in error_type or 'Invalid' in error_type:
-                messages.error(request, 'Invalid payment session. Please contact support.')
-            elif 'APIConnectionError' in error_type or 'Connection' in error_type:
-                messages.error(request, 'Payment service temporarily unavailable. Please try again.')
-            else:
-                messages.error(request, 'Payment processing error. Please contact support.')
+
+        elif order_status == 'canceled':
+            payment.status = 'cancelled'
+            payment.save()
+            messages.info(request, 'Payment was cancelled. You can try again anytime.')
+            if payment.test_bank:
+                return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
+            return redirect('accounts:dashboard')
+
         else:
-            messages.error(request, 'An error occurred while processing your payment. Please contact support.')
+            # Still pending
+            messages.warning(request, 'Payment is still being processed. Please wait a moment and check your dashboard.')
+            return redirect('accounts:dashboard')
+
+    except Exception as e:
+        logger.error(f'Paylink callback error: {e}', exc_info=True)
+        messages.error(request, 'An error occurred while verifying your payment. Please contact support.')
         return redirect('accounts:dashboard')
 
 
 @login_required
+def payment_success(request):
+    """Generic payment success page."""
+    messages.success(request, 'Payment successful!')
+    return redirect('accounts:dashboard')
+
+
+@login_required
 def payment_cancel(request):
-    """
-    Handle payment cancellation from Stripe Checkout.
-    """
+    """Handle payment cancellation."""
     messages.info(request, 'Payment was cancelled. You can try again anytime.')
     return redirect('accounts:dashboard')
 
 
 @login_required
-def tap_create_charge_ajax(request):
-    """Create Tap charge from token (called via AJAX from tap checkout)."""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    token_id = request.POST.get('token') or request.GET.get('token')
-    payment_id = request.POST.get('payment_id') or request.GET.get('payment_id')
-    if not token_id or not payment_id:
-        return JsonResponse({'error': 'Missing token or payment_id'}, status=400)
-    payment = Payment.objects.filter(pk=payment_id, user=request.user).first()
-    if not payment:
-        return JsonResponse({'error': 'Invalid payment'}, status=404)
-    if payment.payment_provider != 'tap':
-        return JsonResponse({'error': 'Invalid payment provider'}, status=400)
-    try:
-        callback_url = request.build_absolute_uri(
-            reverse('payments:tap_callback', kwargs={'payment_id': payment.id})
-        )
-        resp = tap_create_charge(payment, token_id, callback_url)
-        transaction = resp.get('transaction', {})
-        redirect_url = transaction.get('url')
-        if redirect_url:
-            return JsonResponse({'redirect_url': redirect_url})
-        status = resp.get('status', '').upper()
-        if status == 'CAPTURED':
-            charge_id = resp.get('id')
-            if charge_id:
-                handle_tap_callback(charge_id, payment.id)
-            return JsonResponse({
-                'success': True,
-                'redirect_url': request.build_absolute_uri(
-                    reverse('catalog:testbank_detail', args=[payment.test_bank.slug])
-                ),
-            })
-        return JsonResponse({'error': 'Payment could not be processed'}, status=400)
-    except Exception as e:
-        logger.error(f'Tap create charge error: {e}', exc_info=True)
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@login_required
-def tap_callback(request, payment_id):
-    """Handle return from Tap after payment (redirect with tap_id)."""
-    tap_id = request.GET.get('tap_id')
-    if not tap_id:
-        messages.error(request, 'Invalid payment callback.')
-        return redirect('accounts:dashboard')
-    try:
-        payment, purchase = handle_tap_callback(tap_id, payment_id)
-        if payment.user_id != request.user.id:
-            messages.error(request, 'Invalid payment.')
-            return redirect('accounts:dashboard')
-        if purchase:
-            messages.success(
-                request,
-                f'Payment successful! You now have access to {payment.test_bank.title}.'
-            )
-            return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
-        else:
-            messages.warning(request, 'Payment was not completed. Please try again.')
-            return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
-    except Exception as e:
-        logger.error(f'Tap callback error: {e}', exc_info=True)
-        messages.error(request, 'An error occurred while processing your payment.')
-        return redirect('accounts:dashboard')
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def stripe_webhook(request):
-    """
-    Handle Stripe webhook events.
-    
-    This is the SECURE endpoint for processing Stripe payment events.
-    Webhooks are the source of truth for payment status.
-    """
-    try:
-        # Verify webhook signature (CRITICAL for security)
-        event = verify_webhook_signature(request)
-        
-        # Handle the event
-        payment, purchase = handle_webhook_event(event)
-        
-        if payment:
-            logger.info(f'Processed webhook event: {event["type"]} for payment {payment.id}')
-        
-        return JsonResponse({'status': 'success'})
-        
-    except ValueError as e:
-        # Invalid payload or signature
-        logger.error(f'Webhook signature verification failed: {str(e)}')
-        return JsonResponse({'error': str(e)}, status=400)
-    except Exception as e:
-        # Other errors
-        logger.error(f'Webhook processing error: {str(e)}')
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@login_required
 def payment_detail(request, pk):
-    """
-    Display payment detail page.
-    """
+    """Display payment detail page."""
     payment = get_object_or_404(Payment, pk=pk, user=request.user)
-    
-    return render(request, 'payments/payment_detail.html', {
-        'payment': payment,
-    })
+    return render(request, 'payments/payment_detail.html', {'payment': payment})
 
 
 @login_required
 def purchase_list(request):
-    """
-    Display user's purchase history.
-    """
+    """Display user's purchase history."""
     purchases = Purchase.objects.filter(
         user=request.user
     ).select_related('test_bank', 'payment').order_by('-purchased_at')
-
-    return render(request, 'payments/purchase_list.html', {
-        'purchases': purchases,
-    })
+    return render(request, 'payments/purchase_list.html', {'purchases': purchases})
 
 
 # ------------------------------------------------------------------
@@ -464,12 +378,7 @@ def purchase_list(request):
 # ------------------------------------------------------------------
 
 def cart_view(request):
-    """
-    Display the user's cart with subtotal and a checkout button.
-
-    Unauthenticated users can view and modify their cart (session-backed);
-    they'll be prompted to log in when clicking checkout.
-    """
+    """Display the user's cart with subtotal and a checkout button."""
     from .cart import Cart
     cart = Cart(request)
     test_banks = list(cart.get_test_banks().select_related('category', 'certification'))
@@ -516,28 +425,26 @@ def cart_remove(request, testbank_id):
 @login_required
 @require_http_methods(["POST"])
 def cart_checkout(request):
-    """
-    Convert the cart to a Stripe Checkout session.
-
-    Creates an Order with one OrderItem per cart item, then a single Stripe
-    Checkout session for the total. Reuses the existing multi-item fulfillment
-    path (all purchases created on webhook). Clears the cart on success.
-    """
+    """Convert the cart to a Paylink invoice and redirect to payment."""
     from .cart import Cart
-    from .models import Order, OrderItem
     cart = Cart(request)
     test_banks = list(cart.get_test_banks())
+
     if not test_banks:
         messages.error(request, 'Your cart is empty.')
         return redirect('payments:cart_view')
 
-    # Skip items the user already owns — avoids double-charging for same access.
+    if not _paylink_configured():
+        messages.error(request, 'Payment processing is not configured. Please contact support.')
+        return redirect('payments:cart_view')
+
+    user = request.user
+
+    # Skip items the user already owns
     from practice.models import UserTestAccess
     owned_ids = set(
         UserTestAccess.objects.filter(
-            user=request.user,
-            test_bank_id__in=[tb.id for tb in test_banks],
-            is_active=True,
+            user=user, test_bank_id__in=[tb.id for tb in test_banks], is_active=True,
         ).values_list('test_bank_id', flat=True)
     )
     payable = [tb for tb in test_banks if tb.id not in owned_ids]
@@ -550,92 +457,71 @@ def cart_checkout(request):
         return redirect('payments:cart_view')
 
     subtotal = sum((tb.price for tb in payable), Decimal('0'))
+    SUPPORTED_CURRENCIES = {'SAR', 'USD', 'AED', 'KWD', 'BHD', 'QAR', 'OMR', 'EGP'}
+    currency = request.POST.get('currency', '').upper()
+    if currency not in SUPPORTED_CURRENCIES:
+        currency = getattr(settings, 'PAYLINK_CURRENCY', 'SAR')
     vat_rate = Decimal(str(getattr(settings, 'VAT_RATE', 0.15)))
-    amount_after_discount = subtotal
-    tax = (amount_after_discount * vat_rate).quantize(Decimal('0.01'))
-    total = (amount_after_discount + tax).quantize(Decimal('0.01'))
+    tax = (subtotal * vat_rate).quantize(Decimal('0.01'))
+    total = (subtotal + tax).quantize(Decimal('0.01'))
 
     order = Order.objects.create(
-        user=request.user,
+        user=user,
         subtotal=subtotal,
         discount_amount=Decimal('0'),
         tax_amount=tax,
         total_amount=total,
-        currency=settings.STRIPE_CURRENCY,
+        currency=currency,
     )
     for tb in payable:
-        OrderItem.objects.create(
-            order=order,
-            test_bank=tb,
-            quantity=1,
-            unit_price=tb.price,
-        )
-
-    if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_PUBLIC_KEY:
-        messages.error(request, 'Payment processing is not configured. Please contact support.')
-        return redirect('payments:cart_view')
-
-    # Build a single-line Stripe session bundling all items by title.
-    _ensure_stripe_available()
-    import stripe as stripe_mod
-    from .stripe_integration import _make_stripe_request, _ensure_stripe_configured
-    _ensure_stripe_configured()
+        OrderItem.objects.create(order=order, test_bank=tb, quantity=1, unit_price=tb.price)
 
     payment = Payment.objects.create(
-        user=request.user,
+        user=user,
         order=order,
         test_bank=payable[0],
-        amount=amount_after_discount,
-        currency=settings.STRIPE_CURRENCY,
-        payment_provider='stripe',
+        amount=subtotal,
+        currency=currency,
+        payment_provider='paylink',
         status='created',
     )
 
-    success_url = request.build_absolute_uri(reverse('payments:payment_success')) + '?session_id={CHECKOUT_SESSION_ID}'
+    callback_url = request.build_absolute_uri(
+        reverse('payments:paylink_callback', kwargs={'payment_id': payment.id})
+    )
     cancel_url = request.build_absolute_uri(reverse('payments:cart_view'))
 
-    bundle_name = payable[0].title if len(payable) == 1 else f'{len(payable)} test banks'
-    bundle_desc = ', '.join(tb.title for tb in payable)[:500]
-
-    session_params = {
-        'payment_method_types': ['card'],
-        'line_items': [{
-            'price_data': {
-                'currency': settings.STRIPE_CURRENCY,
-                'product_data': {
-                    'name': bundle_name,
-                    'description': bundle_desc,
-                },
-                'unit_amount': int(float(amount_after_discount) * 100),
-            },
-            'quantity': 1,
-        }],
-        'mode': 'payment',
-        'success_url': success_url,
-        'cancel_url': cancel_url,
-        'client_reference_id': str(payment.id),
-        'metadata': {
-            'payment_id': str(payment.id),
-            'order_id': str(order.id),
-            'user_id': str(request.user.id),
-            'cart_checkout': '1',
-        },
-    }
-
     try:
-        checkout_session = _make_stripe_request(stripe_mod.checkout.Session.create, **session_params)
-        payment.provider_session_id = checkout_session.id
+        invoice = create_invoice(
+            order_number=str(payment.id),
+            amount=float(subtotal),
+            callback_url=callback_url,
+            cancel_url=cancel_url,
+            client_name=user.get_full_name() or user.username,
+            client_email=user.email,
+            client_mobile=getattr(user, 'phone', '') or '0500000000',
+            products=[
+                {
+                    'title': tb.title,
+                    'price': float(tb.price),
+                    'qty': 1,
+                    'is_digital': True,
+                }
+                for tb in payable
+            ],
+            currency=currency,
+        )
+
+        payment.provider_session_id = invoice.get('transactionNo')
         payment.status = 'pending'
         payment.save()
+
         cart.clear()
-        return redirect(checkout_session.url)
+        return redirect(invoice.get('url'))
+
     except Exception as e:
-        logger.error(f'Cart checkout Stripe error: {e}', exc_info=True)
+        logger.error(f'Cart checkout Paylink error: {e}', exc_info=True)
+        payment.status = 'failed'
+        payment.save()
         messages.error(request, 'Unable to start checkout. Please try again.')
         return redirect('payments:cart_view')
-
-
-def _ensure_stripe_available():
-    """Defensive: raise early if Stripe config is missing at request time."""
-    if not settings.STRIPE_SECRET_KEY:
-        raise RuntimeError('Stripe is not configured (missing STRIPE_SECRET_KEY).')

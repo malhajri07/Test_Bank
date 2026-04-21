@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Payment" %} #{{ payment.id }} - {% trans "Exam Stellar" %}{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="page__inner py-8 md:py-12">
+<div class="max-w-3xl mx-auto px-4 sm:px-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">{% trans "Payment Details" %}</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">#{{ payment.id }} &middot; {{ payment.created_at|date:"F d, Y g:i A" }}</p>
+        </div>
+        {% if payment.status == 'succeeded' %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            {% trans "Paid" %}
+        </span>
+        {% elif payment.status == 'pending' %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+            {% trans "Pending" %}
+        </span>
+        {% elif payment.status == 'cancelled' %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+            {% trans "Cancelled" %}
+        </span>
+        {% else %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+            {{ payment.get_status_display }}
+        </span>
+        {% endif %}
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2">
+
+        <!-- Product Card -->
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-6 md:col-span-2">
+            <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{% trans "Product" %}</h2>
+            {% if payment.test_bank %}
+            <div class="flex items-start gap-4">
+                {% if payment.test_bank.cover_image %}
+                <img src="{{ payment.test_bank.cover_image.url }}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">
+                {% endif %}
+                <div class="min-w-0">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">{{ payment.test_bank.title }}</h3>
+                    {% if payment.test_bank.certification %}
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ payment.test_bank.certification.name }}</p>
+                    {% endif %}
+                    <a href="{% url 'catalog:testbank_detail' slug=payment.test_bank.slug %}" class="inline-block mt-2 text-sm text-brand-500 hover:text-brand-600 font-medium">{% trans "View Test Bank" %} &rarr;</a>
+                </div>
+            </div>
+            {% elif payment.order %}
+            <p class="text-lg font-bold text-gray-900 dark:text-gray-100">{% blocktrans with count=payment.order.items.count %}Package ({{ count }} exams){% endblocktrans %}</p>
+            <ul class="mt-3 space-y-1">
+                {% for item in payment.order.items.all %}
+                <li class="text-sm text-gray-600 dark:text-gray-400">&bull; {{ item.test_bank.title }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-gray-600 dark:text-gray-400">{% trans "Purchase" %}</p>
+            {% endif %}
+        </div>
+
+        <!-- Payment Info Card -->
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-6">
+            <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{% trans "Payment Info" %}</h2>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Transaction ID" %}</dt>
+                    <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">{{ payment.provider_session_id|default:"-" }}</dd>
+                </div>
+                {% if payment.payment_method %}
+                <div class="flex justify-between">
+                    <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Payment Method" %}</dt>
+                    <dd class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {% if payment.payment_method == 'MADA' %}
+                            <span class="inline-flex items-center gap-1">🏦 Mada</span>
+                        {% elif payment.payment_method == 'VISA' %}
+                            <span class="inline-flex items-center gap-1">💳 Visa</span>
+                        {% elif payment.payment_method == 'MASTERCARD' %}
+                            <span class="inline-flex items-center gap-1">💳 Mastercard</span>
+                        {% elif payment.payment_method == 'STC_PAY' %}
+                            <span class="inline-flex items-center gap-1">📱 STC Pay</span>
+                        {% elif payment.payment_method == 'AMEX' %}
+                            <span class="inline-flex items-center gap-1">💳 Amex</span>
+                        {% else %}
+                            {{ payment.payment_method }}
+                        {% endif %}
+                    </dd>
+                </div>
+                {% endif %}
+                {% if payment.card_last_four %}
+                <div class="flex justify-between">
+                    <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Card" %}</dt>
+                    <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">&bull;&bull;&bull;&bull; {{ payment.card_last_four }}</dd>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Provider" %}</dt>
+                    <dd class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ payment.get_payment_provider_display }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Date" %}</dt>
+                    <dd class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ payment.created_at|date:"M d, Y g:i A" }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Amount Card -->
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-6">
+            <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{% trans "Amount" %}</h2>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Subtotal" %}</dt>
+                    <dd class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ payment.get_net_price|floatformat:2 }} {{ payment.currency|upper }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "VAT" %} ({{ payment.get_vat_rate|floatformat:0 }}%)</dt>
+                    <dd class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ payment.get_vat_amount|floatformat:2 }} {{ payment.currency|upper }}</dd>
+                </div>
+                <div class="flex justify-between pt-3 border-t border-gray-200 dark:border-dark-border">
+                    <dt class="text-base font-bold text-gray-900 dark:text-gray-100">{% trans "Total" %}</dt>
+                    <dd class="text-base font-bold text-brand-500">{{ payment.get_total_amount|floatformat:2 }} {{ payment.currency|upper }}</dd>
+                </div>
+            </dl>
+        </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-8 flex flex-wrap gap-3">
+        {% if payment.receipt_url %}
+        <a href="{{ payment.receipt_url }}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg transition-colors text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            {% trans "View Receipt" %}
+        </a>
+        {% endif %}
+        <a href="{% url 'payments:purchase_list' %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-card font-semibold rounded-lg transition-colors text-sm">
+            {% trans "All Purchases" %}
+        </a>
+        <a href="{% url 'accounts:dashboard' %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-card font-semibold rounded-lg transition-colors text-sm">
+            {% trans "Dashboard" %}
+        </a>
+    </div>
+
+</div>
+</div>
+</div>
+{% endblock %}

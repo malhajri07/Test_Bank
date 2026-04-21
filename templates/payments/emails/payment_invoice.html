@@ -4,211 +4,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% trans "Payment Invoice" %} - {% if payment.test_bank %}{{ payment.test_bank.title }}{% else %}{% trans "Your purchase" %}{% endif %}</title>
+    <title>{% trans "Payment Invoice" %} - Exam Stellar</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', 'Roboto', sans-serif;
-            line-height: 1.6;
-            color: #000000;
-            background-color: #f5f5f7;
-            margin: 0;
-            padding: 0;
-        }
-        .email-container {
-            max-width: 600px;
-            margin: 40px auto;
-            background-color: #ffffff;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        .email-header {
-            background: linear-gradient(to right, #5624d0, #4a1fb8);
-            padding: 40px 30px;
-            text-align: center;
-        }
-        .logo {
-            color: #ffffff;
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0;
-        }
-        .email-content {
-            padding: 40px 30px;
-        }
-        .invoice-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #000000;
-            margin-bottom: 10px;
-        }
-        .invoice-number {
-            color: #666666;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-        .invoice-details {
-            background-color: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 30px 0;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        .detail-label {
-            color: #666666;
-            font-size: 14px;
-        }
-        .detail-value {
-            color: #000000;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 20px 0;
-            margin-top: 20px;
-            border-top: 2px solid #000000;
-        }
-        .total-label {
-            font-size: 18px;
-            font-weight: 700;
-            color: #000000;
-        }
-        .total-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #5624d0;
-        }
-        .test-bank-info {
-            background-color: #f0f4ff;
-            border-left: 4px solid #5624d0;
-            padding: 20px;
-            margin: 30px 0;
-            border-radius: 8px;
-        }
-        .test-bank-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #000000;
-            margin-bottom: 10px;
-        }
-        .test-bank-description {
-            color: #666666;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(to right, #5624d0, #4a1fb8);
-            color: #ffffff;
-            padding: 16px 32px;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            margin: 30px 0;
-            text-align: center;
-        }
-        .footer {
-            background-color: #f8f9fa;
-            padding: 30px;
-            text-align: center;
-            color: #666666;
-            font-size: 12px;
-        }
-        .footer a {
-            color: #5624d0;
-            text-decoration: none;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f1f5f9; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .wrapper { width: 100%; background-color: #f1f5f9; padding: 40px 16px; }
+        .container { max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #5624d0 0%, #7c3aed 100%); padding: 36px 32px; text-align: center; }
+        .logo-mark { display: inline-block; width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; line-height: 48px; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; margin-bottom: 12px; }
+        .logo-text { font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; margin: 0; }
+        .content { padding: 36px 32px; }
+        .badge { display: inline-block; padding: 4px 12px; background: #f0fdf4; color: #16a34a; font-size: 12px; font-weight: 700; border-radius: 100px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 20px; }
+        h2 { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.3px; }
+        .invoice-num { font-size: 13px; color: #94a3b8; margin-bottom: 24px; }
+        p { font-size: 15px; color: #475569; line-height: 1.7; margin-bottom: 16px; }
+        .detail-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin: 24px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #64748b; }
+        .detail-value { color: #0f172a; font-weight: 600; }
+        .payment-badge { display: inline-block; padding: 2px 10px; background: #eff6ff; color: #2563eb; border-radius: 100px; font-size: 12px; font-weight: 600; }
+        .product-card { background: #faf5ff; border-left: 3px solid #5624d0; border-radius: 0 10px 10px 0; padding: 18px 20px; margin: 24px 0; }
+        .product-title { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .product-desc { font-size: 13px; color: #64748b; }
+        .product-items { margin-top: 10px; font-size: 13px; color: #64748b; }
+        .product-items li { margin: 4px 0; }
+        .amount-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+        .amount-table td { padding: 10px 0; font-size: 14px; }
+        .amount-table .label { color: #64748b; }
+        .amount-table .value { text-align: right; color: #0f172a; font-weight: 600; }
+        .amount-table .total td { padding-top: 14px; border-top: 2px solid #0f172a; }
+        .amount-table .total .label { font-size: 16px; font-weight: 700; color: #0f172a; }
+        .amount-table .total .value { font-size: 20px; font-weight: 800; color: #5624d0; }
+        .cta-wrapper { text-align: center; margin: 28px 0; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #5624d0 0%, #7c3aed 100%); color: #ffffff; padding: 14px 36px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 14px rgba(86,36,208,0.3); }
+        .receipt-link { display: inline-block; margin-top: 12px; font-size: 13px; color: #5624d0; text-decoration: none; font-weight: 600; }
+        .divider { height: 1px; background: #e2e8f0; margin: 28px 0; }
+        .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 24px 32px; text-align: center; }
+        .footer p { font-size: 12px; color: #94a3b8; margin: 4px 0; }
+        .footer a { color: #5624d0; text-decoration: none; font-weight: 500; }
+        .footer-brand { font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px; }
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <div class="email-header">
-            <h1 class="logo">{% trans "Exam Stellar" %}</h1>
+    <div class="wrapper">
+    <div class="container">
+        <div class="header">
+            <div class="logo-mark">ES</div>
+            <p class="logo-text">Exam Stellar</p>
         </div>
-        
-        <div class="email-content">
-            <h2 class="invoice-title">{% trans "Payment Invoice" %}</h2>
-            <p class="invoice-number">{% trans "Invoice #" %}{{ payment.id }} | {% trans "Date:" %} {{ payment.created_at|date:"F d, Y" }}</p>
-            
-            <p>{% trans "Dear" %} {{ payment.user.get_full_name|default:payment.user.username }},</p>
-            
-            <p>{% trans "Thank you for your purchase! This email confirms your payment and serves as your invoice." %}</p>
-            
-            <div class="invoice-details">
+
+        <div class="content">
+            <span class="badge">{% trans "Payment Confirmed" %}</span>
+            <h2>{% trans "Payment Invoice" %}</h2>
+            <p class="invoice-num">{% trans "Invoice" %} #{{ payment.id }} &middot; {{ payment.created_at|date:"F d, Y" }}</p>
+
+            <p>{% trans "Hi" %} <strong>{{ payment.user.get_full_name|default:payment.user.username }}</strong>,</p>
+            <p>{% trans "Thank you for your purchase! Here's your invoice." %}</p>
+
+            <!-- Payment Details -->
+            <div class="detail-card">
                 <div class="detail-row">
-                    <span class="detail-label">{% trans "Payment ID:" %}</span>
-                    <span class="detail-value">#{{ payment.id }}</span>
+                    <span class="detail-label">{% trans "Transaction ID" %}</span>
+                    <span class="detail-value" style="font-family: monospace; font-size: 12px;">{{ payment.provider_session_id|default:"-" }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">{% trans "Transaction ID:" %}</span>
-                    <span class="detail-value">{{ payment.provider_payment_id|default:"N/A" }}</span>
+                    <span class="detail-label">{% trans "Date" %}</span>
+                    <span class="detail-value">{{ payment.created_at|date:"M d, Y g:i A" }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">{% trans "Payment Date:" %}</span>
-                    <span class="detail-value">{{ payment.created_at|date:"F d, Y g:i A" }}</span>
+                    <span class="detail-label">{% trans "Payment Method" %}</span>
+                    <span class="detail-value">
+                        {% if payment.payment_method %}
+                        <span class="payment-badge">{{ payment.payment_method }}</span>
+                        {% if payment.card_last_four %} &bull;&bull;&bull;&bull;{{ payment.card_last_four }}{% endif %}
+                        {% else %}
+                        {{ payment.get_payment_provider_display }}
+                        {% endif %}
+                    </span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">{% trans "Payment Method:" %}</span>
-                    <span class="detail-value">{{ payment.get_payment_provider_display }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">{% trans "Status:" %}</span>
-                    <span class="detail-value" style="color: #10b981;">{% trans "Paid" %}</span>
+                    <span class="detail-label">{% trans "Status" %}</span>
+                    <span class="detail-value" style="color: #16a34a;">{% trans "Paid" %}</span>
                 </div>
             </div>
-            
-            <div class="test-bank-info">
-                <div class="test-bank-title">{% if payment.test_bank %}{{ payment.test_bank.title }}{% else %}{% trans "Your purchase" %}{% endif %}</div>
+
+            <!-- Product -->
+            <div class="product-card">
+                <div class="product-title">{% if payment.test_bank %}{{ payment.test_bank.title }}{% else %}{% trans "Your purchase" %}{% endif %}</div>
                 {% if payment.test_bank and payment.test_bank.description %}
-                <div class="test-bank-description">{{ payment.test_bank.description|truncatewords:30 }}</div>
+                <div class="product-desc">{{ payment.test_bank.description|truncatewords:25 }}</div>
+                {% endif %}
+                {% if payment.order and payment.order.items.count > 1 %}
+                <ul class="product-items">
+                    {% for item in payment.order.items.all %}
+                    <li>&bull; {{ item.test_bank.title }}</li>
+                    {% endfor %}
+                </ul>
                 {% endif %}
             </div>
-            
-            <div class="total-row">
-                <span class="total-label">{% trans "Total Paid:" %}</span>
-                <span class="total-value">${{ payment.amount|floatformat:2 }} {{ payment.currency|upper }}</span>
-            </div>
-            
+
+            <!-- Amount Breakdown -->
+            <table class="amount-table">
+                <tr>
+                    <td class="label">{% trans "Subtotal" %}</td>
+                    <td class="value">{{ payment.get_net_price|floatformat:2 }} {{ payment.currency|upper }}</td>
+                </tr>
+                <tr>
+                    <td class="label">{% trans "VAT" %} (15%)</td>
+                    <td class="value">{{ payment.get_vat_amount|floatformat:2 }} {{ payment.currency|upper }}</td>
+                </tr>
+                <tr class="total">
+                    <td class="label">{% trans "Total Paid" %}</td>
+                    <td class="value">{{ payment.get_total_amount|floatformat:2 }} {{ payment.currency|upper }}</td>
+                </tr>
+            </table>
+
+            {% if payment.receipt_url %}
             <div style="text-align: center;">
+                <a href="{{ payment.receipt_url }}" class="receipt-link" target="_blank">{% trans "View Payment Receipt" %} &rarr;</a>
+            </div>
+            {% endif %}
+
+            <div class="cta-wrapper">
                 {% if payment.test_bank %}
-                <a href="{{ site_url }}{% url 'catalog:testbank_detail' slug=payment.test_bank.slug %}" class="cta-button">
-                    {% trans "Access Your Test Bank" %}
-                </a>
+                <a href="{{ site_url }}{% url 'catalog:testbank_detail' slug=payment.test_bank.slug %}" class="cta-button">{% trans "Start Practicing" %}</a>
                 {% else %}
-                <a href="{{ site_url }}{% url 'accounts:dashboard' %}" class="cta-button">
-                    {% trans "Go to Dashboard" %}
-                </a>
+                <a href="{{ site_url }}{% url 'accounts:dashboard' %}" class="cta-button">{% trans "Go to Dashboard" %}</a>
                 {% endif %}
             </div>
-            
-            <p style="margin-top: 30px; color: #666666; font-size: 14px;">
-                {% trans "You now have full access to this test bank. You can start practicing immediately from your dashboard." %}
-            </p>
-            
-            <p style="color: #666666; font-size: 14px;">
-                {% trans "If you have any questions or need assistance, please don't hesitate to contact our support team." %}
-            </p>
+
+            <div class="divider"></div>
+
+            <p style="font-size: 13px; color: #94a3b8;">{% trans "You now have full access. Start practicing from your dashboard anytime." %}</p>
         </div>
-        
+
         <div class="footer">
-            <p>{% trans "This is an automated invoice from Exam Stellar." %}</p>
-            <p>
-                <a href="{{ site_url }}">{% trans "Visit our website" %}</a> | 
-                <a href="{{ site_url }}{% url 'catalog:contact' %}">{% trans "Contact Support" %}</a>
-            </p>
-            <p style="margin-top: 20px;">&copy; {% now "Y" %} Exam Stellar. {% trans "All rights reserved." %}</p>
+            <p class="footer-brand">Exam Stellar</p>
+            <p><a href="{{ site_url }}">{% trans "Website" %}</a> &nbsp;&middot;&nbsp; <a href="{{ site_url }}{% url 'catalog:contact' %}">{% trans "Support" %}</a></p>
+            <p style="margin-top: 12px;">&copy; {% now "Y" %} Exam Stellar. {% trans "All rights reserved." %}</p>
         </div>
+    </div>
     </div>
 </body>
 </html>

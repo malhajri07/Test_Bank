@@ -26,9 +26,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
 # Set work directory
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+# Copy requirements and install Python dependencies (production only)
+COPY requirements.prod.txt .
+RUN pip install --user --no-cache-dir -r requirements.prod.txt
+
+# Copy templates so Tailwind can scan classes during build
+COPY templates/ templates/
 
 # Copy theme static source and build Tailwind CSS
 COPY theme/static_src/ theme/static_src/

@@ -2,33 +2,33 @@ steps:
   # Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:$SHORT_SHA', '.']
-  
+
   # Push to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:$SHORT_SHA']
-  
+
   # Tag as latest
   - name: 'gcr.io/cloud-builders/docker'
     args: ['tag', 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:$SHORT_SHA', 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:latest']
-  
+
   # Push latest tag
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:latest']
 
-  # Deploy to Cloud Run (uncomment to enable automatic deployment)
-  # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  #   entrypoint: gcloud
-  #   args:
-  #     - 'run'
-  #     - 'deploy'
-  #     - 'exam-stellar'
-  #     - '--image'
-  #     - 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:$SHORT_SHA'
-  #     - '--region'
-  #     - 'us-central1'
-  #     - '--platform'
-  #     - 'managed'
-  #     - '--allow-unauthenticated'
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'exam-stellar'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:$SHORT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
 
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/exam-stellar-repo/exam-stellar:$SHORT_SHA'
