@@ -14,12 +14,39 @@ Also configures media file serving for development.
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
+from django.http import HttpResponse
 from django.urls import include, path
+from django.views.decorators.cache import cache_page
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from .health import healthz, readyz
+from .sitemaps import sitemaps
+
+
+def robots_txt(request):
+    lines = [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        'Disallow: /admin/',
+        'Disallow: /accounts/login/',
+        'Disallow: /accounts/register/',
+        'Disallow: /accounts/password-reset/',
+        'Disallow: /payments/',
+        'Disallow: /practice/',
+        'Disallow: /api/',
+        'Disallow: /ckeditor5/',
+        '',
+        f'Sitemap: https://examstellar.com/sitemap.xml',
+    ]
+    return HttpResponse('\n'.join(lines), content_type='text/plain')
 
 urlpatterns = [
+    # SEO
+    path('robots.txt', robots_txt, name='robots_txt'),
+    path('sitemap.xml', cache_page(3600)(sitemap), {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+
     path('healthz/', healthz),
     path('readyz/', readyz),
     # Admin interface

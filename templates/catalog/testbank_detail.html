@@ -1,7 +1,61 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ test_bank.title }} - {% trans "Exam Stellar" %}{% endblock %}
+{% block title %}{{ test_bank.title }} — {% trans "Practice Exam Questions" %} | Exam Stellar{% endblock %}
+{% block meta_description %}{{ test_bank.description|truncatewords:30|striptags }} Practice {{ question_count }} exam questions for {{ test_bank.title }}. Track your progress and ace your certification.{% endblock %}
+{% block meta_keywords %}{{ test_bank.title }}, practice exam, test bank, {{ test_bank.certification.name|default:"certification" }}, exam questions, mock test{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ test_bank.title }} — {{ question_count }} Practice Questions{% endblock %}
+{% block og_description %}Practice {{ question_count }} real exam-style questions for {{ test_bank.title }}. Detailed explanations, progress tracking, and performance analytics.{% endblock %}
+{% block twitter_title %}{{ test_bank.title }} — {{ question_count }} Practice Questions{% endblock %}
+{% block twitter_description %}Practice {{ question_count }} real exam-style questions for {{ test_bank.title }}. Detailed explanations, progress tracking, and performance analytics.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "{{ test_bank.title|escapejs }}",
+    "description": "{{ test_bank.description|truncatewords:50|striptags|escapejs }}",
+    "url": "https://examstellar.com{% url 'catalog:testbank_detail' slug=test_bank.slug %}",
+    "brand": {
+        "@type": "Brand",
+        "name": "Exam Stellar"
+    },
+    "category": "{{ test_bank.category.name|default:'Exam Preparation'|escapejs }}",
+    "offers": {
+        "@type": "Offer",
+        "price": "{{ test_bank.price }}",
+        "priceCurrency": "SAR",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+            "@type": "Organization",
+            "name": "Exam Stellar"
+        }
+    }{% if avg_rating %},
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ avg_rating }}",
+        "reviewCount": "{{ rating_count }}",
+        "bestRating": "5",
+        "worstRating": "1"
+    }{% endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://examstellar.com/"},
+        {"@type": "ListItem", "position": 2, "name": "{{ test_bank.category.name|escapejs }}", "item": "https://examstellar.com{% url 'catalog:category_detail' slug=test_bank.category.slug %}"}{% if test_bank.certification %},
+        {"@type": "ListItem", "position": 3, "name": "{{ test_bank.certification.name|escapejs }}", "item": "https://examstellar.com{% url 'catalog:certification_testbanks' category_slug=test_bank.category.slug certification_slug=test_bank.certification.slug %}"},
+        {"@type": "ListItem", "position": 4, "name": "{{ test_bank.title|escapejs }}"}{% else %},
+        {"@type": "ListItem", "position": 3, "name": "{{ test_bank.title|escapejs }}"}{% endif %}
+    ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="page">

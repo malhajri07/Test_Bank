@@ -6,10 +6,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#5624d0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <title>{% block title %}{% trans "Exam Stellar" %}{% endblock %}</title>
+
+    <!-- SEO -->
+    <title>{% block title %}{% trans "Exam Stellar — Practice Exams & Certification Test Banks" %}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{% trans "Ace your certification exams with Exam Stellar. Practice with thousands of real exam-style questions for PMP, CompTIA, Microsoft, and more. Track progress, get certified." %}{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}https://examstellar.com{{ request.path }}{% endblock %}">
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <meta name="author" content="Exam Stellar">
+    <meta name="keywords" content="{% block meta_keywords %}exam preparation, practice tests, certification exams, test bank, PMP exam, CompTIA, mock exams, exam questions, study material, professional certification{% endblock %}">
+
+    <!-- OpenGraph -->
+    <meta property="og:site_name" content="Exam Stellar">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% trans "Exam Stellar ��� Practice Exams & Certification Test Banks" %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% trans "Practice with thousands of real exam-style questions. Track your progress. Ace your certifications." %}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://examstellar.com{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://examstellar.com{% static 'images/og-default.png' %}{% endblock %}">
+    <meta property="og:locale" content="{{ USER_LANGUAGE_CODE|default:'en' }}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}{% trans "Exam Stellar — Practice Exams & Certification Test Banks" %}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{% trans "Practice with thousands of real exam-style questions. Track your progress. Ace your certifications." %}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://examstellar.com{% static 'images/og-default.png' %}{% endblock %}">
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Exam Stellar",
+        "url": "https://examstellar.com",
+        "logo": "https://examstellar.com{% static 'images/og-default.png' %}",
+        "description": "{% trans 'Professional exam preparation platform with thousands of practice questions for certification exams.' %}",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "email": "info@examstellar.com",
+            "url": "https://examstellar.com/contact/"
+        },
+        "sameAs": []
+    }
+    </script>
+
+    <!-- Structured Data: WebSite + SearchAction -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Exam Stellar",
+        "url": "https://examstellar.com",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://examstellar.com/search/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
+    {% block structured_data %}{% endblock %}
 
     <!-- Swiper CSS — self-hosted; loaded BEFORE Tailwind so Tailwind/custom rules win on ties -->
     <link rel="stylesheet" href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" />

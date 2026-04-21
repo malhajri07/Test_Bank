@@ -1,7 +1,24 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ category.name }} — {% trans "Exam Stellar" %}{% endblock %}
+{% block title %}{{ category.name }} {% trans "Practice Exams & Test Banks" %} | Exam Stellar{% endblock %}
+{% block meta_description %}Browse {{ category.name }} certification exam banks on Exam Stellar. Practice questions with detailed analytics for {% for g in certification_groups|slice:":3" %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %} and more.{% endblock %}
+{% block og_title %}{{ category.name }} {% trans "Exam Banks" %} | Exam Stellar{% endblock %}
+{% block og_description %}Practice exams for {{ category.name }} certifications. Thousands of questions with progress tracking and performance analytics.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://examstellar.com/"},
+        {"@type": "ListItem", "position": 2, "name": "Browse", "item": "https://examstellar.com{% url 'catalog:category_list' %}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ category.name|escapejs }}"}
+    ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="page">

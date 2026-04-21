@@ -1,7 +1,64 @@
 {% extends 'base.html' %}
 {% load i18n cms_tags %}
 
-{% block title %}{% trans "Exam Stellar - Practice Tests for School, College & Professional" %}{% endblock %}
+{% block title %}{% trans "Exam Stellar — Practice Exams for PMP, CompTIA, Microsoft & More" %}{% endblock %}
+{% block meta_description %}{% trans "Prepare for your certification exams with Exam Stellar. 2,500+ practice questions, detailed analytics, and real exam simulations. PMP, CompTIA, Microsoft, and professional certifications." %}{% endblock %}
+{% block canonical_url %}https://examstellar.com/{% endblock %}
+{% block og_title %}{% trans "Exam Stellar — Ace Your Certification Exams" %}{% endblock %}
+{% block og_description %}{% trans "2,500+ practice questions across 25+ exam banks. Real exam simulations, detailed analytics, and completion certificates. Start practicing today." %}{% endblock %}
+{% block twitter_title %}{% trans "Exam Stellar — Ace Your Certification Exams" %}{% endblock %}
+{% block twitter_description %}{% trans "2,500+ practice questions across 25+ exam banks. Real exam simulations, detailed analytics, and completion certificates." %}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What is Exam Stellar?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Exam Stellar is an online exam preparation platform offering practice test banks for professional certifications including PMP, CompTIA, Microsoft, and more. It features thousands of exam-style questions with detailed analytics and progress tracking."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How many practice questions are available?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Exam Stellar offers over 2,500 practice questions across 25+ exam banks covering school, college, and professional certifications."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What certifications does Exam Stellar cover?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Exam Stellar covers a wide range of certifications including PMP, CompTIA (A+, Network+, Security+), Microsoft, business strategy, and vocational certifications. New exam banks are added regularly."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What payment methods are accepted?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Exam Stellar accepts Mada, Visa, Mastercard, American Express, STC Pay, Apple Pay, URPay, Tamara, and Tabby through the Paylink payment gateway."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Do I get a certificate after completing a practice exam?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, you earn a completion certificate when you pass a practice exam with a score of 70% or higher. Certificates can be viewed from your dashboard."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="page w-full">
