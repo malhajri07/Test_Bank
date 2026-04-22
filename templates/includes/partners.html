@@ -1,139 +1,90 @@
 {% load i18n %}
 {% comment %}
-    Certifying / training organizations marquee.
-
-    Renders `partner_rows` (3 lists partitioned in the view) as a 3-row
-    horizontal marquee with alternating scroll directions.
-
-    Each row's content is rendered twice so the CSS animation loops
-    seamlessly (-50% translate at the end aligns the duplicate with the
-    original start).
-
-    Rows 1 and 3 scroll right → left; row 2 scrolls left → right.
-    Honors `prefers-reduced-motion: reduce`.
+    Exam providers — static grid of certifying / training bodies whose exams
+    we prep for. Replaces an earlier marquee; readable at-a-glance is more
+    credible than auto-scrolling text. Expects `partners` (flat list of dicts
+    with `name`, `url`, optional `logo_url`).
 {% endcomment %}
-<section class="py-12 bg-bg dark:bg-dark-bg">
+{% if partners %}
+<section class="py-section bg-white dark:bg-dark-bg">
     <div class="page__inner">
-        <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-black dark:text-gray-100 mb-2">
-                {% trans "Learn from leading institutions" %}
+        <div class="text-center mb-10">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                {% trans "Exam providers we prep you for" %}
             </h2>
-            <p class="text-sm text-text-light dark:text-gray-400">
-                {% trans "Official certifications, accreditations, and training bodies whose exams we prep you for." %}
+            <p class="mt-2 text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+                {% trans "Every certification body our banks map to — coverage keeps growing." %}
             </p>
         </div>
 
-        {% if partner_rows %}
-        <div class="partner-marquee" role="region" aria-label="{% trans 'Partner institutions' %}">
-            {% for row in partner_rows %}
-            {% if row %}
-            <div class="partner-marquee__row {% cycle 'partner-marquee__row--left' 'partner-marquee__row--right' 'partner-marquee__row--left' %}">
-                <div class="partner-marquee__track">
-                    {% for partner in row %}
-                        {% include 'includes/_partner_logo.html' with partner=partner %}
-                    {% endfor %}
-                    {# Duplicate copy for seamless animation loop #}
-                    {% for partner in row %}
-                        {% include 'includes/_partner_logo.html' with partner=partner aria_hidden_duplicate=True %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
+        <ul class="partner-grid">
+            {% for partner in partners %}
+            <li>
+                <a href="{{ partner.url }}" target="_blank" rel="noopener noreferrer"
+                   class="partner-grid__item"
+                   aria-label="{{ partner.name }}">
+                    <span>{{ partner.name }}</span>
+                </a>
+            </li>
             {% endfor %}
-        </div>
-        {% endif %}
+        </ul>
     </div>
 </section>
 
 <style>
-.partner-marquee {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    overflow: hidden;
-    --partner-gap: 1rem;
-    --partner-h: 4rem;
-    --partner-min-w: 11rem;
-    --partner-speed-row: 50s; /* time for one full loop — slower = calmer */
-}
-.partner-marquee__row {
-    overflow: hidden;
-    /* Soft fade at the edges so items slide in/out smoothly */
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-            mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-}
-.partner-marquee__track {
-    display: flex;
-    flex-wrap: nowrap;
-    width: max-content;
-    gap: var(--partner-gap);
-    will-change: transform;
-}
-.partner-marquee__row--left .partner-marquee__track {
-    animation: partner-scroll-left var(--partner-speed-row) linear infinite;
-}
-.partner-marquee__row--right .partner-marquee__track {
-    animation: partner-scroll-right var(--partner-speed-row) linear infinite;
-}
-/* Pause on hover — readable affordance */
-.partner-marquee__row:hover .partner-marquee__track,
-.partner-marquee__row:focus-within .partner-marquee__track {
-    animation-play-state: paused;
-}
-.partner-marquee__item {
-    flex: 0 0 auto;
-    min-width: var(--partner-min-w);
-    height: var(--partner-h);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 1.25rem;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 0.5rem;
-    color: #666;
-    font-weight: 600;
-    font-size: 0.875rem;
-    white-space: nowrap;
-    opacity: 0.75;
-    transition: opacity 0.2s, transform 0.2s, color 0.2s;
-    text-decoration: none;
-}
-.partner-marquee__item:hover,
-.partner-marquee__item:focus-visible {
-    opacity: 1;
-    transform: translateY(-1px);
-    color: #5624d0;
-    outline: none;
-}
-.partner-marquee__item img {
-    max-height: 2.5rem;
-    max-width: 100%;
-    object-fit: contain;
-}
-.dark .partner-marquee__item {
-    background: #1E293B;
-    border-color: #334155;
-    color: #cbd5e1;
-}
-.dark .partner-marquee__item:hover,
-.dark .partner-marquee__item:focus-visible {
-    color: #a78bfa;
-}
-
-@keyframes partner-scroll-left {
-    from { transform: translate3d(0, 0, 0); }
-    to   { transform: translate3d(-50%, 0, 0); }
-}
-@keyframes partner-scroll-right {
-    from { transform: translate3d(-50%, 0, 0); }
-    to   { transform: translate3d(0, 0, 0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .partner-marquee__track {
-        animation: none !important;
-        transform: translate3d(0, 0, 0);
+    /* Uniform tile grid: auto-fit so the row adapts to screen width,
+       keeps heights equal for visual calm. */
+    .partner-grid {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
     }
-}
+    @media (min-width: 768px) {
+        .partner-grid { gap: 1rem; }
+    }
+    .partner-grid__item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 4rem;
+        padding: 0 1.25rem;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 0.75rem;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-align: center;
+        text-decoration: none;
+        transition: border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .partner-grid__item span {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.3;
+    }
+    .partner-grid__item:hover,
+    .partner-grid__item:focus-visible {
+        border-color: #5624d0;
+        color: #5624d0;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(86, 36, 208, 0.12);
+        outline: none;
+    }
+    .dark .partner-grid__item {
+        background: #1e293b;
+        border-color: #334155;
+        color: #cbd5e1;
+    }
+    .dark .partner-grid__item:hover,
+    .dark .partner-grid__item:focus-visible {
+        border-color: #a78bfa;
+        color: #a78bfa;
+    }
 </style>
+{% endif %}
