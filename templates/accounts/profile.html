@@ -175,21 +175,21 @@
                                 {% if invoice.amount == 0 %}
                                     <span class="text-green-600 font-semibold">{% trans "FREE" %}</span>
                                 {% else %}
-                                    ${{ invoice.get_net_price|floatformat:2 }}
+                                    {{ invoice.get_net_price|floatformat:2 }} SAR
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
                                 {% if invoice.amount == 0 %}
-                                    $0.00
+                                    0.00 SAR
                                 {% else %}
-                                    ${{ invoice.get_vat_amount|floatformat:2 }}
+                                    {{ invoice.get_vat_amount|floatformat:2 }} SAR
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-semibold">
                                 {% if invoice.amount == 0 %}
                                     <span class="text-green-600 font-semibold">{% trans "FREE" %}</span>
                                 {% else %}
-                                    ${{ invoice.get_total_amount|floatformat:2 }}
+                                    {{ invoice.get_total_amount|floatformat:2 }} SAR
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -216,13 +216,13 @@
                                 {% trans "Grand Total:" %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                                ${{ total_net|floatformat:2 }}
+                                {{ total_net|floatformat:2 }} SAR
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                                ${{ total_vat|floatformat:2 }}
+                                {{ total_vat|floatformat:2 }} SAR
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-brand-500 text-right text-lg">
-                                ${{ total_amount|floatformat:2 }}
+                                {{ total_amount|floatformat:2 }} SAR
                             </td>
                             <td></td>
                         </tr>

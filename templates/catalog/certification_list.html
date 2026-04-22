@@ -105,7 +105,7 @@
                     
                     <!-- Price - Udemy Style -->
                     <div class="mt-auto">
-                        <span class="text-lg font-bold text-gray-900">{% if test_bank.price == 0 %}{% trans "Free" %}{% else %}${{ test_bank.price }}{% endif %}</span>
+                        <span class="text-lg font-bold text-gray-900">{% if test_bank.price == 0 %}{% trans "Free" %}{% else %}{{ test_bank.price }} SAR{% endif %}</span>
                     </div>
                 </div>
             </div>
