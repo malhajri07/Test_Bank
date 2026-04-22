@@ -309,17 +309,14 @@
     }
   }
 
-  /* Swiper Pagination */
+  /* Swiper Pagination — neutral default, per-carousel styles override */
   .swiper-pagination-bullet {
-    @apply bg-[#e28f64] opacity-30 w-2.5 h-2.5 transition-all duration-300 ease-in-out;
-    background: #e28f64 !important;
+    @apply bg-gray-300 dark:bg-slate-600 opacity-100 w-2 h-2 transition-all duration-300 ease-in-out;
   }
 
   .swiper-pagination-bullet-active {
-    @apply opacity-100 w-6 rounded-[5px];
-    opacity: 1 !important;
-    width: 24px !important;
-    border-radius: 5px !important;
+    @apply bg-brand-500 dark:bg-purple-400 opacity-100 rounded-full;
+    width: 24px;
   }
 
   /* Card Hover Effects */
