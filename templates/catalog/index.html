@@ -71,89 +71,86 @@
     </div>
     {% endif %}
 
-    <!-- Hero Section - Full Width Image Carousel with Overlay -->
+    <!-- Hero — carousel if CMS slides exist, else single-slide brand panel.
+         When a slide has a background image, a full-bleed dark gradient
+         overlay keeps white text legible (no per-line highlight boxes). -->
     <section class="relative w-full overflow-hidden">
         {% if cms_hero_slides %}
-        <div class="swiper hero-carousel-swiper relative w-full h-[50vh] min-h-[600px] max-h-[800px]">
+        <div class="swiper hero-carousel-swiper relative w-full h-[60vh] min-h-[480px] max-h-[680px]">
             <div class="swiper-wrapper">
                 {% for slide in cms_hero_slides %}
                 <div class="swiper-slide">
-                    {% if slide.background_image %}
-                    <div class="relative w-full h-full overflow-hidden">
-                        <!-- Background Image with 85% opacity - Showing top half -->
-                        <div class="absolute inset-0 w-full h-full overflow-hidden">
-                            <img src="{{ slide.background_image.url }}" alt="{{ slide.title }}"
-                                class="w-full opacity-[0.85] h-auto min-h-[200%] object-cover object-top -translate-y-[25%]" style="opacity: 0.85 !important;">
-                        </div>
-                        <!-- Purple Overlay -->
-                        <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-brand-500/80 to-brand-600/80"></div>
-                        <!-- Content Overlay -->
-                        <div class="absolute inset-0 w-full h-full flex items-center py-20 z-10">
+                    <div class="relative w-full h-full overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700">
+                        {% if slide.background_image %}
+                        <img src="{{ slide.background_image.url }}" alt=""
+                             class="absolute inset-0 w-full h-full object-cover object-center"
+                             onerror="this.remove()" aria-hidden="true">
+                        <!-- Full-bleed overlay — sits on image, keeps text readable -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-brand-700/80 via-brand-600/70 to-brand-500/50"></div>
+                        {% endif %}
+
+                        <div class="relative z-10 h-full flex items-center">
                             <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                                 <div class="max-w-2xl">
-                                    <h1 class="font-bold mb-12 px-4 md:px-6 lg:px-8 text-4xl md:text-5xl lg:text-6xl leading-[1.6]">
-                                        <span class="bg-black/70 text-white px-4 py-2 rounded-lg font-semibold shadow-lg backdrop-blur-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{{ slide.title|striptags }}</span>
+                                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight">
+                                        {{ slide.title|striptags }}
                                     </h1>
                                     {% if slide.description %}
-                                    <h2 class="mb-10 px-4 md:px-6 lg:px-8 mt-4 text-lg md:text-xl lg:text-2xl font-bold leading-[1.8]">
-                                        <span class="bg-black/70 text-white px-4 py-2 rounded-lg font-semibold shadow-lg backdrop-blur-sm [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{{ slide.description|striptags }}</span>
-                                    </h2>
+                                    <p class="mt-5 text-base md:text-lg lg:text-xl text-white/90 leading-relaxed max-w-xl">
+                                        {{ slide.description|striptags }}
+                                    </p>
                                     {% endif %}
                                     {% if slide.primary_button_text and slide.primary_button_url %}
-                                    <a href="{{ slide.primary_button_url }}"
-                                        class="inline-block px-10 py-5 bg-white text-brand-500 font-semibold rounded hover:bg-gray-100 transition-colors ml-4 md:ml-6 lg:ml-8">
-                                        {{ slide.primary_button_text }}
-                                    </a>
+                                    <div class="mt-8 flex flex-wrap items-center gap-3">
+                                        <a href="{{ slide.primary_button_url }}"
+                                           class="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                                            {{ slide.primary_button_text }}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </a>
+                                        <a href="{% url 'catalog:category_list' %}"
+                                           class="inline-flex items-center gap-2 px-6 py-3.5 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all border border-white/20 hover:border-white/40">
+                                            {% trans "Browse catalog" %}
+                                        </a>
+                                    </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% else %}
-                    <!-- Fallback without image -->
-                    <div class="relative w-full h-full bg-gradient-to-r from-brand-500 to-brand-600 flex items-center">
-                        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                            <div class="max-w-2xl">
-                                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-                                    {{ slide.title }}
-                                </h1>
-                                {% if slide.description %}
-                                <p class="text-lg text-white/90 mb-6">
-                                    {{ slide.description }}
-                                </p>
-                                {% endif %}
-                                {% if slide.primary_button_text and slide.primary_button_url %}
-                                <a href="{{ slide.primary_button_url }}"
-                                    class="inline-block px-6 py-3 bg-white text-brand-500 font-semibold rounded hover:bg-gray-100 transition-colors">
-                                    {{ slide.primary_button_text }}
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
-            <!-- Pagination -->
             <div class="swiper-pagination hero-carousel-pagination"></div>
         </div>
         {% else %}
-        <!-- Default hero - Full Width with Purple Background -->
-        <div class="relative w-full h-[1200px] md:h-[1400px] lg:h-[1600px] bg-gradient-to-r from-brand-500 to-brand-600">
+        <!-- Default hero — single brand panel when no CMS slides configured -->
+        <div class="relative w-full h-[60vh] min-h-[480px] max-h-[680px] bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 overflow-hidden">
             <div class="relative z-10 h-full flex items-center">
                 <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                     <div class="max-w-2xl">
-                        <h1 class="font-bold mb-12 px-4 md:px-6 lg:px-8 text-4xl md:text-5xl lg:text-6xl">
-                            <span class="bg-black/70 text-white px-4 py-2 rounded-lg font-semibold shadow-lg backdrop-blur-sm">{% trans "Learn without limits" %}</span>
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight">
+                            {% trans "Get certified, with ease." %}
                         </h1>
-                        <h2 class="mb-10 px-4 md:px-6 lg:px-8 mt-4 text-lg md:text-xl lg:text-2xl font-bold">
-                            <span class="bg-black/70 text-white px-4 py-2 rounded-lg font-semibold shadow-lg backdrop-blur-sm">{% trans "Master your exams with comprehensive practice tests" %}</span>
-                        </h2>
-                        <a href="{% url 'catalog:category_list' %}"
-                            class="inline-block px-10 py-5 bg-white text-brand-500 font-semibold rounded hover:bg-gray-100 transition-colors ml-4 md:ml-6 lg:ml-8">
-                            {% trans "Browse Test Banks" %}
-                        </a>
+                        <p class="mt-5 text-base md:text-lg lg:text-xl text-white/90 leading-relaxed max-w-xl">
+                            {% trans "Thousands of real exam-level questions across every major certification — practice, master, pass." %}
+                        </p>
+                        <div class="mt-8 flex flex-wrap items-center gap-3">
+                            <a href="{% url 'catalog:category_list' %}"
+                               class="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                                {% trans "Browse test banks" %}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                            {% if not user.is_authenticated %}
+                            <a href="{% url 'accounts:register' %}"
+                               class="inline-flex items-center gap-2 px-6 py-3.5 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all border border-white/20 hover:border-white/40">
+                                {% trans "Create free account" %}
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
