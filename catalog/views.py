@@ -285,21 +285,25 @@ def index(request):
             'value': _Q.objects.count(),
             'label': _('Practice questions'),
             'icon': 'question',
+            'accent': 'brand',   # purple
         },
         {
             'value': Certification.objects.count(),
             'label': _('Certifications'),
             'icon': 'award',
+            'accent': 'sky',
         },
         {
             'value': TestBank.objects.filter(is_active=True).count(),
             'label': _('Test banks'),
             'icon': 'stack',
+            'accent': 'amber',
         },
         {
             'value': len(categories),
             'label': _('Categories'),
             'icon': 'grid',
+            'accent': 'emerald',
         },
     ]
 
