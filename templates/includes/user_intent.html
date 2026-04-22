@@ -1,94 +1,53 @@
 {% load i18n humanize %}
 {% comment %}
-    Catalog stats — honest credibility tiles right after the hero.
-    Expects `stats`: list of dicts with {value, label, icon, accent}.
+    Catalog stats — simple credibility tiles right after the hero.
+    Expects `stats`: list of dicts with {value, label, icon}.
     Icon: question | award | stack | grid.
-    Accent: brand | sky | amber | emerald (rotates per tile for visual energy).
 {% endcomment %}
 {% if stats %}
-<section class="relative py-section bg-white dark:bg-dark-bg overflow-hidden">
-    <!-- Soft decorative background blobs -->
-    <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div class="absolute -top-24 -left-24 w-96 h-96 bg-brand-500/10 dark:bg-brand-500/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-sky-500/10 dark:bg-sky-500/10 rounded-full blur-3xl"></div>
-    </div>
-
-    <div class="page__inner relative">
-        <div class="text-center mb-12">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/10 dark:bg-brand-500/20 text-brand-500 text-[11px] font-bold uppercase tracking-wider mb-4">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-                </span>
-                {% trans "Live catalog" %}
-            </span>
-            <h2 class="text-3xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+<section class="py-section bg-white dark:bg-dark-bg">
+    <div class="page__inner">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
                 {% trans "A serious catalog, built to keep growing" %}
             </h2>
-            <p class="mt-3 text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+            <p class="mt-2 text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
                 {% trans "The numbers that matter — updated in real time as we add new banks." %}
             </p>
         </div>
 
         <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {% for stat in stats %}
-            <div class="group relative overflow-hidden rounded-2xl bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border p-6 md:p-7 text-center shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500">
-                <!-- Glow on hover: colored spotlight behind the tile -->
-                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none
-                    {% if stat.accent == 'brand' %}bg-gradient-to-br from-brand-500/5 via-brand-500/10 to-transparent
-                    {% elif stat.accent == 'sky' %}bg-gradient-to-br from-sky-500/5 via-sky-500/10 to-transparent
-                    {% elif stat.accent == 'amber' %}bg-gradient-to-br from-amber-500/5 via-amber-500/15 to-transparent
-                    {% else %}bg-gradient-to-br from-emerald-500/5 via-emerald-500/10 to-transparent{% endif %}"></div>
-
-                <!-- Corner decorative shape -->
-                <div class="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-30 blur-2xl pointer-events-none
-                    {% if stat.accent == 'brand' %}bg-brand-500
-                    {% elif stat.accent == 'sky' %}bg-sky-400
-                    {% elif stat.accent == 'amber' %}bg-amber-400
-                    {% else %}bg-emerald-400{% endif %}"></div>
-
-                <div class="relative">
-                    <!-- Icon badge — gradient background + colored shadow -->
-                    <div class="mx-auto mb-4 w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500
-                        {% if stat.accent == 'brand' %}bg-gradient-to-br from-brand-500 to-brand-700 shadow-brand-500/30
-                        {% elif stat.accent == 'sky' %}bg-gradient-to-br from-sky-400 to-indigo-500 shadow-sky-400/30
-                        {% elif stat.accent == 'amber' %}bg-gradient-to-br from-amber-400 to-orange-500 shadow-amber-400/30
-                        {% else %}bg-gradient-to-br from-emerald-400 to-teal-500 shadow-emerald-400/30{% endif %}">
-                        {% if stat.icon == 'question' %}
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093V14m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {% elif stat.icon == 'award' %}
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                        {% elif stat.icon == 'stack' %}
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                        </svg>
-                        {% elif stat.icon == 'grid' %}
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                        </svg>
-                        {% endif %}
-                    </div>
-
-                    <dt class="sr-only">{{ stat.label }}</dt>
-                    <dd>
-                        <!-- Gradient number — counts up on scroll via data-target -->
-                        <div class="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none bg-clip-text text-transparent
-                            {% if stat.accent == 'brand' %}bg-gradient-to-br from-brand-500 to-brand-700
-                            {% elif stat.accent == 'sky' %}bg-gradient-to-br from-sky-500 to-indigo-600
-                            {% elif stat.accent == 'amber' %}bg-gradient-to-br from-amber-500 to-orange-600
-                            {% else %}bg-gradient-to-br from-emerald-500 to-teal-600{% endif %}"
-                            data-count-to="{{ stat.value }}">
-                            0<span class="text-gray-400 dark:text-gray-500 font-bold">+</span>
-                        </div>
-                        <div class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                            {{ stat.label }}
-                        </div>
-                    </dd>
+            <div class="rounded-2xl bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border p-6 text-center hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                <div class="mx-auto mb-3 w-12 h-12 rounded-xl bg-brand-500/10 dark:bg-brand-500/20 flex items-center justify-center">
+                    {% if stat.icon == 'question' %}
+                    <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093V14m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {% elif stat.icon == 'award' %}
+                    <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    {% elif stat.icon == 'stack' %}
+                    <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    {% elif stat.icon == 'grid' %}
+                    <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    {% endif %}
                 </div>
+                <dt class="sr-only">{{ stat.label }}</dt>
+                <dd>
+                    <div class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight tabular-nums"
+                         data-count-to="{{ stat.value }}">
+                        0<span class="text-brand-500">+</span>
+                    </div>
+                    <div class="mt-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        {{ stat.label }}
+                    </div>
+                </dd>
             </div>
             {% endfor %}
         </dl>
@@ -96,42 +55,29 @@
 </section>
 
 <script>
-    // Count-up animation: watches stat numbers and tweens from 0 to the real
-    // value once the section enters the viewport. Triggers once per load.
+    // Count-up: tween the numbers from 0 to target when the section comes
+    // into view. IntersectionObserver + requestAnimationFrame, easeOutCubic.
     (function () {
-        function formatNumber(n) {
-            return n.toLocaleString();
-        }
         function animate(el) {
             var target = parseInt(el.getAttribute('data-count-to'), 10);
-            if (!target || target < 1) {
-                el.textContent = target;
-                return;
-            }
-            var duration = Math.min(1600, 400 + target * 0.5);
+            if (!target || target < 1) { el.textContent = target; return; }
+            var duration = Math.min(1400, 400 + target * 0.4);
             var start = performance.now();
             function tick(now) {
                 var t = Math.min(1, (now - start) / duration);
-                // easeOutCubic
                 var eased = 1 - Math.pow(1 - t, 3);
                 var current = Math.round(target * eased);
-                el.innerHTML = formatNumber(current) + '<span class="text-gray-400 dark:text-gray-500 font-bold">+</span>';
+                el.innerHTML = current.toLocaleString() + '<span class="text-brand-500">+</span>';
                 if (t < 1) requestAnimationFrame(tick);
             }
             requestAnimationFrame(tick);
         }
         var els = document.querySelectorAll('[data-count-to]');
         if (!els.length) return;
-        if (!('IntersectionObserver' in window)) {
-            els.forEach(animate);
-            return;
-        }
+        if (!('IntersectionObserver' in window)) { els.forEach(animate); return; }
         var io = new IntersectionObserver(function (entries) {
             entries.forEach(function (e) {
-                if (e.isIntersecting) {
-                    animate(e.target);
-                    io.unobserve(e.target);
-                }
+                if (e.isIntersecting) { animate(e.target); io.unobserve(e.target); }
             });
         }, { threshold: 0.3 });
         els.forEach(function (el) { io.observe(el); });

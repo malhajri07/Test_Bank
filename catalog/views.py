@@ -281,30 +281,10 @@ def index(request):
     # answered, active learners) when those numbers start to sing.
     from .models import Question as _Q
     stats = [
-        {
-            'value': _Q.objects.count(),
-            'label': _('Practice questions'),
-            'icon': 'question',
-            'accent': 'brand',   # purple
-        },
-        {
-            'value': Certification.objects.count(),
-            'label': _('Certifications'),
-            'icon': 'award',
-            'accent': 'sky',
-        },
-        {
-            'value': TestBank.objects.filter(is_active=True).count(),
-            'label': _('Test banks'),
-            'icon': 'stack',
-            'accent': 'amber',
-        },
-        {
-            'value': len(categories),
-            'label': _('Categories'),
-            'icon': 'grid',
-            'accent': 'emerald',
-        },
+        {'value': _Q.objects.count(), 'label': _('Practice questions'), 'icon': 'question'},
+        {'value': Certification.objects.count(), 'label': _('Certifications'), 'icon': 'award'},
+        {'value': TestBank.objects.filter(is_active=True).count(), 'label': _('Test banks'), 'icon': 'stack'},
+        {'value': len(categories), 'label': _('Categories'), 'icon': 'grid'},
     ]
 
     return render(request, 'catalog/index.html', {
