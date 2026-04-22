@@ -252,17 +252,19 @@
     {% endif %}
 
 <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-    <!-- Explore categories — 3-column drilldown (Category → Certification → Difficulty).
-         Mirrors the mega-menu in base.html so users learn the browsing
-         pattern once and reuse it here. -->
+    <!-- Find your certification — 3-column drilldown (Category → Certification → Difficulty).
+         Works alongside the category rails above: rails are for browsing, this
+         block is the direct "I know my cert" finder. -->
     {% if category_tree %}
     <section class="py-section bg-white dark:bg-dark-bg">
         <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    <span class="bg-brand-500/10 text-brand-500 px-3 py-1 rounded-lg font-semibold">{% trans "Explore categories" %}</span>
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                    {% trans "Find your certification" %}
                 </h2>
-                <p class="text-sm text-gray-500 mt-2">{% trans "Pick a category, then a certification, then a difficulty level." %}</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+                    {% trans "Pick a track, then a cert, then the difficulty level that matches where you are." %}
+                </p>
             </div>
 
             {% include 'includes/_category_explorer.html' %}
