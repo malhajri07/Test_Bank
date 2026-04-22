@@ -1,0 +1,80 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Exam Stellar{% endblock %}</title>
+    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+    <style>
+        /* Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f1f5f9; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+        /* Shell */
+        .wrapper { width: 100%; background-color: #f1f5f9; padding: 40px 16px; }
+        .container { max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #5624d0 0%, #7c3aed 100%); padding: 32px 32px 28px; text-align: center; }
+        .content { padding: 36px 32px; }
+        .divider { height: 1px; background: #e2e8f0; margin: 28px 0; }
+
+        /* Logo lockup — mirrors the site's SVG logo */
+        .logo-lockup { display: inline-block; line-height: 1; white-space: nowrap; }
+        .logo-badge { display: inline-block; width: 44px; height: 44px; background: rgba(255,255,255,0.20); border-radius: 12px; line-height: 44px; font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: -0.4px; vertical-align: middle; margin-right: 10px; }
+        .logo-wordmark { display: inline-block; font-size: 22px; font-weight: 400; color: rgba(255,255,255,0.88); letter-spacing: -0.5px; vertical-align: middle; }
+        .logo-wordmark .stellar { font-weight: 700; color: #ffffff; }
+
+        /* Shared content patterns */
+        .badge { display: inline-block; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 100px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 20px; }
+        .badge-green { background: #f0fdf4; color: #16a34a; }
+        .badge-blue { background: #eff6ff; color: #2563eb; }
+        .badge-yellow { background: #fef3c7; color: #d97706; }
+        h2 { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 16px; letter-spacing: -0.3px; }
+        p { font-size: 15px; color: #475569; line-height: 1.7; margin-bottom: 16px; }
+        .muted { font-size: 13px; color: #94a3b8; }
+
+        /* CTA */
+        .cta-wrapper { text-align: center; margin: 28px 0; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #5624d0 0%, #7c3aed 100%); color: #ffffff; padding: 14px 36px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 14px rgba(86,36,208,0.3); }
+
+        /* Plain-text link fallback box (for buttons that may not render) */
+        .link-fallback { margin-top: 16px; padding: 14px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #64748b; word-break: break-all; }
+        .link-fallback a { color: #5624d0; }
+        .expiry { text-align: center; font-size: 13px; color: #94a3b8; margin-top: 12px; }
+
+        /* Footer */
+        .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 24px 32px; text-align: center; }
+        .footer p { font-size: 12px; color: #94a3b8; margin: 4px 0; }
+        .footer a { color: #5624d0; text-decoration: none; font-weight: 500; }
+        .footer-brand { font-size: 14px; font-weight: 400; color: #64748b; margin-bottom: 8px; }
+        .footer-brand .stellar { font-weight: 700; color: #5624d0; }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+    <div class="container">
+        <div class="header">
+            <div class="logo-lockup">
+                <span class="logo-badge">{ES}</span><span class="logo-wordmark">Exam<span class="stellar">{Stellar}</span></span>
+            </div>
+        </div>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <div class="footer">
+            <p class="footer-brand">Exam<span class="stellar">{Stellar}</span></p>
+            <p>
+                <a href="{% block footer_website_url %}{{ site_url }}{% endblock %}">{% trans "Website" %}</a>
+                &nbsp;&middot;&nbsp;
+                <a href="{% block footer_support_url %}{{ site_url }}/contact/{% endblock %}">{% trans "Support" %}</a>
+            </p>
+            <p style="margin-top: 12px;">&copy; {% now "Y" %} Exam Stellar. {% trans "All rights reserved." %}</p>
+        </div>
+    </div>
+    </div>
+</body>
+</html>
