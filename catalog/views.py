@@ -275,6 +275,34 @@ def index(request):
         .order_by('-enrolls', '-average_rating')[:6]
     )
 
+    # Homepage catalog stats — honest credibility tiles right under the hero.
+    # Kept as counts from the authoritative tables so they auto-update as the
+    # catalog grows. Swap any tile for a student-facing metric (e.g. questions
+    # answered, active learners) when those numbers start to sing.
+    from .models import Question as _Q
+    stats = [
+        {
+            'value': _Q.objects.count(),
+            'label': _('Practice questions'),
+            'icon': 'question',
+        },
+        {
+            'value': Certification.objects.count(),
+            'label': _('Certifications'),
+            'icon': 'award',
+        },
+        {
+            'value': TestBank.objects.filter(is_active=True).count(),
+            'label': _('Test banks'),
+            'icon': 'stack',
+        },
+        {
+            'value': len(categories),
+            'label': _('Categories'),
+            'icon': 'grid',
+        },
+    ]
+
     return render(request, 'catalog/index.html', {
         'categories': categories,
         'featured_test_banks': featured_test_banks,
@@ -284,6 +312,7 @@ def index(request):
         'partner_rows': partner_rows,
         'category_tree': category_tree,
         'popular_exams': popular_exams,
+        'stats': stats,
     })
 
 
