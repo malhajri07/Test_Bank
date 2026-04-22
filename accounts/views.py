@@ -86,13 +86,10 @@ def register(request):
                     expires_at=expires_at,
                 )
 
-                # Send welcome email
-                try:
-                    send_welcome_email(user)
-                except Exception as e:
-                    logger.error(f'Error sending welcome email: {str(e)}')
-
-                # Send verification email
+                # Send verification email. Welcome email is deferred until
+                # after the user actually confirms their email (see verify_email)
+                # — it says "your account is now active", so sending it here
+                # would be a lie.
                 try:
                     send_verification_email(user, verification_token)
                     messages.success(
@@ -193,6 +190,12 @@ def verify_email(request, token):
         # Mark token as used
         verification_token.is_used = True
         verification_token.save()
+
+        # Now that the account is truly active, send the welcome email.
+        try:
+            send_welcome_email(user)
+        except Exception as e:
+            logger.error(f'Error sending welcome email: {str(e)}')
 
         # Log user in automatically after verification
         login(request, user)
