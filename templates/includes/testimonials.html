@@ -12,7 +12,7 @@
             </p>
         </div>
 
-        <div class="swiper testimonials-swiper relative px-2 py-4">
+        <div class="swiper testimonials-swiper relative px-2 pt-4 pb-14">
             <div class="swiper-wrapper testimonials-swiper-wrapper">
                 {% for testimonial in cms_testimonials %}
                 {% cycle 'from-brand-500 to-brand-600' 'from-sky-500 to-indigo-500' 'from-rose-500 to-pink-500' 'from-emerald-500 to-teal-500' 'from-amber-500 to-orange-500' as accent silent %}
@@ -68,6 +68,11 @@
 <style>
     /* Re-skin Swiper controls in brand colors — the defaults are a salmon
        tint that clashes with everything else on the page. */
+    /* Push the dots further below the cards so they don't collide with the footer row. */
+    .testimonials-swiper .swiper-pagination {
+        bottom: 0 !important;
+        position: absolute;
+    }
     .testimonials-swiper .swiper-pagination-bullet {
         background: #cbd5e1;
         opacity: 1;
