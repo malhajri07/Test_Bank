@@ -14,22 +14,11 @@
                 {% for testimonial in cms_testimonials %}
                 <div class="swiper-slide">
                     <div class="bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border p-6 h-full transition-all duration-200 hover:shadow-lg dark:hover:shadow-black/30 flex flex-col">
-                        <div class="flex items-start gap-4 mb-4">
-                            {% if testimonial.photo %}
-                            <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                                <img src="{{ testimonial.photo.url }}" alt="{{ testimonial.name }}" class="w-full h-full object-cover">
-                            </div>
-                            {% else %}
-                            <div class="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-white font-semibold text-sm">{{ testimonial.name|first|upper }}</span>
-                            </div>
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-base text-gray-900 dark:text-gray-100">{{ testimonial.name }}</h4>
+                            {% if testimonial.role %}
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ testimonial.role }}</p>
                             {% endif %}
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-base text-gray-900 dark:text-gray-100 mb-1">{{ testimonial.name }}</h4>
-                                {% if testimonial.role %}
-                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ testimonial.role }}</p>
-                                {% endif %}
-                            </div>
                         </div>
                         <p class="text-gray-700 dark:text-gray-300 leading-relaxed text-sm flex-1">{{ testimonial.quote }}</p>
                     </div>

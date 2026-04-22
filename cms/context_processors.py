@@ -55,10 +55,10 @@ def cms_content(request):
         is_active=True
     ).order_by('order', 'created_at')
 
-    # Get active testimonials
-    testimonials = Testimonial.objects.filter(
-        is_active=True
-    ).order_by('order', 'created_at')
+    # Get active testimonials in random order, capped at 10. Mixing the set
+    # on each render keeps the homepage feeling fresh and surfaces a wider
+    # cross-section of voices (Arabic, English, Indian names).
+    testimonials = Testimonial.objects.filter(is_active=True).order_by('?')[:10]
 
     return {
         'cms_homepage_announcements': homepage_announcements,
