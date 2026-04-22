@@ -82,7 +82,9 @@ def index(request):
             user_rating=Subquery(rating_subquery, output_field=IntegerField())
         )
     
-    trending_test_banks = list(trending_qs.order_by('-user_count', '-average_rating', '-created_at')[:10])
+    # Trending: a tighter cross-domain "surprise me" row of 5 — top globally
+    # by enrollments. The category rails below handle per-domain popularity.
+    trending_test_banks = list(trending_qs.order_by('-user_count', '-average_rating', '-created_at')[:5])
 
     # Category rails — one horizontal carousel per category, showing the top
     # test banks for that category. Netflix/Udemy-style browse experience.

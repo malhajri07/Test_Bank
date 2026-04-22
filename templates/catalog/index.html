@@ -168,38 +168,87 @@
     {% include 'includes/partners.html' %}
 </div>
 
-    <!-- Trending Test Banks Carousel - Udemy Style -->
+    <!-- Trending Test Banks — cross-domain "what's hot right now" row.
+         Distinct angle from the per-category rails below: top 5 across the
+         whole catalog by enrollments. Matches the rails' typography and
+         swiper skin so the two sections feel like one browse experience. -->
     {% if trending_test_banks %}
-    <section class="w-full overflow-visible bg-bg dark:bg-dark-bg">
-        <div class="py-section w-full">
-            <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-6 text-center">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {% trans "Trending test banks" %}
+    <section class="py-section bg-gradient-to-b from-white via-amber-50/40 to-white dark:from-dark-bg dark:via-amber-500/5 dark:to-dark-bg">
+        <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10 text-center">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-3">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A3 3 0 0112.121 15.12z" clip-rule="evenodd"/>
+                    </svg>
+                    {% trans "Trending this week" %}
+                </span>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                    {% trans "What everyone's studying right now" %}
                 </h2>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+                    {% trans "Top picks across every track — your next certification might be one someone else just passed." %}
+                </p>
             </div>
 
-            <div class="swiper trending-swiper relative group/swiper px-4 md:px-12">
-                <div class="swiper-wrapper trending-swiper-wrapper">
+            <div class="swiper trending-swiper relative px-2 py-2 pb-10">
+                <div class="swiper-wrapper">
                     {% for test_bank in trending_test_banks %}
-                    <div class="swiper-slide !w-80 !h-auto p-4 flex">
-                        {# Shared card partial — already dark-mode aware #}
+                    <div class="swiper-slide h-auto">
                         {% include 'includes/_testbank_card.html' with test_bank=test_bank %}
                     </div>
                     {% endfor %}
                 </div>
-                <!-- Navigation Arrows -->
-                <div
-                    class="swiper-button-next trending-next !w-12 !h-12 !bg-white dark:!bg-dark-surface !rounded-full !shadow-lg dark:!shadow-black/50 !text-gray-800 dark:!text-gray-200 !after:text-xl hover:!bg-gray-50 dark:hover:!bg-dark-bg hover:!shadow-xl transition-all !z-20 !opacity-100 !visible !flex"
-                    aria-label="{% trans 'Next slide' %}">
-                </div>
-                <div
-                    class="swiper-button-prev trending-prev !w-12 !h-12 !bg-white dark:!bg-dark-surface !rounded-full !shadow-lg dark:!shadow-black/50 !text-gray-800 dark:!text-gray-200 !after:text-xl hover:!bg-gray-50 dark:hover:!bg-dark-bg hover:!shadow-xl transition-all !z-20 !opacity-100 !visible !flex"
-                    aria-label="{% trans 'Previous slide' %}">
-                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-pagination"></div>
             </div>
         </div>
     </section>
+
+    <style>
+        /* Trending swiper: brand-skinned controls, matches category rails. */
+        .trending-swiper .swiper-pagination { bottom: 0 !important; }
+        .trending-swiper .swiper-pagination-bullet {
+            background: #cbd5e1;
+            opacity: 1;
+            width: 8px;
+            height: 8px;
+            transition: all .25s ease;
+        }
+        .trending-swiper .swiper-pagination-bullet-active {
+            background: #5624d0;
+            width: 24px;
+            border-radius: 999px;
+        }
+        .trending-swiper .swiper-button-prev,
+        .trending-swiper .swiper-button-next {
+            color: #5624d0;
+            background: rgba(255,255,255,0.95);
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            box-shadow: 0 4px 14px rgba(86,36,208,0.15);
+            transition: all .2s ease;
+        }
+        .trending-swiper .swiper-button-prev:hover,
+        .trending-swiper .swiper-button-next:hover {
+            background: #5624d0;
+            color: #ffffff;
+            box-shadow: 0 6px 20px rgba(86,36,208,0.35);
+        }
+        .trending-swiper .swiper-button-prev::after,
+        .trending-swiper .swiper-button-next::after {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .dark .trending-swiper .swiper-button-prev,
+        .dark .trending-swiper .swiper-button-next {
+            background: #1e293b;
+            color: #a78bfa;
+        }
+        .dark .trending-swiper .swiper-pagination-bullet { background: #334155; }
+        .dark .trending-swiper .swiper-pagination-bullet-active { background: #a78bfa; }
+    </style>
     {% endif %}
 
 <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -391,30 +440,30 @@
                 speed: 1000,
             });
 
-            // Trending Test Banks Carousel
-            const trendingSwiper = new Swiper('.trending-swiper', {
-                slidesPerView: 'auto',
-                spaceBetween: 16,
-                loop: true,
-                navigation: {
-                    nextEl: '.trending-next',
-                    prevEl: '.trending-prev',
-                },
-                breakpoints: {
-                    640: {
-                        slidesPerView: 'auto',
-                        spaceBetween: 16,
+            // Trending Test Banks — responsive breakpoints matching the
+            // category rails below so the two carousels feel identical.
+            const trendingSwiperEl = document.querySelector('.trending-swiper');
+            if (trendingSwiperEl) {
+                new Swiper(trendingSwiperEl, {
+                    slidesPerView: 1.1,
+                    spaceBetween: 16,
+                    grabCursor: true,
+                    navigation: {
+                        nextEl: trendingSwiperEl.querySelector('.swiper-button-next'),
+                        prevEl: trendingSwiperEl.querySelector('.swiper-button-prev'),
                     },
-                    768: {
-                        slidesPerView: 'auto',
-                        spaceBetween: 16,
+                    pagination: {
+                        el: trendingSwiperEl.querySelector('.swiper-pagination'),
+                        clickable: true,
+                        dynamicBullets: true,
                     },
-                    1024: {
-                        slidesPerView: 'auto',
-                        spaceBetween: 16,
+                    breakpoints: {
+                        640: { slidesPerView: 2, spaceBetween: 20 },
+                        1024: { slidesPerView: 3, spaceBetween: 24 },
+                        1280: { slidesPerView: 4, spaceBetween: 24 },
                     },
-                },
-            });
+                });
+            }
 
             // Categories section is now a 3-column drilldown (see
             // includes/_category_explorer.html) — no Swiper needed.
