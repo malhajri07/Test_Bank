@@ -37,9 +37,11 @@ def index(request):
     """
     # Get featured categories with test bank counts and certification counts
     # Convert to list immediately to avoid lazy evaluation issues
+    # distinct=True on both counts — without it, the two JOINs cross-multiply
+    # and every count comes back inflated by the size of the other relation.
     categories = list(Category.objects.annotate(
-        test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True)),
-        certification_count=Count('certifications')
+        test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True), distinct=True),
+        certification_count=Count('certifications', distinct=True),
     ).filter(test_bank_count__gt=0)[:8])
     
     # Get featured test banks with user counts (optimized with select_related)
@@ -262,8 +264,10 @@ def category_list(request):
     categories = list(
         Category.objects
         .annotate(
-            test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True)),
-            certification_count=Count('certifications'),
+            # distinct=True prevents the two JOINs from cross-multiplying
+            # and inflating both counts.
+            test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True), distinct=True),
+            certification_count=Count('certifications', distinct=True),
         )
         .filter(test_bank_count__gt=0)
         .order_by('-test_bank_count', 'name')

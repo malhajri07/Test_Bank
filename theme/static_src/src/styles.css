@@ -343,35 +343,6 @@
     background: linear-gradient(to right, #df804f, #c87850);
   }
 
-  /* Mega Menu Styles */
-  .explore-menu-container {
-    @apply relative;
-  }
-
-  #explore-mega-menu {
-    @apply max-h-[80vh] overflow-y-auto;
-  }
-
-  .explore-category-column {
-    @apply min-w-0;
-  }
-
-  .explore-category-column ul {
-    @apply list-none p-0 m-0;
-  }
-
-  /* Mega Menu Click Effect */
-  .explore-menu-container.menu-open #explore-button svg {
-    @apply rotate-180;
-  }
-
-  .explore-menu-container.menu-open #explore-mega-menu {
-    @apply opacity-100 visible pointer-events-auto;
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-  }
-
   /* Practice Content Styles */
   .practice-content {
     @apply select-none;

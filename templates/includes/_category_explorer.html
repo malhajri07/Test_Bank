@@ -65,20 +65,18 @@
         </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-[minmax(200px,240px)_minmax(220px,260px)_1fr] min-h-[22rem]">
+    <div class="grid grid-cols-1 md:grid-cols-[minmax(220px,280px)_minmax(260px,360px)_minmax(140px,180px)] min-h-[22rem]">
 
         <!-- Column 1: Categories -->
         <ul class="category-explorer__col bg-gray-50 dark:bg-dark-bg/40 border-b md:border-b-0 md:border-e border-gray-200 dark:border-dark-border p-2"
-            role="tablist"
             aria-label="{% trans 'Categories' %}">
             {% for node in category_tree %}
             <li data-explorer-cat-wrap data-cat-name="{{ node.category.name|lower }}">
-                <button type="button"
+                <a href="{% url 'catalog:category_detail' category_slug=node.category.slug %}"
                         class="category-explorer__item w-full text-start px-4 py-3 rounded-lg flex items-center justify-between gap-2 text-sm font-medium transition-colors
                             {% if forloop.first %}bg-white dark:bg-dark-surface text-brand-500 shadow-sm{% else %}text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-dark-surface hover:text-brand-500 dark:hover:text-brand-500{% endif %}"
                         data-category-index="{{ forloop.counter0 }}"
-                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-                        role="tab">
+                        aria-current="{% if forloop.first %}true{% else %}false{% endif %}">
                     <span class="truncate">{{ node.category.name }}</span>
                     <span class="flex items-center gap-1.5 flex-shrink-0">
                         {% if node.total_banks %}
@@ -88,7 +86,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </span>
-                </button>
+                </a>
             </li>
             {% endfor %}
         </ul>
@@ -99,24 +97,24 @@
             {% for node in category_tree %}
             <ul class="category-explorer__certs {% if not forloop.first %}hidden{% endif %}"
                 data-category-index="{{ forloop.counter0 }}"
-                role="tablist"
                 aria-label="{% blocktrans with cat=node.category.name %}Certifications in {{ cat }}{% endblocktrans %}">
                 {% if node.certifications %}
                     {% for cert in node.certifications %}
+                    {% with first_opt=cert.difficulty_options.0 %}
                     <li data-explorer-cert-wrap data-cert-name="{{ cert.name|lower }}">
-                        <button type="button"
+                        <a href="{% if first_opt %}{% url 'catalog:certification_list_full' category_slug=node.category.slug certification_slug=first_opt.certification.slug %}{% else %}{% url 'catalog:category_detail' category_slug=node.category.slug %}{% endif %}"
                                 class="category-explorer__item w-full text-start px-4 py-3 rounded-lg flex items-center justify-between gap-2 text-sm transition-colors
                                     {% if forloop.first %}bg-brand-500/5 dark:bg-brand-500/10 text-brand-500 font-semibold{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-bg/60 hover:text-brand-500 dark:hover:text-brand-500 font-medium{% endif %}"
                                 data-category-index="{{ forloop.parentloop.counter0 }}"
                                 data-cert-index="{{ forloop.counter0 }}"
-                                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-                                role="tab">
+                                aria-current="{% if forloop.first %}true{% else %}false{% endif %}">
                             <span class="truncate">{{ cert.name }}</span>
                             <svg class="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                        </button>
+                        </a>
                     </li>
+                    {% endwith %}
                     {% endfor %}
                 {% else %}
                     <li class="px-4 py-6 text-sm text-gray-500 dark:text-gray-400 italic">
@@ -127,43 +125,26 @@
             {% endfor %}
         </div>
 
-        <!-- Column 3: Difficulty levels (one panel per certification) -->
-        <div class="category-explorer__col p-4" aria-live="polite">
+        <!-- Column 3: Difficulty levels — compact badge-only rows -->
+        <div class="category-explorer__col p-3" aria-live="polite">
             {% for node in category_tree %}
                 {% for cert in node.certifications %}
                 <div class="category-explorer__levels {% if not forloop.parentloop.first or not forloop.first %}hidden{% endif %}"
                      data-category-index="{{ forloop.parentloop.counter0 }}"
-                     data-cert-index="{{ forloop.counter0 }}"
-                     role="tabpanel">
-                    <div class="mb-3">
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
-                            {{ node.category.name }} &rsaquo; {{ cert.name }}
-                        </p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            {% trans "Pick the level that matches your readiness." %}
-                        </p>
-                    </div>
-                    <div class="grid gap-2">
+                     data-cert-index="{{ forloop.counter0 }}">
+                    <div class="flex flex-col gap-1.5">
                         {% for opt in cert.difficulty_options %}
                         <a href="{% url 'catalog:certification_list_full' category_slug=node.category.slug certification_slug=opt.certification.slug %}"
-                           class="flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-dark-border hover:border-brand-500 dark:hover:border-brand-500 hover:bg-brand-500/5 dark:hover:bg-brand-500/10 transition-colors group">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <span class="px-2 py-0.5 text-[11px] font-bold rounded-md flex-shrink-0
-                                    {% if opt.level == 'easy' %}bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300
-                                    {% elif opt.level == 'medium' %}bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300
-                                    {% else %}bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300{% endif %}">
-                                    {{ opt.display }}
-                                </span>
-                                <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-brand-500 dark:group-hover:text-brand-500 font-medium truncate">
-                                    {% blocktrans count n=opt.bank_count %}{{ n }} test bank{% plural %}{{ n }} test banks{% endblocktrans %}
-                                </span>
-                            </div>
-                            <svg class="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-brand-500 dark:group-hover:text-brand-500 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
+                           class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-gray-200 dark:border-dark-border hover:border-brand-500 dark:hover:border-brand-500 hover:bg-brand-500/5 dark:hover:bg-brand-500/10 transition-colors">
+                            <span class="px-2 py-0.5 text-[11px] font-bold rounded-md
+                                {% if opt.level == 'easy' %}bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300
+                                {% elif opt.level == 'medium' %}bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300
+                                {% else %}bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300{% endif %}">
+                                {{ opt.display }}
+                            </span>
                         </a>
                         {% empty %}
-                        <p class="text-sm text-gray-500 dark:text-gray-400 italic">{% trans "No difficulty levels configured for this certification yet." %}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 italic">{% trans "No levels yet." %}</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -185,7 +166,7 @@
         function setActiveCategory(idx) {
             catButtons.forEach(function (btn) {
                 var isActive = parseInt(btn.dataset.categoryIndex, 10) === idx;
-                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                btn.setAttribute('aria-current', isActive ? 'true' : 'false');
                 btn.classList.toggle('bg-white', isActive);
                 btn.classList.toggle('dark:bg-dark-surface', isActive);
                 btn.classList.toggle('text-brand-500', isActive);
@@ -213,7 +194,7 @@
                 var isActive =
                     parseInt(btn.dataset.categoryIndex, 10) === catIdx &&
                     parseInt(btn.dataset.certIndex, 10) === certIdx;
-                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                btn.setAttribute('aria-current', isActive ? 'true' : 'false');
                 btn.classList.toggle('bg-brand-500/5', isActive);
                 btn.classList.toggle('dark:bg-brand-500/10', isActive);
                 btn.classList.toggle('text-brand-500', isActive);
@@ -230,18 +211,18 @@
             });
         }
 
+        // Category/cert rows are anchors — hover (or keyboard focus) drills
+        // the drop-down preview, a click just navigates via the href.
         catButtons.forEach(function (btn) {
             var idx = parseInt(btn.dataset.categoryIndex, 10);
             btn.addEventListener('mouseenter', function () { setActiveCategory(idx); });
             btn.addEventListener('focus', function () { setActiveCategory(idx); });
-            btn.addEventListener('click', function (e) { e.preventDefault(); setActiveCategory(idx); });
         });
         certButtons.forEach(function (btn) {
             var catIdx = parseInt(btn.dataset.categoryIndex, 10);
             var certIdx = parseInt(btn.dataset.certIndex, 10);
             btn.addEventListener('mouseenter', function () { setActiveCert(catIdx, certIdx); });
             btn.addEventListener('focus', function () { setActiveCert(catIdx, certIdx); });
-            btn.addEventListener('click', function (e) { e.preventDefault(); setActiveCert(catIdx, certIdx); });
         });
 
         // ------- Live search -------

@@ -133,96 +133,12 @@
                     </a>
                 </div>
 
-                <!-- Explore Dropdown Button with Mega Menu -->
-                <div class="hidden lg:block relative explore-menu-container">
-                    <button type="button" id="explore-button"
-                        class="px-4 py-2 text-sm font-normal text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-purple-400 transition-colors flex items-center"
-                        aria-label="{% trans 'Explore categories' %}" aria-expanded="false" aria-haspopup="true">
+                <!-- Explore link (opens full category browser page) -->
+                <div class="hidden lg:block">
+                    <a href="{% url 'catalog:category_list' %}"
+                       class="px-4 py-2 text-sm font-normal text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-purple-400 transition-colors">
                         {% trans "Explore" %}
-                        <svg class="w-4 h-4 ms-1 transition-transform" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <!-- Mega Menu Dropdown -->
-                    {% if categories %}
-                    <div id="explore-mega-menu"
-                        class="fixed left-0 top-16 w-full bg-white dark:bg-dark-surface border-t border-gray-200 dark:border-dark-border shadow-xl opacity-0 invisible transition-all duration-200 pointer-events-none z-nav-mega">
-                        <div class="max-w-9xl mx-auto px-6 py-8">
-                            <div class="flex gap-8 relative">
-                                <!-- Categories Column (Left) -->
-                                <div class="w-64 flex-shrink-0 border-r border-gray-200 pr-8">
-                                    <ul class="space-y-1">
-                                        {% for category in categories %}
-                                        <li class="category-menu-item group">
-                                            <a href="{% url 'catalog:category_detail' category_slug=category.slug %}"
-                                                class="block px-4 py-3 text-sm font-semibold text-gray-900 hover:text-brand-500 hover:bg-gray-50 rounded-lg transition-all duration-200"
-                                                data-category-id="category-{{ category.id }}">
-                                                {{ category.name }}
-                                            </a>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                                
-                                <!-- Test Banks Column (Right) - Appears on hover -->
-                                <div class="flex-1 relative pl-8">
-                                    {% for category in categories %}
-                                    <div id="category-{{ category.id }}-certifications" 
-                                         class="certifications-panel hidden absolute left-0 top-0 right-0 bg-white pl-4 transition-opacity duration-200">
-                                        {% with test_banks_list=category.test_banks.all|slice:":10" %}
-                                        {% if test_banks_list %}
-                                        <div class="grid grid-cols-2 gap-4">
-                                            {% for test_bank in test_banks_list %}
-                                            <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}"
-                                               class="block px-3 py-2 text-sm text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg transition-all duration-200 border border-gray-100 hover:border-gray-200">
-                                                <div class="flex gap-4">
-                                                    <!-- Left side: Title and Difficulty -->
-                                                    <div class="flex-shrink-0 w-32">
-                                                        <div class="font-semibold text-gray-900 mb-2">{{ test_bank.title }}</div>
-                                                        {% if test_bank.difficulty_level %}
-                                                        <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap inline-block
-                                                            {% if test_bank.difficulty_level == 'easy' %}bg-green-100 text-green-700{% endif %}
-                                                            {% if test_bank.difficulty_level == 'medium' %}bg-yellow-100 text-yellow-700{% endif %}
-                                                            {% if test_bank.difficulty_level == 'advanced' %}bg-red-100 text-red-700{% endif %}">
-                                                            {{ test_bank.get_difficulty_level_display }}
-                                                        </span>
-                                                        {% endif %}
-                                                    </div>
-                                                    <!-- Middle/Right side: Details text from test bank description -->
-                                                    <div class="flex-1 min-w-0">
-                                                        {% if test_bank.description %}
-                                                        <div class="text-[10px] text-gray-600 leading-relaxed">
-                                                            {{ test_bank.description|truncatechars:300 }}
-                                                        </div>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            {% endfor %}
-                                        </div>
-                                        {% if category.test_bank_count > 10 %}
-                                        <div class="mt-4 pt-4 border-t border-gray-200">
-                                            <a href="{% url 'catalog:category_detail' category_slug=category.slug %}" 
-                                               class="text-sm text-brand-500 hover:text-brand-600 font-medium hover:underline">
-                                                {% trans "For more, click this link" %}
-                                            </a>
-                                        </div>
-                                        {% endif %}
-                                        {% else %}
-                                        <div class="text-sm text-gray-500 py-4">
-                                            {% trans "No test banks available" %}
-                                        </div>
-                                        {% endif %}
-                                        {% endwith %}
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
+                    </a>
                 </div>
 
                 <!-- Search Bar - Center (Udemy Style) -->
@@ -512,130 +428,10 @@
     <!-- Mega Menu JavaScript - Click Effect -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const exploreButton = document.getElementById('explore-button');
-            const megaMenu = document.getElementById('explore-mega-menu');
-            const exploreContainer = document.querySelector('.explore-menu-container');
-
             // User Menu Elements
             const userMenuButton = document.getElementById('user-menu-button');
             const userMenuDropdown = document.getElementById('user-menu-dropdown');
             const userMenuContainer = document.querySelector('.user-menu-container');
-
-            if (exploreButton && megaMenu && exploreContainer) {
-                let isMenuOpen = false;
-
-                // Toggle menu on button click
-                exploreButton.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    isMenuOpen = !isMenuOpen;
-
-                    if (isMenuOpen) {
-                        exploreContainer.classList.add('menu-open');
-                        megaMenu.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
-                        megaMenu.classList.add('opacity-100', 'visible', 'pointer-events-auto');
-                        exploreButton.setAttribute('aria-expanded', 'true');
-
-                        // Close user menu if open
-                        if (userMenuDropdown) {
-                            userMenuDropdown.classList.add('opacity-0', 'invisible');
-                            userMenuDropdown.classList.remove('opacity-100', 'visible');
-                            if (userMenuButton) userMenuButton.setAttribute('aria-expanded', 'false');
-                            isUserMenuOpen = false;
-                        }
-                    } else {
-                        exploreContainer.classList.remove('menu-open');
-                        megaMenu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
-                        megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
-                        exploreButton.setAttribute('aria-expanded', 'false');
-                    }
-                });
-
-                // Close menu when clicking outside
-                document.addEventListener('click', function (event) {
-                    if (isMenuOpen && !exploreContainer.contains(event.target)) {
-                        isMenuOpen = false;
-                        exploreContainer.classList.remove('menu-open');
-                        megaMenu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
-                        megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
-                        exploreButton.setAttribute('aria-expanded', 'false');
-                    }
-                });
-
-                // Prevent menu from closing when clicking inside it
-                megaMenu.addEventListener('click', function (event) {
-                    event.stopPropagation();
-                });
-
-                // Category hover functionality - Show certifications on the right
-                const categoryLinks = document.querySelectorAll('.category-menu-item a[data-category-id]');
-                const certificationPanels = document.querySelectorAll('.certifications-panel');
-                let hoverTimeout = null;
-                
-                categoryLinks.forEach(function(categoryLink) {
-                    const categoryId = categoryLink.getAttribute('data-category-id');
-                    const certificationPanel = document.getElementById(categoryId + '-certifications');
-                    
-                    if (certificationPanel) {
-                        // Show certifications on hover
-                        categoryLink.addEventListener('mouseenter', function() {
-                            // Clear any pending hide timeout
-                            if (hoverTimeout) {
-                                clearTimeout(hoverTimeout);
-                                hoverTimeout = null;
-                            }
-                            
-                            // Remove active state from all other category links
-                            categoryLinks.forEach(function(link) {
-                                link.classList.remove('bg-gray-50', 'text-brand-500');
-                                link.classList.add('text-gray-900');
-                            });
-                            
-                            // Hide all other panels
-                            certificationPanels.forEach(function(panel) {
-                                panel.classList.add('hidden');
-                            });
-                            
-                            // Show this category's certifications
-                            certificationPanel.classList.remove('hidden');
-                            categoryLink.classList.remove('text-gray-900');
-                            categoryLink.classList.add('bg-gray-50', 'text-brand-500');
-                        });
-                        
-                        // Keep panel visible when hovering over it
-                        certificationPanel.addEventListener('mouseenter', function() {
-                            if (hoverTimeout) {
-                                clearTimeout(hoverTimeout);
-                                hoverTimeout = null;
-                            }
-                            certificationPanel.classList.remove('hidden');
-                            categoryLink.classList.remove('text-gray-900');
-                            categoryLink.classList.add('bg-gray-50', 'text-brand-500');
-                        });
-                        
-                        // Hide panel when mouse leaves category link
-                        categoryLink.addEventListener('mouseleave', function() {
-                            hoverTimeout = setTimeout(function() {
-                                if (!certificationPanel.matches(':hover')) {
-                                    certificationPanel.classList.add('hidden');
-                                    categoryLink.classList.remove('bg-gray-50', 'text-brand-500');
-                                    categoryLink.classList.add('text-gray-900');
-                                }
-                            }, 150);
-                        });
-                        
-                        // Hide panel when mouse leaves certifications panel
-                        certificationPanel.addEventListener('mouseleave', function() {
-                            hoverTimeout = setTimeout(function() {
-                                certificationPanel.classList.add('hidden');
-                                categoryLink.classList.remove('bg-gray-50', 'text-brand-500');
-                                categoryLink.classList.add('text-gray-900');
-                            }, 150);
-                        });
-                    }
-                });
-            }
 
             // User Menu Logic
             let isUserMenuOpen = false;
@@ -667,15 +463,6 @@
                         userMenuDropdown.classList.remove('opacity-0', 'invisible');
                         userMenuDropdown.classList.add('opacity-100', 'visible');
                         userMenuButton.setAttribute('aria-expanded', 'true');
-
-                        // Close mega menu if open
-                        if (megaMenu && exploreContainer) {
-                            exploreContainer.classList.remove('menu-open');
-                            megaMenu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
-                            megaMenu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
-                            if (exploreButton) exploreButton.setAttribute('aria-expanded', 'false');
-                            isMenuOpen = false;
-                        }
                     } else {
                         userMenuDropdown.classList.add('opacity-0', 'invisible');
                         userMenuDropdown.classList.remove('opacity-100', 'visible');
