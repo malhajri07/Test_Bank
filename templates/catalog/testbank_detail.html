@@ -48,8 +48,8 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://examstellar.com/"},
-        {"@type": "ListItem", "position": 2, "name": "{{ test_bank.category.name|escapejs }}", "item": "https://examstellar.com{% url 'catalog:category_detail' slug=test_bank.category.slug %}"}{% if test_bank.certification %},
-        {"@type": "ListItem", "position": 3, "name": "{{ test_bank.certification.name|escapejs }}", "item": "https://examstellar.com{% url 'catalog:certification_testbanks' category_slug=test_bank.category.slug certification_slug=test_bank.certification.slug %}"},
+        {"@type": "ListItem", "position": 2, "name": "{{ test_bank.category.name|escapejs }}", "item": "https://examstellar.com{% url 'catalog:category_detail' category_slug=test_bank.category.slug %}"}{% if test_bank.certification %},
+        {"@type": "ListItem", "position": 3, "name": "{{ test_bank.certification.name|escapejs }}", "item": "https://examstellar.com{% url 'catalog:testbank_list_certification' category_slug=test_bank.category.slug certification_slug=test_bank.certification.slug %}"},
         {"@type": "ListItem", "position": 4, "name": "{{ test_bank.title|escapejs }}"}{% else %},
         {"@type": "ListItem", "position": 3, "name": "{{ test_bank.title|escapejs }}"}{% endif %}
     ]
@@ -438,7 +438,7 @@
                     <div class="text-5xl font-bold text-green-600 mb-2">{% trans "FREE" %}</div>
                     <p class="text-gray-600 dark:text-gray-400 text-sm">{% trans "No payment required" %}</p>
                     {% else %}
-                    <div class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2">${{ test_bank.price }}</div>
+                    <div id="display-price" class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ display_price }}</div>
                     <p class="text-gray-600 dark:text-gray-400 text-sm">{% trans "One-time payment" %}</p>
                     {% endif %}
                 </div>
@@ -489,23 +489,38 @@
                     {% else %}
                     <!-- Currency Selector + Buy Now -->
                     <div class="mb-3">
-                        <label for="currency-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{% trans "Payment Currency" %}</label>
-                        <select id="currency-select" onchange="document.getElementById('buy-link').href=this.value"
-                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-dark-border rounded-lg text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 mb-3">
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=SAR">🇸🇦 SAR — {% trans "Saudi Riyal" %}</option>
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=USD">🇺🇸 USD — {% trans "US Dollar" %}</option>
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=AED">🇦🇪 AED — {% trans "UAE Dirham" %}</option>
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=KWD">🇰🇼 KWD — {% trans "Kuwaiti Dinar" %}</option>
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=BHD">🇧🇭 BHD — {% trans "Bahraini Dinar" %}</option>
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=QAR">🇶🇦 QAR — {% trans "Qatari Riyal" %}</option>
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=OMR">🇴🇲 OMR — {% trans "Omani Rial" %}</option>
-                            <option value="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=EGP">🇪🇬 EGP — {% trans "Egyptian Pound" %}</option>
+                        <label for="currency-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{% trans "Display Currency" %}</label>
+                        <select id="currency-select" data-base-formatted="{{ base_price_formatted }}"
+                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-dark-border rounded-lg text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 mb-2">
+                            {% for opt in currency_options %}
+                            <option value="{{ opt.code }}" data-formatted="{{ opt.formatted }}">{{ opt.flag }} {{ opt.code }} — {{ opt.name }} ({{ opt.formatted }})</option>
+                            {% endfor %}
                         </select>
-                        <a id="buy-link" href="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}?currency=SAR"
+                        <p id="settlement-note" class="text-xs text-gray-500 dark:text-gray-400 mb-3 hidden">
+                            {% blocktrans with base=base_price_formatted %}You will be charged {{ base }}. Your card issuer converts to your local currency at their rate.{% endblocktrans %}
+                        </p>
+                        <a id="buy-link" href="{% url 'payments:create_checkout' testbank_slug=test_bank.slug %}"
                            class="block w-full text-center px-6 py-4 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
                             {% trans "Buy Now" %}
                         </a>
                     </div>
+                    <script>
+                    (function () {
+                        var sel = document.getElementById('currency-select');
+                        var priceEl = document.getElementById('display-price');
+                        var noteEl = document.getElementById('settlement-note');
+                        if (!sel || !priceEl) return;
+                        var baseFormatted = sel.getAttribute('data-base-formatted');
+                        sel.addEventListener('change', function () {
+                            var opt = sel.options[sel.selectedIndex];
+                            var formatted = opt.getAttribute('data-formatted');
+                            priceEl.textContent = formatted;
+                            if (noteEl) {
+                                noteEl.classList.toggle('hidden', opt.value === '{{ base_currency }}');
+                            }
+                        });
+                    })();
+                    </script>
                     <form method="post" action="{% url 'payments:cart_add' testbank_slug=test_bank.slug %}" class="mb-3">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.path }}">

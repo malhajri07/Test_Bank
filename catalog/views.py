@@ -20,6 +20,7 @@ from django_ratelimit.decorators import ratelimit
 from .models import Category, Certification, ExamPackage, Question, QuestionReport, TestBank, TestBankRating, ReviewReply, ContactMessage
 from .forms import TestBankReviewForm, ReviewReplyForm, ContactForm
 from practice.models import UserTestAccess
+from payments.currency import BASE_CURRENCY, display_options, format_amount
 
 
 def index(request):
@@ -697,6 +698,14 @@ def testbank_detail(request, slug):
     if reply_form is None:
         reply_form = ReviewReplyForm()
     
+    currency_options = []
+    display_price = ''
+    base_price_formatted = ''
+    if not is_free:
+        currency_options = display_options(test_bank.price)
+        display_price = format_amount(test_bank.price, BASE_CURRENCY)
+        base_price_formatted = display_price
+
     return render(request, 'catalog/testbank_detail.html', {
         'test_bank': test_bank,
         'has_access': has_access,
@@ -709,6 +718,10 @@ def testbank_detail(request, slug):
         'user_review': user_review,
         'review_form': review_form,
         'reply_form': reply_form,
+        'currency_options': currency_options,
+        'display_price': display_price,
+        'base_price_formatted': base_price_formatted,
+        'base_currency': BASE_CURRENCY,
     })
 
 

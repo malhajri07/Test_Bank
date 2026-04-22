@@ -18,8 +18,8 @@ from decimal import Decimal
 
 from catalog.models import ExamPackage, TestBank
 from .models import Coupon, Order, OrderItem, Payment, Purchase
-from .paylink_integration import create_invoice, get_invoice
-from .fulfillment import fulfill_payment
+from .paylink_integration import create_invoice
+from . import reconciliation
 import logging
 
 logger = logging.getLogger(__name__)
@@ -104,10 +104,10 @@ def create_checkout(request, testbank_slug):
             messages.warning(request, 'Invalid promo code.')
 
     amount = max(Decimal('0'), test_bank.price - discount_amount)
-    SUPPORTED_CURRENCIES = {'SAR', 'USD', 'AED', 'KWD', 'BHD', 'QAR', 'OMR', 'EGP'}
-    currency = request.GET.get('currency', '').upper()
-    if currency not in SUPPORTED_CURRENCIES:
-        currency = getattr(settings, 'PAYLINK_CURRENCY', 'SAR')
+    # Paylink is a Saudi gateway and only reliably invoices in SAR. Display
+    # currencies on the product page are presentation-only — settlement stays
+    # in SAR to avoid charging a mismatched amount/currency pair.
+    currency = getattr(settings, 'PAYLINK_CURRENCY', 'SAR')
 
     # Create Payment record
     payment = Payment.objects.create(
@@ -279,68 +279,44 @@ def paylink_callback(request, payment_id):
     """
     payment = get_object_or_404(Payment, pk=payment_id, user=request.user)
 
-    if payment.status == 'succeeded':
-        messages.info(request, 'This payment has already been processed.')
+    result = reconciliation.reconcile_payment(payment)
+
+    if result == reconciliation.ALREADY_PROCESSED:
+        if payment.status == 'succeeded':
+            messages.info(request, 'This payment has already been processed.')
+            if payment.test_bank:
+                return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
+        elif payment.status == 'cancelled':
+            messages.info(request, 'Payment was cancelled. You can try again anytime.')
+        return redirect('accounts:dashboard')
+
+    if result == reconciliation.MISSING_SESSION:
+        messages.error(request, 'Invalid payment session.')
+        return redirect('accounts:dashboard')
+
+    if result == reconciliation.PAID:
+        if payment.order and payment.order.items.count() > 1:
+            messages.success(request, 'Payment successful! You now have access to all exams in your package.')
+            return redirect('accounts:dashboard')
+        if payment.test_bank:
+            messages.success(request, f'Payment successful! You now have access to {payment.test_bank.title}.')
+            return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
+        messages.success(request, 'Payment successful!')
+        return redirect('accounts:dashboard')
+
+    if result == reconciliation.CANCELLED:
+        messages.info(request, 'Payment was cancelled. You can try again anytime.')
         if payment.test_bank:
             return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
         return redirect('accounts:dashboard')
 
-    transaction_no = payment.provider_session_id
-    if not transaction_no:
-        messages.error(request, 'Invalid payment session.')
+    if result == reconciliation.PENDING:
+        messages.warning(request, 'Payment is still being processed. Please wait a moment and check your dashboard.')
         return redirect('accounts:dashboard')
 
-    try:
-        invoice_data = get_invoice(transaction_no)
-        order_status = (invoice_data.get('orderStatus') or '').lower()
-
-        if order_status == 'paid':
-            # Payment succeeded — store receipt data and fulfill
-            receipt = invoice_data.get('paymentReceipt') or {}
-
-            payment.provider_payment_id = transaction_no
-            payment.status = 'succeeded'
-            payment.payment_method = receipt.get('paymentMethod', '')
-            payment.card_last_four = (receipt.get('bankCardNumber', '') or '')[-4:]
-            payment.receipt_url = receipt.get('receiptUrl', '')
-            payment.save()
-
-            purchase = fulfill_payment(payment)
-
-            if purchase:
-                from .email_utils import send_payment_invoice
-                try:
-                    send_payment_invoice(payment)
-                except Exception:
-                    logger.warning('Failed to send invoice email', exc_info=True)
-
-                if payment.order and payment.order.items.count() > 1:
-                    messages.success(request, 'Payment successful! You now have access to all exams in your package.')
-                    return redirect('accounts:dashboard')
-                elif payment.test_bank:
-                    messages.success(request, f'Payment successful! You now have access to {payment.test_bank.title}.')
-                    return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
-
-            messages.success(request, 'Payment successful!')
-            return redirect('accounts:dashboard')
-
-        elif order_status == 'canceled':
-            payment.status = 'cancelled'
-            payment.save()
-            messages.info(request, 'Payment was cancelled. You can try again anytime.')
-            if payment.test_bank:
-                return redirect('catalog:testbank_detail', slug=payment.test_bank.slug)
-            return redirect('accounts:dashboard')
-
-        else:
-            # Still pending
-            messages.warning(request, 'Payment is still being processed. Please wait a moment and check your dashboard.')
-            return redirect('accounts:dashboard')
-
-    except Exception as e:
-        logger.error(f'Paylink callback error: {e}', exc_info=True)
-        messages.error(request, 'An error occurred while verifying your payment. Please contact support.')
-        return redirect('accounts:dashboard')
+    # ERROR
+    messages.error(request, 'An error occurred while verifying your payment. Please contact support.')
+    return redirect('accounts:dashboard')
 
 
 @login_required
