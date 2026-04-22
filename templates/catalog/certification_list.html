@@ -22,12 +22,15 @@
                     <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         {{ category.name }}
                     </span>
-                    <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-bold rounded-md
-                        {% if certification.difficulty_level == 'easy' %}bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300
-                        {% elif certification.difficulty_level == 'medium' %}bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300
+                    {% for group in difficulty_groups %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-md
+                        {% if group.level == 'easy' %}bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300
+                        {% elif group.level == 'medium' %}bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300
                         {% else %}bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300{% endif %}">
-                        {{ certification.get_difficulty_level_display }}
+                        {{ group.display }}
+                        <span class="opacity-70 font-semibold">{{ group.count }}</span>
                     </span>
+                    {% endfor %}
                 </div>
                 <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
                     {{ certification.name }}
@@ -91,15 +94,31 @@
     {% if test_banks %}
     <div class="mb-5 flex items-center justify-between">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            {% blocktrans count count=test_banks|length %}{{ count }} test bank available{% plural %}{{ count }} test banks available{% endblocktrans %}
+            {% blocktrans count count=test_banks|length %}{{ count }} test bank available across all levels{% plural %}{{ count }} test banks available across all levels{% endblocktrans %}
         </h2>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {% for test_bank in test_banks %}
-        {% include 'includes/_testbank_card.html' with test_bank=test_bank %}
-        {% endfor %}
-    </div>
+    {% for group in difficulty_groups %}
+    <section class="mb-10" id="difficulty-{{ group.level }}">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-md
+                {% if group.level == 'easy' %}bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300
+                {% elif group.level == 'medium' %}bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300
+                {% else %}bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300{% endif %}">
+                {{ group.display }}
+            </span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+                {% blocktrans count n=group.count %}{{ n }} test bank{% plural %}{{ n }} test banks{% endblocktrans %}
+            </span>
+            <div class="flex-1 h-px bg-gray-200 dark:bg-dark-border"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {% for test_bank in group.test_banks %}
+            {% include 'includes/_testbank_card.html' with test_bank=test_bank %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
     {% else %}
     <div class="text-center py-20">
         <div class="max-w-md mx-auto">

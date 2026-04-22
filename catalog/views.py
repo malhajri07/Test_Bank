@@ -524,12 +524,22 @@ def certification_list(request, certification_slug, category_slug=None):
     
     certification = get_object_or_404(Certification, category=category, slug=certification_slug)
 
-    # Active test banks for this certification, with the same ownership/rating
-    # annotations the shared card template can pick up (so the certification
-    # page matches the look & behavior of the homepage grid).
+    # A single "certification name" (e.g. "CAPM") may exist as multiple
+    # Certification rows — one per difficulty level. Treat them as one family
+    # on this page so users see the full set of test banks available for the
+    # cert, no matter which difficulty variant's URL they landed on.
+    cert_family = list(
+        Certification.objects
+        .filter(category=category, name=certification.name)
+        .order_by('difficulty_level')
+    )
+    cert_ids = [c.id for c in cert_family]
+
+    # Active test banks across the whole cert family, with the same
+    # ownership/rating annotations the shared card template expects.
     test_banks_qs = (
         TestBank.objects
-        .filter(certification=certification, is_active=True)
+        .filter(certification_id__in=cert_ids, is_active=True)
         .select_related('category', 'certification')
         .prefetch_related('ratings')
     )
@@ -552,8 +562,25 @@ def certification_list(request, certification_slug, category_slug=None):
 
     test_banks = list(test_banks_qs.order_by('-average_rating', '-created_at'))
 
-    # Aggregate stats for the hero — total questions across the cert's banks,
-    # mean rating weighted by banks that have at least one rating.
+    # Group banks by difficulty level for a grouped render, and build a
+    # filter list that only surfaces levels we actually have content for.
+    _diff_order = {'easy': 0, 'medium': 1, 'advanced': 2}
+    groups_by_level = {}
+    for tb in test_banks:
+        level = tb.certification.difficulty_level if tb.certification_id else 'easy'
+        groups_by_level.setdefault(level, []).append(tb)
+
+    difficulty_groups = []
+    level_display = dict(Certification.DIFFICULTY_CHOICES)
+    for level in sorted(groups_by_level, key=lambda lv: _diff_order.get(lv, 99)):
+        difficulty_groups.append({
+            'level': level,
+            'display': level_display.get(level, level.title()),
+            'test_banks': groups_by_level[level],
+            'count': len(groups_by_level[level]),
+        })
+
+    # Aggregate stats for the hero — counts + mean rating across the family.
     total_questions = sum((tb.get_question_count() or 0) for tb in test_banks)
     rated = [tb for tb in test_banks if tb.total_ratings]
     overall_rating = (
@@ -572,7 +599,9 @@ def certification_list(request, certification_slug, category_slug=None):
     return render(request, 'catalog/certification_list.html', {
         'category': category,
         'certification': certification,
+        'cert_family': cert_family,
         'test_banks': test_banks,
+        'difficulty_groups': difficulty_groups,
         'breadcrumbs': breadcrumbs,
         'total_questions': total_questions,
         'overall_rating': overall_rating,
