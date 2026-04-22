@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" role="img" aria-label="ExamStellar">
+  <title>ExamStellar</title>
+  <defs>
+    <linearGradient id="es-badge-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5624d0"/>
+      <stop offset="100%" stop-color="#4a1fb8"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="4" width="32" height="32" rx="10" ry="10" fill="url(#es-badge-grad)"/>
+  <text x="16" y="24"
+        font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="12" font-weight="700" fill="#ffffff"
+        text-anchor="middle" letter-spacing="-0.3">{ES}</text>
+  <text x="42" y="26"
+        font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="18" letter-spacing="-0.3"><tspan fill="#666666" font-weight="400">Exam</tspan><tspan fill="#5624d0" font-weight="700">{Stellar}</tspan></text>
+</svg>
