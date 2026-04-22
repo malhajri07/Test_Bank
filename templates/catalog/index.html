@@ -295,7 +295,7 @@
             </div>
 
             {% for rail in category_rails %}
-            <section class="mb-12 last:mb-0">
+            <section class="mb-12 last:mb-0" data-rail>
                 <div class="flex items-end justify-between gap-4 mb-4">
                     <div class="min-w-0">
                         <span class="text-[11px] font-semibold uppercase tracking-wider text-brand-500">
@@ -305,16 +305,35 @@
                             {{ rail.category.name }}
                         </h3>
                     </div>
-                    <a href="{% url 'catalog:category_detail' category_slug=rail.category.slug %}"
-                       class="group inline-flex items-center gap-1 flex-shrink-0 text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors whitespace-nowrap">
-                        {% blocktrans with n=rail.total %}See all {{ n }}{% endblocktrans %}
-                        <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
+
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                        <!-- Prev / Next controls, lifted into the header so they never sit on top of card content -->
+                        <div class="hidden sm:flex items-center gap-1.5">
+                            <button type="button" class="rail-nav-prev w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-300 hover:text-white hover:bg-brand-500 hover:border-brand-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-600 disabled:hover:border-gray-200"
+                                    aria-label="{% trans 'Previous' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="rail-nav-next w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-300 hover:text-white hover:bg-brand-500 hover:border-brand-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-600 disabled:hover:border-gray-200"
+                                    aria-label="{% trans 'Next' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <a href="{% url 'catalog:category_detail' category_slug=rail.category.slug %}"
+                           class="group inline-flex items-center gap-1 text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors whitespace-nowrap">
+                            {% blocktrans with n=rail.total %}See all {{ n }}{% endblocktrans %}
+                            <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
                 </div>
 
-                <div class="swiper category-rail-swiper relative px-2 py-2 pb-10">
+                <div class="swiper category-rail-swiper relative py-2 pb-10">
                     <div class="swiper-wrapper">
                         {% for test_bank in rail.test_banks %}
                         <div class="swiper-slide h-auto">
@@ -322,8 +341,6 @@
                         </div>
                         {% endfor %}
                     </div>
-                    <div class="swiper-button-next"></div>
-                    <div class="swiper-button-prev"></div>
                     <div class="swiper-pagination"></div>
                 </div>
             </section>
@@ -334,13 +351,18 @@
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.category-rail-swiper').forEach(function (el) {
+            // Arrows live in the section header now, not inside the swiper. Look
+            // them up from the closest [data-rail] wrapper so each rail wires
+            // its own buttons.
+            var rail = el.closest('[data-rail]') || el.parentElement;
             new Swiper(el, {
                 slidesPerView: 1.1,
                 spaceBetween: 16,
                 grabCursor: true,
                 navigation: {
-                    nextEl: el.querySelector('.swiper-button-next'),
-                    prevEl: el.querySelector('.swiper-button-prev'),
+                    nextEl: rail ? rail.querySelector('.rail-nav-next') : null,
+                    prevEl: rail ? rail.querySelector('.rail-nav-prev') : null,
+                    disabledClass: 'swiper-button-disabled',
                 },
                 pagination: {
                     el: el.querySelector('.swiper-pagination'),
@@ -358,8 +380,8 @@
     </script>
 
     <style>
-        /* Brand-skinned swiper controls on the category rails. Match the
-           testimonials treatment so every carousel on the page feels the same. */
+        /* Pagination only — nav arrows live in the section header and use their
+           own Tailwind styling, so no swiper-button-* overrides needed anymore. */
         .category-rail-swiper .swiper-pagination {
             bottom: 0 !important;
         }
@@ -375,34 +397,15 @@
             width: 24px;
             border-radius: 999px;
         }
-        .category-rail-swiper .swiper-button-prev,
-        .category-rail-swiper .swiper-button-next {
-            color: #5624d0;
-            background: rgba(255,255,255,0.95);
-            width: 44px;
-            height: 44px;
-            border-radius: 9999px;
-            box-shadow: 0 4px 14px rgba(86,36,208,0.15);
-            transition: all .2s ease;
-        }
-        .category-rail-swiper .swiper-button-prev:hover,
-        .category-rail-swiper .swiper-button-next:hover {
-            background: #5624d0;
-            color: #ffffff;
-            box-shadow: 0 6px 20px rgba(86,36,208,0.35);
-        }
-        .category-rail-swiper .swiper-button-prev::after,
-        .category-rail-swiper .swiper-button-next::after {
-            font-size: 16px;
-            font-weight: 800;
-        }
-        .dark .category-rail-swiper .swiper-button-prev,
-        .dark .category-rail-swiper .swiper-button-next {
-            background: #1e293b;
-            color: #a78bfa;
-        }
         .dark .category-rail-swiper .swiper-pagination-bullet { background: #334155; }
         .dark .category-rail-swiper .swiper-pagination-bullet-active { background: #a78bfa; }
+
+        /* Swiper toggles this class on the header nav buttons when nav is at an edge */
+        .rail-nav-prev.swiper-button-disabled,
+        .rail-nav-next.swiper-button-disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
     </style>
     {% endif %}
 
