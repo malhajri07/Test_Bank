@@ -523,25 +523,60 @@ def certification_list(request, certification_slug, category_slug=None):
         category = get_object_or_404(Category, slug='vocational')
     
     certification = get_object_or_404(Certification, category=category, slug=certification_slug)
-    
-    # Get active test banks for this certification
-    test_banks = TestBank.objects.filter(
-        certification=certification,
-        is_active=True
-    ).order_by('-created_at')
-    
-    # Build breadcrumbs
+
+    # Active test banks for this certification, with the same ownership/rating
+    # annotations the shared card template can pick up (so the certification
+    # page matches the look & behavior of the homepage grid).
+    test_banks_qs = (
+        TestBank.objects
+        .filter(certification=certification, is_active=True)
+        .select_related('category', 'certification')
+        .prefetch_related('ratings')
+    )
+    if request.user.is_authenticated:
+        from django.db.models import OuterRef, Subquery, Exists, IntegerField
+        from practice.models import UserTestAccess
+        from .models import TestBankRating
+
+        access_sq = UserTestAccess.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'), is_active=True,
+        )
+        rating_sq = TestBankRating.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'),
+        ).values('rating')[:1]
+
+        test_banks_qs = test_banks_qs.annotate(
+            has_access=Exists(access_sq),
+            user_rating=Subquery(rating_sq, output_field=IntegerField()),
+        )
+
+    test_banks = list(test_banks_qs.order_by('-average_rating', '-created_at'))
+
+    # Aggregate stats for the hero — total questions across the cert's banks,
+    # mean rating weighted by banks that have at least one rating.
+    total_questions = sum((tb.get_question_count() or 0) for tb in test_banks)
+    rated = [tb for tb in test_banks if tb.total_ratings]
+    overall_rating = (
+        sum(tb.average_rating for tb in rated) / len(rated)
+        if rated else 0
+    )
+    price_values = [tb.price for tb in test_banks if tb.price]
+    price_from = min(price_values) if price_values else None
+
     breadcrumbs = [
         {'label': _('Home'), 'url': reverse('catalog:index')},
         {'label': category.name, 'url': reverse('catalog:vocational_index') if category.slug == 'vocational' else reverse('catalog:category_detail', kwargs={'category_slug': category.slug})},
         {'label': certification.name, 'url': ''},
     ]
-    
+
     return render(request, 'catalog/certification_list.html', {
         'category': category,
         'certification': certification,
         'test_banks': test_banks,
         'breadcrumbs': breadcrumbs,
+        'total_questions': total_questions,
+        'overall_rating': overall_rating,
+        'price_from': price_from,
     })
 
 
