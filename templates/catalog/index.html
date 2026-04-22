@@ -161,11 +161,17 @@
         {% endif %}
     </section>
 
+    {% include 'includes/_section_divider.html' %}
+
     <!-- User Intent Section -->
     {% include 'includes/user_intent.html' %}
 
+    {% include 'includes/_section_divider.html' %}
+
     <!-- Partner/Institution Logos -->
     {% include 'includes/partners.html' %}
+
+    {% include 'includes/_section_divider.html' %}
 </div>
 
     <!-- Trending Test Banks — cross-domain "what's hot right now" row.
@@ -251,6 +257,8 @@
     </style>
     {% endif %}
 
+    {% include 'includes/_section_divider.html' %}
+
 <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
     <!-- Find your certification — 3-column drilldown (Category → Certification → Difficulty).
          Works alongside the category rails above: rails are for browsing, this
@@ -271,6 +279,8 @@
         </div>
     </section>
     {% endif %}
+
+    {% include 'includes/_section_divider.html' %}
 
     <!-- Most Popular by Category - Udemy Style -->
     {% if category_rails %}
@@ -397,11 +407,15 @@
     </style>
     {% endif %}
 
+    {% include 'includes/_section_divider.html' %}
+
     <!-- Testimonials Section -->
     {% include 'includes/testimonials.html' %}
 
+    {% include 'includes/_section_divider.html' %}
+
     <!-- Final CTA Section - Udemy Style -->
-    <section class="py-section bg-white dark:bg-dark-bg border-t border-gray-200 dark:border-dark-border">
+    <section class="py-section bg-white dark:bg-dark-bg">
         <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 {% trans "Ready to get started?" %}
