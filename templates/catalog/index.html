@@ -222,23 +222,128 @@
     {% endif %}
 
     <!-- Most Popular by Category - Udemy Style -->
-    {% if featured_test_banks %}
-    <section class="py-section bg-white dark:bg-dark-bg">
+    {% if category_rails %}
+    <section class="py-section bg-gradient-to-b from-white via-gray-50/50 to-white dark:from-dark-bg dark:via-dark-bg/60 dark:to-dark-bg">
         <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {% trans "Most popular by category" %}
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                    {% trans "Browse by category" %}
                 </h2>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+                    {% trans "Hand-picked exams for every track — swipe through each category to find yours." %}
+                </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gap">
-                {% for test_bank in featured_test_banks %}
-                    {# Shared card partial — dark-mode aware #}
-                    {% include 'includes/_testbank_card.html' with test_bank=test_bank %}
-                {% endfor %}
-            </div>
+            {% for rail in category_rails %}
+            <section class="mb-12 last:mb-0">
+                <div class="flex items-end justify-between gap-4 mb-4">
+                    <div class="min-w-0">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-brand-500">
+                            {% trans "Category" %}
+                        </span>
+                        <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight truncate">
+                            {{ rail.category.name }}
+                        </h3>
+                    </div>
+                    <a href="{% url 'catalog:category_detail' category_slug=rail.category.slug %}"
+                       class="group inline-flex items-center gap-1 flex-shrink-0 text-sm font-semibold text-brand-500 hover:text-brand-600 transition-colors whitespace-nowrap">
+                        {% blocktrans with n=rail.total %}See all {{ n }}{% endblocktrans %}
+                        <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="swiper category-rail-swiper relative px-2 py-2 pb-10">
+                    <div class="swiper-wrapper">
+                        {% for test_bank in rail.test_banks %}
+                        <div class="swiper-slide h-auto">
+                            {% include 'includes/_testbank_card.html' with test_bank=test_bank %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </section>
+            {% endfor %}
         </div>
     </section>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.category-rail-swiper').forEach(function (el) {
+            new Swiper(el, {
+                slidesPerView: 1.1,
+                spaceBetween: 16,
+                grabCursor: true,
+                navigation: {
+                    nextEl: el.querySelector('.swiper-button-next'),
+                    prevEl: el.querySelector('.swiper-button-prev'),
+                },
+                pagination: {
+                    el: el.querySelector('.swiper-pagination'),
+                    clickable: true,
+                    dynamicBullets: true,
+                },
+                breakpoints: {
+                    640: { slidesPerView: 2, spaceBetween: 20 },
+                    1024: { slidesPerView: 3, spaceBetween: 24 },
+                    1280: { slidesPerView: 4, spaceBetween: 24 },
+                },
+            });
+        });
+    });
+    </script>
+
+    <style>
+        /* Brand-skinned swiper controls on the category rails. Match the
+           testimonials treatment so every carousel on the page feels the same. */
+        .category-rail-swiper .swiper-pagination {
+            bottom: 0 !important;
+        }
+        .category-rail-swiper .swiper-pagination-bullet {
+            background: #cbd5e1;
+            opacity: 1;
+            width: 8px;
+            height: 8px;
+            transition: all .25s ease;
+        }
+        .category-rail-swiper .swiper-pagination-bullet-active {
+            background: #5624d0;
+            width: 24px;
+            border-radius: 999px;
+        }
+        .category-rail-swiper .swiper-button-prev,
+        .category-rail-swiper .swiper-button-next {
+            color: #5624d0;
+            background: rgba(255,255,255,0.95);
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            box-shadow: 0 4px 14px rgba(86,36,208,0.15);
+            transition: all .2s ease;
+        }
+        .category-rail-swiper .swiper-button-prev:hover,
+        .category-rail-swiper .swiper-button-next:hover {
+            background: #5624d0;
+            color: #ffffff;
+            box-shadow: 0 6px 20px rgba(86,36,208,0.35);
+        }
+        .category-rail-swiper .swiper-button-prev::after,
+        .category-rail-swiper .swiper-button-next::after {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .dark .category-rail-swiper .swiper-button-prev,
+        .dark .category-rail-swiper .swiper-button-next {
+            background: #1e293b;
+            color: #a78bfa;
+        }
+        .dark .category-rail-swiper .swiper-pagination-bullet { background: #334155; }
+        .dark .category-rail-swiper .swiper-pagination-bullet-active { background: #a78bfa; }
+    </style>
     {% endif %}
 
     <!-- Testimonials Section -->

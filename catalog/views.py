@@ -83,6 +83,45 @@ def index(request):
         )
     
     trending_test_banks = list(trending_qs.order_by('-user_count', '-average_rating', '-created_at')[:10])
+
+    # Category rails — one horizontal carousel per category, showing the top
+    # test banks for that category. Netflix/Udemy-style browse experience.
+    # Authenticated users get has_access + user_rating annotations so the
+    # shared card renders the right CTA and rating state.
+    rails_base_qs = TestBank.objects.filter(is_active=True).select_related(
+        'category', 'certification',
+    ).annotate(
+        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True)),
+    )
+    if request.user.is_authenticated:
+        from django.db.models import OuterRef, Subquery, Exists, IntegerField
+        from practice.models import UserTestAccess
+        from .models import TestBankRating
+
+        access_sq = UserTestAccess.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'), is_active=True,
+        )
+        rating_sq = TestBankRating.objects.filter(
+            user=request.user, test_bank=OuterRef('pk'),
+        ).values('rating')[:1]
+
+        rails_base_qs = rails_base_qs.annotate(
+            has_access=Exists(access_sq),
+            user_rating=Subquery(rating_sq, output_field=IntegerField()),
+        )
+
+    category_rails = []
+    for cat in categories:
+        rail_banks = list(
+            rails_base_qs.filter(category=cat)
+            .order_by('-user_count', '-average_rating', '-created_at')[:8]
+        )
+        if rail_banks:
+            category_rails.append({
+                'category': cat,
+                'test_banks': rail_banks,
+                'total': cat.test_bank_count,
+            })
     
     # Testimonials are now loaded from CMS via context processor
     
@@ -238,6 +277,7 @@ def index(request):
         'categories': categories,
         'featured_test_banks': featured_test_banks,
         'trending_test_banks': trending_test_banks,
+        'category_rails': category_rails,
         'partners': partners,
         'partner_rows': partner_rows,
         'category_tree': category_tree,
