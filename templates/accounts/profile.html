@@ -92,17 +92,6 @@
                     {% endif %}
                 </div>
                 
-                <!-- Preferred Language Field -->
-                <div>
-                    <label for="{{ form.preferred_language.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
-                        {% trans "Preferred Language" %}
-                    </label>
-                    {{ form.preferred_language }}
-                    {% if form.preferred_language.errors %}
-                    <p class="text-red-600 text-sm mt-2">{{ form.preferred_language.errors }}</p>
-                    {% endif %}
-                </div>
-                
                 {% if form.non_field_errors %}
                 <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-2xl">
                     <ul class="text-sm text-red-700 space-y-1">

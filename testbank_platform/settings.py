@@ -74,7 +74,10 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "csp.middleware.CSPMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",  # For RTL/LTR language switching
+    # LocaleMiddleware removed — the app is English-only. Leaving it in would
+    # auto-switch based on the browser's Accept-Language header or a stale
+    # `django_language` session key, making the UI render in unexpected
+    # languages on non-English devices.
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -175,14 +178,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# Supporting both English (LTR) and Arabic (RTL)
+# Internationalization — English only.
 LANGUAGE_CODE = "en-us"
 
-# Supported languages for RTL/LTR switching
 LANGUAGES = [
     ('en', 'English'),
-    ('ar', 'Arabic'),
 ]
 
 LOCALE_PATHS = [

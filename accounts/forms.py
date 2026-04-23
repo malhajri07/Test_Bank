@@ -142,18 +142,11 @@ class UserRegistrationForm(UserCreationForm):
         help_text='Your country'
     )
 
-    preferred_language = forms.ChoiceField(
-        choices=UserProfile.LANGUAGE_CHOICES,
-        initial='en',
-        label='Preferred Language',
-        help_text='Your preferred language for the interface'
-    )
-
     class Meta:
         """Meta options for UserRegistrationForm."""
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'full_name',
-                  'phone_number', 'country', 'preferred_language')
+                  'phone_number', 'country')
 
     def __init__(self, *args, **kwargs):
         """Initialize form with custom styling classes."""
@@ -222,12 +215,9 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         """Meta options for UserProfileForm."""
         model = UserProfile
-        fields = ('full_name', 'country', 'preferred_language')
+        fields = ('full_name', 'country')
         widgets = {
             'full_name': forms.TextInput(attrs={
-                'class': 'w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all'
-            }),
-            'preferred_language': forms.Select(attrs={
                 'class': 'w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all'
             }),
         }

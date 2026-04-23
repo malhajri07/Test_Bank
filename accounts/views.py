@@ -73,7 +73,6 @@ def register(request):
                     full_name=form.cleaned_data.get('full_name', ''),
                     phone_number=form.cleaned_data.get('phone_number', ''),
                     country=form.cleaned_data.get('country', ''),
-                    preferred_language=form.cleaned_data.get('preferred_language', 'en'),
                 )
 
                 # Create email verification token
@@ -102,10 +101,6 @@ def register(request):
                         request,
                         _('Account created but verification email failed to send. Please contact support.')
                     )
-
-                # Set user's language preference in session (for after activation)
-                if form.cleaned_data.get('preferred_language'):
-                    request.session['django_language'] = form.cleaned_data.get('preferred_language')
 
                 # Redirect to login page with message
                 return redirect('accounts:login')
@@ -253,13 +248,6 @@ def profile_view(request, pk):
         form = UserProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-
-            # Update language preference if changed
-            if 'preferred_language' in form.cleaned_data:
-                new_language = form.cleaned_data['preferred_language']
-                translation.activate(new_language)
-                request.session['django_language'] = new_language
-
             messages.success(request, _('Profile updated successfully!'))
             return redirect('accounts:profile', pk=user.pk)
     else:
