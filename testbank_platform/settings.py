@@ -148,6 +148,10 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 # Social (Google) OAuth: Google already verified the email, so trust it.
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_QUERY_EMAIL = True
+# Custom adapter links social login to an existing local user by email
+# and guarantees a unique username, so Google sign-in never lands on the
+# /accounts/3rdparty/signup/ confirmation form.
+SOCIALACCOUNT_ADAPTER = "accounts.adapters.CustomSocialAccountAdapter"
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],
