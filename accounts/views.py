@@ -304,12 +304,20 @@ def dashboard(request):
         score__isnull=False
     ).aggregate(avg=Avg('score'))['avg']
 
+    # Most recent in-progress session — powers the "Pick up where you left
+    # off" callout at the top of the dashboard. Highest-leverage CTA on
+    # this page, so we surface it prominently when present.
+    in_progress_session = UserTestSession.objects.filter(
+        user=user, status='in_progress',
+    ).select_related('test_bank').order_by('-started_at').first()
+
     return render(request, 'accounts/dashboard.html', {
         'purchased_test_banks': purchased_test_banks,
         'recent_sessions': recent_sessions,
         'total_sessions': total_sessions,
         'completed_sessions': completed_sessions,
         'avg_score': avg_score,
+        'in_progress_session': in_progress_session,
     })
 
 
