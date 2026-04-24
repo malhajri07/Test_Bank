@@ -17,10 +17,10 @@
         </p>
     </div>
 
-    <div class="grid lg:grid-cols-3 gap-6 lg:gap-8">
+    <div class="grid lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
         <!-- Left: identity summary card -->
-        <aside class="lg:col-span-1">
-            <div class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 lg:sticky lg:top-24">
+        <aside class="lg:col-span-1 flex">
+            <div class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 flex flex-col w-full">
                 <div class="flex flex-col items-center text-center">
                     <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg mb-4">
                         <span class="text-white text-3xl font-bold">{{ user.username|first|upper }}</span>
@@ -51,7 +51,7 @@
                 </dl>
 
                 <a href="{% url 'accounts:dashboard' %}"
-                   class="inline-flex items-center justify-center gap-1.5 w-full mt-6 py-2.5 px-4 border border-gray-200 dark:border-dark-border rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-bg/60 transition-colors">
+                   class="inline-flex items-center justify-center gap-1.5 w-full mt-auto pt-6 sm:pt-8 py-2.5 px-4 border-t border-gray-100 dark:border-dark-border text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-brand-500 transition-colors">
                     {% trans "Go to My Learning" %}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
@@ -60,11 +60,10 @@
             </div>
         </aside>
 
-        <!-- Right: editable form + invoices -->
-        <div class="lg:col-span-2 space-y-6">
-
+        <!-- Right: editable form. Invoice history sits below (full width). -->
+        <div class="lg:col-span-2 flex">
             <!-- Edit Profile -->
-            <section class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 sm:p-8">
+            <section class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 sm:p-8 w-full">
                 <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
                     {% trans "Edit profile" %}
                 </h2>
@@ -131,9 +130,11 @@
                     </div>
                 </form>
             </section>
+        </div>
+    </div>
 
-            <!-- Invoice History -->
-            <section class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 sm:p-8">
+    <!-- Invoice History — full page width, below the identity/edit-profile row -->
+    <section class="mt-6 lg:mt-8 bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 sm:p-8">
                 <div class="flex items-end justify-between gap-4 mb-5">
                     <div>
                         <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
@@ -274,9 +275,7 @@
                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{% trans "Your purchases will show up here as soon as you make one." %}</p>
                 </div>
                 {% endif %}
-            </section>
-        </div>
-    </div>
+    </section>
 </div>
 </div>
 {% endblock %}
