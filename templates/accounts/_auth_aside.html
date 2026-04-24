@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+    Reusable brand aside for the split-layout auth pages
+    (login, register, password reset flow, social signup).
+    Caller passes in `aside_title` and `aside_lead`; falls back to
+    generic copy if not supplied.
+{% endcomment %}
+<aside class="relative hidden lg:flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 text-white p-12">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div class="absolute -top-20 -left-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+    </div>
+    <div class="relative max-w-md">
+        <div class="inline-flex items-center gap-3 mb-8">
+            <div class="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center font-bold">
+                {ES}
+            </div>
+            <span class="text-xl font-semibold tracking-tight">
+                Exam<span class="font-bold">{Stellar}</span>
+            </span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold leading-tight tracking-tight">
+            {{ aside_title|default:_("Keep going.") }}
+        </h1>
+        <p class="mt-3 text-base md:text-lg text-white/85 leading-relaxed">
+            {{ aside_lead|default:_("One step at a time — we've got the questions, you bring the practice.") }}
+        </p>
+    </div>
+</aside>
