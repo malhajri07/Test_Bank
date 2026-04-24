@@ -210,29 +210,9 @@ STATICFILES_DIRS = [
 ]
 
 # Media files (user uploads)
-# Cloud Run's local filesystem is ephemeral, so production uploads live in GCS.
-# Flip USE_GCS=True + set GS_BUCKET_NAME on Cloud Run; local dev keeps filesystem.
-USE_GCS = config('USE_GCS', default='False', cast=lambda v: str(v).lower() in ('true', '1', 'yes', 'on'))
-
-if USE_GCS:
-    GS_BUCKET_NAME = config('GS_BUCKET_NAME')
-    GS_PROJECT_ID = config('GS_PROJECT_ID', default='exam-stellar')
-    GS_DEFAULT_ACL = None          # bucket uses uniform IAM, no per-object ACLs
-    GS_QUERYSTRING_AUTH = False    # public URLs, no signed tokens
-    GS_FILE_OVERWRITE = False      # don't clobber same-name uploads
-
-    STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-        },
-    }
-    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
-else:
-    MEDIA_URL = "media/"
-    MEDIA_ROOT = BASE_DIR / "media"
+# Local dev writes to the filesystem. Production uses GCS — see settings_gcp.py.
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # CKEditor 5 Configuration (django-ckeditor-5)
 # CKEditor 4 is EOL; CKEditor 5 is the supported branch. See upgrade notes in
@@ -278,13 +258,7 @@ CKEDITOR_5_CONFIGS = {
 }
 
 # Allowed file types for CKEditor 5 image upload (admin-only uploads).
-# Follow the same disk vs. GCS switch as the rest of media.
-_ckeditor_default_storage = (
-    'storages.backends.gcloud.GoogleCloudStorage'
-    if USE_GCS
-    else 'django.core.files.storage.FileSystemStorage'
-)
-CKEDITOR_5_FILE_STORAGE = config('CKEDITOR_5_FILE_STORAGE', default=_ckeditor_default_storage)
+CKEDITOR_5_FILE_STORAGE = config('CKEDITOR_5_FILE_STORAGE', default='django.core.files.storage.FileSystemStorage')
 CKEDITOR_5_CUSTOM_CSS = ''
 
 

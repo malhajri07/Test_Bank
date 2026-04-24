@@ -33,37 +33,36 @@ else:
     DATABASES['default']['PORT'] = config('DB_PORT', default='5432')
 
 # Cloud Storage Configuration for Media Files
-USE_GCS = config('USE_GCS', default='True', cast=bool)
-GCS_BUCKET_NAME = config('GCS_BUCKET_NAME', default=f'{GCP_PROJECT_ID}-exam-stellar-media')
-GCS_STATIC_BUCKET_NAME = config('GCS_STATIC_BUCKET_NAME', default=f'{GCP_PROJECT_ID}-exam-stellar-static')
+# Cloud Run's local filesystem is ephemeral, so user uploads (hero slides,
+# testimonial avatars, CKEditor embeds) must live in GCS. Static files keep
+# shipping inside the container — whitenoise serves them cheaply and there's
+# no value to a second bucket for assets that are baked into the image.
+USE_GCS = config(
+    'USE_GCS',
+    default='True',
+    cast=lambda v: str(v).lower() in ('true', '1', 'yes', 'on'),
+)
 
 if USE_GCS:
-    # Install django-storages for GCS support
-    # Add to requirements: django-storages[google]>=1.14.0
+    GS_BUCKET_NAME = config('GS_BUCKET_NAME')
+    GS_PROJECT_ID = config('GS_PROJECT_ID', default=GCP_PROJECT_ID or 'exam-stellar')
+    GS_DEFAULT_ACL = None          # uniform bucket IAM rejects per-object ACLs
+    GS_QUERYSTRING_AUTH = False    # public URLs, no signed tokens
+    GS_FILE_OVERWRITE = False      # don't clobber same-name uploads
 
-    # Media files (user uploads) - Cloud Storage
-    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_BUCKET_NAME = GCS_BUCKET_NAME
-    GS_DEFAULT_ACL = 'publicRead'
-    GS_PROJECT_ID = GCP_PROJECT_ID
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
+    MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'
 
-    # Media URL
-    MEDIA_URL = f'https://storage.googleapis.com/{GCS_BUCKET_NAME}/'
-
-    # Static files - Cloud Storage (optional, can use Cloud CDN)
-    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_STATIC_BUCKET_NAME = GCS_STATIC_BUCKET_NAME
-    STATIC_URL = f'https://storage.googleapis.com/{GCS_STATIC_BUCKET_NAME}/'
-
-    # GCS credentials (if using service account JSON)
-    # GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    #     config('GCS_CREDENTIALS_FILE', default='')
-    # )
-
-    # Or use default credentials (Application Default Credentials)
-    # Cloud Run automatically provides credentials
+    # CKEditor admin embeds also need to land in the bucket.
+    CKEDITOR_5_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 else:
-    # Fallback to local storage
     MEDIA_ROOT = BASE_DIR / "media"
     STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -125,11 +124,10 @@ LOGGING = {
 # Cloud SQL Connection Pooling (optional)
 # DATABASES['default']['CONN_MAX_AGE'] = 600
 
-# Static files serving (if not using Cloud Storage)
-if not USE_GCS:
-    # Use WhiteNoise for static files in Cloud Run
+# Static files — always served by WhiteNoise out of the container. Media goes
+# to GCS; static assets ship in the image, so whitenoise is the right fit.
+if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Email Configuration (use SendGrid or Gmail SMTP)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
