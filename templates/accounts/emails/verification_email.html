@@ -4,10 +4,11 @@
 {% block title %}{% trans "Activate Your Account" %} - Exam Stellar{% endblock %}
 
 {% block extra_styles %}
-        .features { padding: 20px; background: #f8fafc; border-radius: 10px; margin: 24px 0; }
+        .features { padding: 20px; background: #f8fafc; border-radius: 12px; margin: 24px 0; }
         .features h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         .feature-row { display: flex; align-items: center; padding: 8px 0; font-size: 14px; color: #475569; }
-        .feature-check { color: #5624d0; font-weight: 700; margin-right: 10px; font-size: 16px; }
+        .feature-check { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; color: #5624d0; }
+        .feature-check svg { width: 18px; height: 18px; stroke: #5624d0; }
 {% endblock %}
 
 {% block content %}
@@ -33,10 +34,10 @@
 
     <div class="features">
         <h3>{% trans "What's waiting for you" %}</h3>
-        <div class="feature-row"><span class="feature-check">&#10003;</span> {% trans "Thousands of practice questions" %}</div>
-        <div class="feature-row"><span class="feature-check">&#10003;</span> {% trans "Detailed performance analytics" %}</div>
-        <div class="feature-row"><span class="feature-check">&#10003;</span> {% trans "Real exam simulation" %}</div>
-        <div class="feature-row"><span class="feature-check">&#10003;</span> {% trans "Completion certificates" %}</div>
+        <div class="feature-row"><span class="feature-check"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> {% trans "Thousands of practice questions" %}</div>
+        <div class="feature-row"><span class="feature-check"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> {% trans "Detailed performance analytics" %}</div>
+        <div class="feature-row"><span class="feature-check"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> {% trans "Real exam simulation" %}</div>
+        <div class="feature-row"><span class="feature-check"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> {% trans "Completion certificates" %}</div>
     </div>
 
     <p class="muted">{% trans "If you didn't create this account, you can safely ignore this email." %}</p>
