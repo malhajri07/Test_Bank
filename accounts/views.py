@@ -54,8 +54,8 @@ def register(request):
     Rate-limited to 5 POSTs per hour per IP to slow down spam signups.
     """
     if request.user.is_authenticated:
-        # Redirect authenticated users to dashboard
-        return redirect('accounts:dashboard')
+        # Already signed in → bounce to the homepage, not the dashboard.
+        return redirect('catalog:index')
 
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -119,7 +119,7 @@ def custom_login(request):
     Rate-limited to 10 POSTs per minute per IP to slow brute-force attempts.
     """
     if request.user.is_authenticated:
-        return redirect('accounts:dashboard')
+        return redirect('catalog:index')
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -142,13 +142,13 @@ def custom_login(request):
                 login(request, user)
                 messages.success(request, _('Welcome back!'))
 
-                # Redirect to next page or dashboard
+                # Honor ?next= when present, otherwise land on the homepage.
                 next_url = request.GET.get('next')
                 if next_url and url_has_allowed_host_and_scheme(
                     next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
                 ):
                     return redirect(next_url)
-                return redirect('accounts:dashboard')
+                return redirect('catalog:index')
             else:
                 messages.error(request, _('Invalid username or password.'))
         else:
@@ -200,7 +200,7 @@ def verify_email(request, token):
             _('Email verified successfully! Your account has been activated. Welcome to Exam Stellar!')
         )
 
-        return redirect('accounts:dashboard')
+        return redirect('catalog:index')
 
     except EmailVerificationToken.DoesNotExist:
         messages.error(request, _('Invalid verification link. Please check your email and try again.'))
@@ -227,7 +227,7 @@ def profile_view(request, pk):
     # Ensure user can only edit their own profile
     if request.user != user:
         messages.error(request, _('You do not have permission to view this profile.'))
-        return redirect('accounts:dashboard')
+        return redirect('catalog:index')
 
     # Get or create profile
     profile, created = UserProfile.objects.get_or_create(user=user)

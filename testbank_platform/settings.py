@@ -143,7 +143,9 @@ AUTHENTICATION_BACKENDS = [
 # disabled here to avoid duplicate verification emails and token races.
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
-LOGIN_REDIRECT_URL = "accounts:dashboard"
+# After login / signup land users on the homepage, not the dashboard.
+# Dashboard is still reachable via the user menu's "My Learning".
+LOGIN_REDIRECT_URL = "catalog:index"
 SOCIALACCOUNT_AUTO_SIGNUP = True
 # Social (Google) OAuth: Google already verified the email, so trust it.
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
@@ -301,7 +303,9 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='info@examstellar.com'
 
 # Login/Logout URLs
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'accounts:dashboard'
+# Both the allauth-driven LOGIN_REDIRECT_URL above and Django's auth views
+# read this. Keep them in sync — both should land on the homepage.
+LOGIN_REDIRECT_URL = 'catalog:index'
 LOGOUT_REDIRECT_URL = 'catalog:index'
 
 
