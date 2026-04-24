@@ -328,7 +328,15 @@ CONTENT_SECURITY_POLICY = {
         'frame-src': ('https://payment.paylink.sa', 'https://paymentpilot.paylink.sa'),
         'frame-ancestors': ("'none'",),
         'base-uri': ("'self'",),
-        'form-action': ("'self'", 'https://payment.paylink.sa', 'https://paymentpilot.paylink.sa'),
+        # Includes Google OAuth so the social login form's redirect to
+        # https://accounts.google.com isn't blocked by the form-action
+        # directive (CSP applies form-action to the redirect chain too).
+        'form-action': (
+            "'self'",
+            'https://payment.paylink.sa',
+            'https://paymentpilot.paylink.sa',
+            'https://accounts.google.com',
+        ),
     },
 }
 
