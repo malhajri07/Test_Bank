@@ -328,14 +328,19 @@ CONTENT_SECURITY_POLICY = {
         'frame-src': ('https://payment.paylink.sa', 'https://paymentpilot.paylink.sa'),
         'frame-ancestors': ("'none'",),
         'base-uri': ("'self'",),
-        # Includes Google OAuth so the social login form's redirect to
-        # https://accounts.google.com isn't blocked by the form-action
-        # directive (CSP applies form-action to the redirect chain too).
+        # Includes Google OAuth domains — form-action applies to the
+        # entire redirect chain after a form submit. Google's OAuth flow
+        # can bounce through accounts.google.com, accounts.youtube.com,
+        # and country-specific accounts.google.* subdomains, so we
+        # allow-list the parent google.com / youtube.com to keep the
+        # consent flow unblocked end-to-end.
         'form-action': (
             "'self'",
             'https://payment.paylink.sa',
             'https://paymentpilot.paylink.sa',
             'https://accounts.google.com',
+            'https://accounts.youtube.com',
+            'https://*.google.com',
         ),
     },
 }
