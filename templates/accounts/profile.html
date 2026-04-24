@@ -1,234 +1,282 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n humanize %}
 
-{% block title %}{% trans "Profile - Exam Stellar" %}{% endblock %}
+{% block title %}{% trans "Profile" %} - Exam Stellar{% endblock %}
 
 {% block content %}
-<!-- Profile Header - Apple Style -->
-<div class="bg-white border-b border-gray-200">
-    <div class="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
-        <h1 class="text-4xl font-semibold text-[#000000] mb-2 tracking-tight">
+<div class="page bg-gray-50 dark:bg-dark-bg min-h-screen">
+<div class="page__inner py-10">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
             {% trans "Profile" %}
         </h1>
-        <p class="text-[#666666] text-lg font-medium">
-            {% trans "Manage your account information and preferences" %}
+        <p class="mt-1.5 text-sm md:text-base text-gray-600 dark:text-gray-400">
+            {% trans "Manage your account information and preferences." %}
         </p>
     </div>
-</div>
 
-<div class="bg-[rgb(245, 245, 247)] min-h-screen">
-    <div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-        <!-- User Information Card - Apple Style -->
-        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 mb-8">
-            <h2 class="text-2xl font-semibold text-[#000000] mb-6 tracking-tight">
-                {% trans "User Information" %}
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                    <p class="text-sm text-[#666666] mb-2 font-medium">
-                        {% trans "Username" %}
-                    </p>
-                    <p class="text-lg font-semibold text-[#000000]">{{ user.username }}</p>
-                </div>
-                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                    <p class="text-sm text-[#666666] mb-2 font-medium">
-                        {% trans "Email" %}
-                    </p>
-                    <p class="text-lg font-semibold text-[#000000]">{{ user.email }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Profile Edit Form - Apple Style -->
-        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10">
-            <h2 class="text-2xl font-semibold text-[#000000] mb-8 tracking-tight">
-                {% trans "Edit Profile" %}
-            </h2>
-            
-            <form method="post" class="space-y-6">
-                {% csrf_token %}
-                
-                <!-- Full Name Field -->
-                <div>
-                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
-                        {% trans "Full Name" %}
-                    </label>
-                    {{ form.full_name }}
-                    {% if form.full_name.errors %}
-                    <p class="text-red-600 text-sm mt-2">{{ form.full_name.errors }}</p>
-                    {% endif %}
-                </div>
-                
-                <!-- Phone Number Field with Country Code -->
-                <div>
-                    <label class="block text-sm font-semibold text-[#000000] mb-2">
-                        {% trans "Phone Number" %}
-                    </label>
-                    <div class="flex items-stretch rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex-shrink-0">
-                            {{ form.phone_country_code }}
-                        </div>
-                        <div class="flex-1">
-                            {{ form.phone_number_only }}
-                        </div>
+    <div class="grid lg:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Left: identity summary card -->
+        <aside class="lg:col-span-1">
+            <div class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 lg:sticky lg:top-24">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg mb-4">
+                        <span class="text-white text-3xl font-bold">{{ user.username|first|upper }}</span>
                     </div>
-                    {% if form.phone_country_code.errors %}
-                    <p class="text-red-600 text-sm mt-2">{{ form.phone_country_code.errors }}</p>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight break-words max-w-full">
+                        {{ profile.full_name|default:user.get_full_name|default:user.username }}
+                    </h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 break-all max-w-full">
+                        {{ user.email }}
+                    </p>
+                </div>
+
+                <dl class="mt-6 space-y-3 text-sm">
+                    <div class="flex items-center justify-between gap-3 py-2 border-b border-gray-100 dark:border-dark-border">
+                        <dt class="text-gray-500 dark:text-gray-400">{% trans "Username" %}</dt>
+                        <dd class="font-semibold text-gray-900 dark:text-gray-100 truncate">{{ user.username }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 py-2 border-b border-gray-100 dark:border-dark-border">
+                        <dt class="text-gray-500 dark:text-gray-400">{% trans "Joined" %}</dt>
+                        <dd class="font-semibold text-gray-900 dark:text-gray-100">{{ user.date_joined|date:"M Y" }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 py-2">
+                        <dt class="text-gray-500 dark:text-gray-400">{% trans "Country" %}</dt>
+                        <dd class="font-semibold text-gray-900 dark:text-gray-100">
+                            {{ profile.country|default:"—" }}
+                        </dd>
+                    </div>
+                </dl>
+
+                <a href="{% url 'accounts:dashboard' %}"
+                   class="inline-flex items-center justify-center gap-1.5 w-full mt-6 py-2.5 px-4 border border-gray-200 dark:border-dark-border rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-bg/60 transition-colors">
+                    {% trans "Go to My Learning" %}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Right: editable form + invoices -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Edit Profile -->
+            <section class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 sm:p-8">
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                    {% trans "Edit profile" %}
+                </h2>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {% trans "Update your personal details below." %}
+                </p>
+
+                <form method="post" class="mt-6 space-y-4">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
+                        <ul class="text-sm text-red-700 dark:text-red-300 font-medium space-y-1">
+                            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    </div>
                     {% endif %}
-                    {% if form.phone_number_only.errors %}
-                    <p class="text-red-600 text-sm mt-2">{{ form.phone_number_only.errors }}</p>
+
+                    <div>
+                        <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5">
+                            {% trans "Full name" %}
+                        </label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.full_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5">
+                            {% trans "Phone number" %}
+                        </label>
+                        <div class="flex items-stretch rounded-xl overflow-hidden border border-gray-200 dark:border-dark-border focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-transparent transition-shadow">
+                            <div class="flex-shrink-0 border-r border-gray-200 dark:border-dark-border">
+                                {{ form.phone_country_code }}
+                            </div>
+                            <div class="flex-1">
+                                {{ form.phone_number_only }}
+                            </div>
+                        </div>
+                        {% if form.phone_country_code.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.phone_country_code.errors.0 }}</p>
+                        {% endif %}
+                        {% if form.phone_number_only.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.phone_number_only.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.country.id_for_label }}" class="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5">
+                            {% trans "Country" %}
+                        </label>
+                        {{ form.country }}
+                        {% if form.country.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.country.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold py-3 px-7 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                            {% trans "Save changes" %}
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Invoice History -->
+            <section class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border p-6 sm:p-8">
+                <div class="flex items-end justify-between gap-4 mb-5">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                            {% trans "Invoice history" %}
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            {% trans "Every purchase you've made, with the VAT broken out." %}
+                        </p>
+                    </div>
+                    {% if invoices %}
+                    <div class="hidden sm:block text-right flex-shrink-0">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{% trans "Total spent" %}</p>
+                        <p class="mt-0.5 text-xl font-bold text-brand-500 tabular-nums">{{ total_amount|floatformat:2 }} SAR</p>
+                    </div>
                     {% endif %}
                 </div>
-                
-                <!-- Country Field -->
-                <div>
-                    <label for="{{ form.country.id_for_label }}" class="block text-sm font-semibold text-[#000000] mb-2">
-                        {% trans "Country" %}
-                    </label>
-                    {{ form.country }}
-                    {% if form.country.errors %}
-                    <p class="text-red-600 text-sm mt-2">{{ form.country.errors }}</p>
-                    {% endif %}
+
+                {% if invoices %}
+                <!-- Desktop: table -->
+                <div class="hidden md:block overflow-x-auto -mx-6 sm:-mx-8">
+                    <table class="min-w-full divide-y divide-gray-100 dark:divide-dark-border">
+                        <thead class="bg-gray-50 dark:bg-dark-bg/40">
+                            <tr>
+                                <th class="px-6 sm:px-8 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{% trans "Invoice" %}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{% trans "Date" %}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{% trans "Product" %}</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{% trans "Net" %}</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{% trans "VAT" %}</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{% trans "Total" %}</th>
+                                <th class="px-6 sm:px-8 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{% trans "Status" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-dark-border">
+                            {% for invoice in invoices %}
+                            <tr class="hover:bg-gray-50 dark:hover:bg-dark-bg/40 transition-colors">
+                                <td class="px-6 sm:px-8 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums">#{{ invoice.id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ invoice.created_at|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4 text-sm">
+                                    <a href="{% url 'catalog:testbank_detail' slug=invoice.test_bank.slug %}"
+                                       class="text-brand-500 hover:text-brand-600 font-medium">
+                                        {{ invoice.test_bank.title }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-right tabular-nums">
+                                    {% if invoice.amount == 0 %}
+                                        <span class="text-green-600 dark:text-green-400 font-semibold">{% trans "FREE" %}</span>
+                                    {% else %}
+                                        <span class="text-gray-900 dark:text-gray-100 font-medium">{{ invoice.get_net_price|floatformat:2 }} SAR</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400 tabular-nums">
+                                    {% if invoice.amount == 0 %}—{% else %}{{ invoice.get_vat_amount|floatformat:2 }} SAR{% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold tabular-nums">
+                                    {% if invoice.amount == 0 %}
+                                        <span class="text-green-600 dark:text-green-400">{% trans "FREE" %}</span>
+                                    {% else %}
+                                        <span class="text-gray-900 dark:text-gray-100">{{ invoice.get_total_amount|floatformat:2 }} SAR</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 sm:px-8 py-4 whitespace-nowrap text-right">
+                                    {% if invoice.status == 'succeeded' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-md bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300">{% trans "Paid" %}</span>
+                                    {% elif invoice.status == 'pending' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">{% trans "Pending" %}</span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-md bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300">{{ invoice.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-gray-50 dark:bg-dark-bg/40 border-t border-gray-200 dark:border-dark-border">
+                            <tr>
+                                <td colspan="3" class="px-6 sm:px-8 py-4 text-sm font-bold text-gray-900 dark:text-gray-100 text-right">{% trans "Grand total" %}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100 text-right tabular-nums">{{ total_net|floatformat:2 }} SAR</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-600 dark:text-gray-400 text-right tabular-nums">{{ total_vat|floatformat:2 }} SAR</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-base font-bold text-brand-500 text-right tabular-nums">{{ total_amount|floatformat:2 }} SAR</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-                
-                {% if form.non_field_errors %}
-                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-2xl">
-                    <ul class="text-sm text-red-700 space-y-1">
-                        {% for error in form.non_field_errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                
-                <!-- Submit Button -->
-                <div class="pt-4">
-                    <button type="submit" class="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
-                        {% trans "Save Changes" %}
-                    </button>
-                </div>
-            </form>
-        </div>
-        
-        <!-- Invoice History Section -->
-        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 mt-8">
-            <h2 class="text-2xl font-semibold text-[#000000] mb-8 tracking-tight">
-                {% trans "Invoice History" %}
-            </h2>
-            
-            {% if invoices %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                {% trans "Invoice #" %}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                {% trans "Purchase Date" %}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                {% trans "Product Name" %}
-                            </th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                {% trans "Net Price" %}
-                            </th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                {% trans "VAT (15%)" %}
-                            </th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                {% trans "Total Amount" %}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                {% trans "Status" %}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for invoice in invoices %}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                #{{ invoice.id }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ invoice.created_at|date:"M d, Y" }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                <a href="{% url 'catalog:testbank_detail' slug=invoice.test_bank.slug %}" 
-                                   class="text-brand-500 hover:text-brand-600 font-medium">
+
+                <!-- Mobile: stacked cards -->
+                <ul class="md:hidden space-y-3">
+                    {% for invoice in invoices %}
+                    <li class="rounded-xl border border-gray-100 dark:border-dark-border p-4">
+                        <div class="flex items-start justify-between gap-3 mb-2">
+                            <div class="min-w-0">
+                                <a href="{% url 'catalog:testbank_detail' slug=invoice.test_bank.slug %}"
+                                   class="block text-sm font-semibold text-brand-500 hover:text-brand-600 truncate">
                                     {{ invoice.test_bank.title }}
                                 </a>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-medium">
-                                {% if invoice.amount == 0 %}
-                                    <span class="text-green-600 font-semibold">{% trans "FREE" %}</span>
-                                {% else %}
-                                    {{ invoice.get_net_price|floatformat:2 }} SAR
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                                {% if invoice.amount == 0 %}
-                                    0.00 SAR
-                                {% else %}
-                                    {{ invoice.get_vat_amount|floatformat:2 }} SAR
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-semibold">
-                                {% if invoice.amount == 0 %}
-                                    <span class="text-green-600 font-semibold">{% trans "FREE" %}</span>
-                                {% else %}
-                                    {{ invoice.get_total_amount|floatformat:2 }} SAR
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                {% if invoice.status == 'succeeded' %}
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    {% trans "Paid" %}
-                                </span>
-                                {% elif invoice.status == 'pending' %}
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    {% trans "Pending" %}
-                                </span>
-                                {% else %}
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                    {{ invoice.get_status_display }}
-                                </span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot class="bg-gray-50 border-t-2 border-gray-300">
-                        <tr>
-                            <td colspan="3" class="px-6 py-4 text-sm font-bold text-gray-900 text-right">
-                                {% trans "Grand Total:" %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                                {{ total_net|floatformat:2 }} SAR
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                                {{ total_vat|floatformat:2 }} SAR
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-brand-500 text-right text-lg">
-                                {{ total_amount|floatformat:2 }} SAR
-                            </td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <h3 class="mt-2 text-sm font-semibold text-gray-900">{% trans "No invoices yet" %}</h3>
-                <p class="mt-1 text-sm text-gray-500">{% trans "Your purchase invoices will appear here." %}</p>
-            </div>
-            {% endif %}
+                                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+                                    #{{ invoice.id }} &middot; {{ invoice.created_at|date:"M d, Y" }}
+                                </p>
+                            </div>
+                            {% if invoice.status == 'succeeded' %}
+                            <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-md bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300">{% trans "Paid" %}</span>
+                            {% elif invoice.status == 'pending' %}
+                            <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">{% trans "Pending" %}</span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-md bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300">{{ invoice.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                        <dl class="grid grid-cols-3 gap-2 text-xs tabular-nums pt-2 border-t border-gray-100 dark:border-dark-border">
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">{% trans "Net" %}</dt>
+                                <dd class="font-semibold text-gray-900 dark:text-gray-100">
+                                    {% if invoice.amount == 0 %}<span class="text-green-600 dark:text-green-400">{% trans "FREE" %}</span>{% else %}{{ invoice.get_net_price|floatformat:2 }} SAR{% endif %}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">{% trans "VAT" %}</dt>
+                                <dd class="font-semibold text-gray-900 dark:text-gray-100">
+                                    {% if invoice.amount == 0 %}—{% else %}{{ invoice.get_vat_amount|floatformat:2 }} SAR{% endif %}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">{% trans "Total" %}</dt>
+                                <dd class="font-bold text-brand-500">
+                                    {% if invoice.amount == 0 %}<span class="text-green-600 dark:text-green-400">{% trans "FREE" %}</span>{% else %}{{ invoice.get_total_amount|floatformat:2 }} SAR{% endif %}
+                                </dd>
+                            </div>
+                        </dl>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{% trans "No invoices yet" %}</p>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{% trans "Your purchases will show up here as soon as you make one." %}</p>
+                </div>
+                {% endif %}
+            </section>
         </div>
     </div>
 </div>
+</div>
 {% endblock %}
-

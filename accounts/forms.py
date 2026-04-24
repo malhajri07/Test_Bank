@@ -182,13 +182,21 @@ class UserProfileForm(forms.ModelForm):
     - Preferred language (for RTL/LTR support)
     """
 
+    # Shared input style across the profile form — matches the login /
+    # register aesthetic so focus + hover states are consistent sitewide.
+    _input_classes = (
+        'w-full px-4 py-3 border border-gray-200 dark:border-dark-border rounded-xl '
+        'focus:ring-2 focus:ring-brand-500 focus:border-transparent '
+        'bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-100 text-sm transition-shadow'
+    )
+
     # Separate fields for phone number with country code
     phone_country_code = forms.ChoiceField(
         choices=COUNTRY_CODES,
         required=False,
         label='Country Code',
         widget=forms.Select(attrs={
-            'class': 'px-4 py-4 border-0 rounded-l-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium bg-white outline-none'
+            'class': 'px-3 py-3 border-0 rounded-l-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-100 text-sm outline-none'
         })
     )
 
@@ -197,7 +205,7 @@ class UserProfileForm(forms.ModelForm):
         required=False,
         label='Phone Number',
         widget=forms.TextInput(attrs={
-            'class': 'flex-1 px-5 py-4 border-0 rounded-r-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium outline-none',
+            'class': 'flex-1 px-3 py-3 border-0 rounded-r-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-100 text-sm outline-none',
             'placeholder': 'Phone number'
         })
     )
@@ -208,7 +216,7 @@ class UserProfileForm(forms.ModelForm):
         required=False,
         label='Country',
         widget=forms.Select(attrs={
-            'class': 'w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all'
+            'class': _input_classes
         })
     )
 
@@ -218,7 +226,11 @@ class UserProfileForm(forms.ModelForm):
         fields = ('full_name', 'country')
         widgets = {
             'full_name': forms.TextInput(attrs={
-                'class': 'w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#e28f64] focus:border-transparent text-[#000000] font-medium shadow-sm hover:shadow-md transition-all'
+                'class': (
+                    'w-full px-4 py-3 border border-gray-200 dark:border-dark-border rounded-xl '
+                    'focus:ring-2 focus:ring-brand-500 focus:border-transparent '
+                    'bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-100 text-sm transition-shadow'
+                )
             }),
         }
 
