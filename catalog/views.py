@@ -45,19 +45,25 @@ def index(request):
     ).filter(test_bank_count__gt=0)[:8])
     
     # Get featured test banks with user counts (optimized with select_related)
+    # Exclude empty banks — surfacing "0 questions" cards on the homepage
+    # erodes trust before a visitor ever sees a real catalog entry.
     featured_test_banks = list(TestBank.objects.filter(is_active=True).select_related(
         'category', 'certification'
     ).annotate(
-        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
-    ).order_by('-user_count', '-average_rating')[:6])
-    
+        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True)),
+        active_question_count=Count('questions', filter=Q(questions__is_active=True), distinct=True),
+    ).filter(active_question_count__gt=0).order_by('-user_count', '-average_rating')[:6])
+
     # Get trending test banks (ordered by user count, then rating, then recent)
-    # Optimized with select_related to avoid N+1 queries
+    # Optimized with select_related to avoid N+1 queries.
+    # Same empty-bank exclusion applies here — trending must always surface
+    # something real.
     trending_qs = TestBank.objects.filter(is_active=True).select_related(
         'category', 'certification'
     ).annotate(
-        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
-    )
+        user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True)),
+        active_question_count=Count('questions', filter=Q(questions__is_active=True), distinct=True),
+    ).filter(active_question_count__gt=0)
 
     if request.user.is_authenticated:
         from django.db.models import OuterRef, Subquery, Exists, IntegerField
@@ -94,7 +100,8 @@ def index(request):
         'category', 'certification',
     ).annotate(
         user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True)),
-    )
+        active_question_count=Count('questions', filter=Q(questions__is_active=True), distinct=True),
+    ).filter(active_question_count__gt=0)
     if request.user.is_authenticated:
         from django.db.models import OuterRef, Subquery, Exists, IntegerField
         from practice.models import UserTestAccess
@@ -280,10 +287,13 @@ def index(request):
     # catalog grows. Swap any tile for a student-facing metric (e.g. questions
     # answered, active learners) when those numbers start to sing.
     from .models import Question as _Q
+    total_questions = _Q.objects.filter(is_active=True).count()
+    total_certifications = Certification.objects.count()
+    total_test_banks = TestBank.objects.filter(is_active=True).count()
     stats = [
-        {'value': _Q.objects.count(), 'label': _('Practice questions'), 'icon': 'question'},
-        {'value': Certification.objects.count(), 'label': _('Certifications'), 'icon': 'award'},
-        {'value': TestBank.objects.filter(is_active=True).count(), 'label': _('Test banks'), 'icon': 'stack'},
+        {'value': total_questions, 'label': _('Practice questions'), 'icon': 'question'},
+        {'value': total_certifications, 'label': _('Certifications'), 'icon': 'award'},
+        {'value': total_test_banks, 'label': _('Test banks'), 'icon': 'stack'},
         {'value': len(categories), 'label': _('Categories'), 'icon': 'grid'},
     ]
 
@@ -297,6 +307,11 @@ def index(request):
         'category_tree': category_tree,
         'popular_exams': popular_exams,
         'stats': stats,
+        # Surface live counts to the template so meta description and
+        # FAQ JSON-LD can stay honest as the catalog grows.
+        'total_questions': total_questions,
+        'total_certifications': total_certifications,
+        'total_test_banks': total_test_banks,
     })
 
 

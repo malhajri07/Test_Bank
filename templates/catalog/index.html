@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% load i18n cms_tags %}
 
-{% block title %}{% trans "Exam Stellar — Practice Exams for PMP, CompTIA, Microsoft & More" %}{% endblock %}
-{% block meta_description %}{% trans "Prepare for your certification exams with Exam Stellar. 2,500+ practice questions, detailed analytics, and real exam simulations. PMP, CompTIA, Microsoft, and professional certifications." %}{% endblock %}
+{% block title %}{% trans "Exam Stellar — Practice Exams for PMP, CompTIA, AWS, Microsoft & More" %}{% endblock %}
+{% block meta_description %}{% blocktrans with q=total_questions c=total_certifications %}Practice {{ q }}+ exam-style questions across {{ c }}+ certifications (PMP, CompTIA, AWS, Azure, CISSP, and more). Detailed explanations on every answer, real exam simulations, instant analytics.{% endblocktrans %}{% endblock %}
 {% block canonical_url %}https://examstellar.com/{% endblock %}
 {% block og_title %}{% trans "Exam Stellar — Ace Your Certification Exams" %}{% endblock %}
-{% block og_description %}{% trans "2,500+ practice questions across 25+ exam banks. Real exam simulations, detailed analytics, and completion certificates. Start practicing today." %}{% endblock %}
+{% block og_description %}{% blocktrans with q=total_questions c=total_certifications %}{{ q }}+ exam-style questions across {{ c }}+ certifications. Real exam simulations, detailed analytics, completion certificates. Start practicing today.{% endblocktrans %}{% endblock %}
 {% block twitter_title %}{% trans "Exam Stellar — Ace Your Certification Exams" %}{% endblock %}
-{% block twitter_description %}{% trans "2,500+ practice questions across 25+ exam banks. Real exam simulations, detailed analytics, and completion certificates." %}{% endblock %}
+{% block twitter_description %}{% blocktrans with q=total_questions c=total_certifications %}{{ q }}+ exam-style questions across {{ c }}+ certifications. Real exam simulations, detailed analytics, completion certificates.{% endblocktrans %}{% endblock %}
 
 {% block structured_data %}
 <script type="application/ld+json">
@@ -20,7 +20,7 @@
             "name": "What is Exam Stellar?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Exam Stellar is an online exam preparation platform offering practice test banks for professional certifications including PMP, CompTIA, Microsoft, and more. It features thousands of exam-style questions with detailed analytics and progress tracking."
+                "text": "Exam Stellar is an online exam preparation platform offering practice test banks for professional certifications including PMP, CompTIA, AWS, Microsoft, and more. It features thousands of exam-style questions with detailed analytics and progress tracking."
             }
         },
         {
@@ -28,7 +28,7 @@
             "name": "How many practice questions are available?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Exam Stellar offers over 2,500 practice questions across 25+ exam banks covering school, college, and professional certifications."
+                "text": "Exam Stellar offers {{ total_questions }}+ practice questions across {{ total_certifications }}+ certifications, covering professional, vocational, and academic exams."
             }
         },
         {
@@ -85,18 +85,31 @@
                         <img src="{{ slide.background_image.url }}" alt=""
                              class="absolute inset-0 w-full h-full object-cover object-center"
                              onerror="this.remove()" aria-hidden="true">
-                        <!-- Full-bleed overlay — sits on image, keeps text readable -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-brand-700/80 via-brand-600/70 to-brand-500/50"></div>
                         {% endif %}
+                        <!-- Always-on dark scrim — guarantees WCAG AA contrast for white
+                             headline copy whether or not the slide ships a background image. -->
+                        <div class="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/45"></div>
+                        <!-- Brand-tinted side wash on top of the scrim for visual identity. -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-brand-700/55 via-brand-600/30 to-transparent"></div>
 
                         <div class="relative z-10 h-full flex items-center">
                             <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                                 <div class="max-w-2xl">
-                                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight">
+                                    {% comment %}
+                                    Only the first slide takes h1; subsequent slides are h2 so we
+                                    never ship multiple H1s on the same page (SEO + a11y rule).
+                                    {% endcomment %}
+                                    {% if forloop.first %}
+                                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight drop-shadow">
                                         {{ slide.title|striptags }}
                                     </h1>
+                                    {% else %}
+                                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight drop-shadow">
+                                        {{ slide.title|striptags }}
+                                    </h2>
+                                    {% endif %}
                                     {% if slide.description %}
-                                    <p class="mt-5 text-base md:text-lg lg:text-xl text-white/90 leading-relaxed max-w-xl">
+                                    <p class="mt-5 text-base md:text-lg lg:text-xl text-white leading-relaxed max-w-xl drop-shadow-sm">
                                         {{ slide.description|striptags }}
                                     </p>
                                     {% endif %}
@@ -110,7 +123,7 @@
                                             </svg>
                                         </a>
                                         <a href="{% url 'catalog:category_list' %}"
-                                           class="inline-flex items-center gap-2 px-6 py-3.5 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all border border-white/20 hover:border-white/40">
+                                           class="inline-flex items-center gap-2 px-6 py-3.5 bg-transparent text-white font-semibold rounded-xl hover:bg-white/15 transition-all border border-white/40 hover:border-white">
                                             {% trans "Browse catalog" %}
                                         </a>
                                     </div>
@@ -127,26 +140,28 @@
         {% else %}
         <!-- Default hero — single brand panel when no CMS slides configured -->
         <div class="relative w-full h-[60vh] min-h-[480px] max-h-[680px] bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 overflow-hidden">
+            <!-- Subtle dark scrim for stronger headline contrast in screenshots and dark mode. -->
+            <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/30"></div>
             <div class="relative z-10 h-full flex items-center">
                 <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                     <div class="max-w-2xl">
-                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight">
-                            {% trans "Get certified, with ease." %}
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.15] tracking-tight drop-shadow">
+                            {% trans "Pass your certification with confidence." %}
                         </h1>
-                        <p class="mt-5 text-base md:text-lg lg:text-xl text-white/90 leading-relaxed max-w-xl">
-                            {% trans "Thousands of real exam-level questions across every major certification — practice, master, pass." %}
+                        <p class="mt-5 text-base md:text-lg lg:text-xl text-white leading-relaxed max-w-xl drop-shadow-sm">
+                            {% blocktrans with q=total_questions c=total_certifications %}Practice {{ q }}+ exam-style questions across {{ c }}+ certifications, with a detailed explanation on every answer.{% endblocktrans %}
                         </p>
                         <div class="mt-8 flex flex-wrap items-center gap-3">
                             <a href="{% url 'catalog:category_list' %}"
                                class="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-                                {% trans "Browse test banks" %}
+                                {% trans "Find my exam" %}
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </a>
                             {% if not user.is_authenticated %}
                             <a href="{% url 'accounts:register' %}"
-                               class="inline-flex items-center gap-2 px-6 py-3.5 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all border border-white/20 hover:border-white/40">
+                               class="inline-flex items-center gap-2 px-6 py-3.5 bg-transparent text-white font-semibold rounded-xl hover:bg-white/15 transition-all border border-white/40 hover:border-white">
                                 {% trans "Create free account" %}
                             </a>
                             {% endif %}

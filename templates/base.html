@@ -16,12 +16,15 @@
     <link rel="canonical" href="{% block canonical_url %}https://examstellar.com{{ request.path }}{% endblock %}">
     <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
     <meta name="author" content="Exam Stellar">
-    <meta name="keywords" content="{% block meta_keywords %}exam preparation, practice tests, certification exams, test bank, PMP exam, CompTIA, mock exams, exam questions, study material, professional certification{% endblock %}">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/favicon.svg' %}">
 
     <!-- OpenGraph -->
     <meta property="og:site_name" content="Exam Stellar">
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}{% trans "Exam Stellar ��� Practice Exams & Certification Test Banks" %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% trans "Exam Stellar — Practice Exams & Certification Test Banks" %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{% trans "Practice with thousands of real exam-style questions. Track your progress. Ace your certifications." %}{% endblock %}">
     <meta property="og:url" content="{% block og_url %}https://examstellar.com{{ request.path }}{% endblock %}">
     <meta property="og:image" content="{% block og_image %}https://examstellar.com{% static 'images/og-default.png' %}{% endblock %}">
@@ -125,18 +128,26 @@
                     </a>
                 </div>
 
-                <!-- Explore link (opens full category browser page) -->
-                <div class="hidden lg:block">
+                <!-- Primary nav -->
+                <div class="hidden lg:flex items-center gap-1">
                     <a href="{% url 'catalog:category_list' %}"
-                       class="px-4 py-2 text-sm font-normal text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-purple-400 transition-colors">
-                        {% trans "Explore" %}
+                       class="px-3 py-2 text-sm font-normal text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-purple-400 transition-colors">
+                        {% trans "Categories" %}
+                    </a>
+                    <a href="{% url 'cms:blog_list' %}"
+                       class="px-3 py-2 text-sm font-normal text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-purple-400 transition-colors">
+                        {% trans "Blog" %}
+                    </a>
+                    <a href="{% url 'forum:index' %}"
+                       class="px-3 py-2 text-sm font-normal text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-purple-400 transition-colors">
+                        {% trans "Forum" %}
                     </a>
                 </div>
 
                 <!-- Search Bar - Center (Udemy Style) -->
                 <div class="flex-1 max-w-2xl mx-4 hidden md:block">
                     <form method="get" action="{% url 'catalog:search' %}" class="relative">
-                        <input type="text" name="q" placeholder="{% trans 'Search for anything' %}"
+                        <input type="text" name="q" placeholder="{% trans 'Search certifications, e.g. PMP, AWS SAA…' %}"
                             class="w-full px-4 py-2 ps-10 pe-4 text-sm border border-gray-300 dark:border-dark-border dark:bg-dark-surface dark:text-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             value="{{ request.GET.q }}">
                         <button type="submit"
