@@ -1026,17 +1026,17 @@ def contact(request):
 def search(request):
     """
     Search view that searches across multiple models.
-    
+
     Searches:
     - TestBank (title, description)
     - Category (name, description)
     - BlogPost (title, content, excerpt) - from CMS
     - ForumTopic (title, content) - from Forum
-    
+
     Returns results categorized by type.
     """
     from django.db import DatabaseError
-    
+
     query = request.GET.get('q', '').strip()
     results = {
         'test_banks': [],
@@ -1044,20 +1044,33 @@ def search(request):
         'blog_posts': [],
         'forum_topics': [],
     }
-    
+
+    # Always surface popular categories so the empty state and the zero-result
+    # state can keep the user moving instead of dead-ending on "no results."
+    popular_categories = list(
+        Category.objects
+        .annotate(test_bank_count=Count('test_banks', filter=Q(test_banks__is_active=True), distinct=True))
+        .filter(test_bank_count__gt=0)
+        .order_by('-test_bank_count', 'name')[:6]
+    )
+
     # Validate query - must be at least 2 characters
     if not query:
         return render(request, 'catalog/search_results.html', {
             'query': '',
             'results': results,
             'error': None,
+            'total_results': 0,
+            'popular_categories': popular_categories,
         })
-    
+
     if len(query) < 2:
         return render(request, 'catalog/search_results.html', {
             'query': query,
             'results': results,
             'error': 'Search query must be at least 2 characters long.',
+            'total_results': 0,
+            'popular_categories': popular_categories,
         })
     
     try:
@@ -1115,14 +1128,17 @@ def search(request):
             'query': query,
             'results': results,
             'error': 'An error occurred while searching. Please try again.',
+            'total_results': 0,
+            'popular_categories': popular_categories,
         })
-    
+
     # Calculate total results count
     total_results = sum(len(results[key]) for key in results)
-    
+
     return render(request, 'catalog/search_results.html', {
         'query': query,
         'results': results,
         'error': None,
         'total_results': total_results,
+        'popular_categories': popular_categories,
     })

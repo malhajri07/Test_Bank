@@ -1,38 +1,47 @@
 {% extends 'base.html' %}
 {% load static tailwind_tags i18n %}
 
-{% block title %}{% trans "Search Results" %} - {% trans "Exam Stellar" %}{% endblock %}
+{% block title %}{% if query %}{% blocktrans %}Search results for "{{ query }}"{% endblocktrans %}{% else %}{% trans "Search" %}{% endif %} — Exam Stellar{% endblock %}
+{% block meta_description %}{% if query %}{% blocktrans count n=total_results with q=query %}{{ n }} result for "{{ q }}" on Exam Stellar — find practice exams, categories, blog guides, and forum threads.{% plural %}{{ n }} results for "{{ q }}" on Exam Stellar — find practice exams, categories, blog guides, and forum threads.{% endblocktrans %}{% else %}{% trans "Search Exam Stellar — practice exams, categories, blog guides, and forum threads." %}{% endif %}{% endblock %}
+{% comment %}
+Internal search results should not be indexed; they dilute crawl budget
+and produce thin near-duplicate pages. Follow links so crawlers can still
+discover the underlying content.
+{% endcomment %}
+{% block robots %}noindex, follow{% endblock %}
 
 {% block content %}
-<div class="page min-h-screen bg-gray-50 pt-8 pb-16">
+<div class="page min-h-screen bg-gray-50 dark:bg-dark-bg pt-8 pb-16">
     <div class="page__inner max-w-7xl">
+
         <!-- Search Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                {% trans "Search Results" %}
+        <div class="mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-2">
+                {% if query %}
+                    {% blocktrans %}Search results for "{{ query }}"{% endblocktrans %}
+                {% else %}
+                    {% trans "Search Exam Stellar" %}
+                {% endif %}
             </h1>
             {% if query %}
-            <p class="text-gray-600">
-                {% if total_results == 1 %}
-                    {% trans "Found 1 result for" %} "{{ query }}"
-                {% else %}
-                    {% trans "Found" %} {{ total_results }} {% trans "results for" %} "{{ query }}"
-                {% endif %}
+            <p class="text-gray-600 dark:text-gray-400">
+                {% blocktrans count n=total_results %}Found {{ n }} result{% plural %}Found {{ n }} results{% endblocktrans %}
             </p>
             {% else %}
-            <p class="text-gray-600">{% trans "Enter a search term to find test banks, categories, blog posts, and forum topics." %}</p>
+            <p class="text-gray-600 dark:text-gray-400">{% trans "Find test banks, categories, blog posts, and forum topics." %}</p>
             {% endif %}
         </div>
 
-        <!-- Search Form -->
+        <!-- Search Form (mirrors header placeholder for consistency) -->
         <div class="mb-8">
             <form method="get" action="{% url 'catalog:search' %}" class="relative max-w-2xl">
-                <input type="text" name="q" placeholder="{% trans 'Search for anything' %}"
-                    class="w-full px-4 py-3 ps-12 pe-4 text-base border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                    value="{{ query }}" autofocus>
+                <input type="text" name="q" placeholder="{% trans 'Search certifications, e.g. PMP, AWS SAA…' %}"
+                    class="w-full px-4 py-3 ps-12 pe-4 text-base border-2 border-gray-300 dark:border-dark-border dark:bg-dark-surface dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    value="{{ query }}" autofocus aria-label="{% trans 'Search Exam Stellar' %}">
                 <button type="submit"
-                    class="absolute start-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-brand-500 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="absolute start-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-brand-500 transition-colors"
+                    aria-label="{% trans 'Submit search' %}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -40,191 +49,232 @@
             </form>
         </div>
 
-        {% if query %}
-            {% if total_results == 0 %}
-                <!-- No Results -->
-                <div class="text-center py-16">
-                    <svg class="mx-auto h-24 w-24 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {% if error %}
+        <div class="mb-8 px-4 py-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-sm">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if query and total_results > 0 %}
+            {% comment %}
+            Jump-nav: counts per result type. With four sections at up to 10
+            items each, surfacing counts up front (and anchor links) lets users
+            skip straight to the most relevant block instead of scrolling.
+            {% endcomment %}
+            <nav aria-label="{% trans 'Search result sections' %}"
+                 class="mb-10 flex flex-wrap gap-2 text-sm">
+                {% if results.test_banks %}
+                <a href="#sec-test-banks"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-gray-700 dark:text-gray-200 hover:border-brand-500 hover:text-brand-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                    {% trans "Test Banks" %}
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ results.test_banks|length }}</span>
+                </a>
+                {% endif %}
+                {% if results.categories %}
+                <a href="#sec-categories"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-gray-700 dark:text-gray-200 hover:border-brand-500 hover:text-brand-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                    {% trans "Categories" %}
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ results.categories|length }}</span>
+                </a>
+                {% endif %}
+                {% if results.blog_posts %}
+                <a href="#sec-blog"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-gray-700 dark:text-gray-200 hover:border-brand-500 hover:text-brand-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                    {% trans "Blog" %}
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ results.blog_posts|length }}</span>
+                </a>
+                {% endif %}
+                {% if results.forum_topics %}
+                <a href="#sec-forum"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-gray-700 dark:text-gray-200 hover:border-brand-500 hover:text-brand-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                    {% trans "Forum" %}
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ results.forum_topics|length }}</span>
+                </a>
+                {% endif %}
+            </nav>
+        {% endif %}
+
+        {% if query and total_results == 0 %}
+            <!-- No Results — show a useful fallback rather than a dead end -->
+            <div class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200 dark:border-dark-border p-8 md:p-12 mb-12">
+                <div class="text-center max-w-2xl mx-auto">
+                    <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">{% trans "No results found" %}</h3>
-                    <p class="text-gray-600 mb-6">{% trans "Try different keywords or check your spelling." %}</p>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        {% blocktrans %}We couldn't find anything for "{{ query }}"{% endblocktrans %}
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">
+                        {% trans "Try a shorter keyword, check spelling, or browse popular categories below." %}
+                    </p>
+                    <a href="{% url 'catalog:category_list' %}"
+                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors">
+                        {% trans "Browse all categories" %}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
                 </div>
-            {% else %}
-                <!-- Test Banks Results -->
-                {% if results.test_banks %}
-                <section class="mb-12">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        {% trans "Test Banks" %}
-                        <span class="ml-2 text-base font-normal text-gray-500">({{ results.test_banks|length }})</span>
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {% for test_bank in results.test_banks %}
-                        <a href="{% url 'catalog:testbank_detail' slug=test_bank.slug %}" 
-                           class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden group">
-                            {% if test_bank.image %}
-                            <div class="h-48 overflow-hidden">
-                                <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            </div>
-                            {% endif %}
-                            <div class="p-6">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-brand-500 transition-colors line-clamp-2">
-                                    {{ test_bank.title }}
-                                </h3>
-                                {% if test_bank.description %}
-                                <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ test_bank.description|truncatewords:20 }}</p>
-                                {% endif %}
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        {% if test_bank.average_rating %}
-                                        <div class="flex items-center">
-                                            <span class="text-yellow-400 mr-1">★</span>
-                                            <span class="text-sm font-medium text-gray-700">{{ test_bank.average_rating|floatformat:1 }}</span>
-                                            <span class="text-sm text-gray-500 ml-1">({{ test_bank.total_ratings }})</span>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    {% if test_bank.price == 0 %}
-                                    <span class="text-sm font-semibold text-green-600">{% trans "Free" %}</span>
-                                    {% else %}
-                                    <span class="text-sm font-semibold text-brand-500">{{ test_bank.price }} SAR</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </section>
-                {% endif %}
+            </div>
+        {% endif %}
 
-                <!-- Categories Results -->
-                {% if results.categories %}
-                <section class="mb-12">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        {% trans "Categories" %}
-                        <span class="ml-2 text-base font-normal text-gray-500">({{ results.categories|length }})</span>
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {% for category in results.categories %}
-                        <a href="{% url 'catalog:category_detail' category_slug=category.slug %}" 
-                           class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden group p-6">
-                            {% if category.image %}
-                            <div class="h-32 overflow-hidden mb-4 rounded-lg">
-                                <img src="{{ category.image.url }}" alt="{{ category.name }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            </div>
-                            {% endif %}
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-brand-500 transition-colors">
-                                {{ category.name }}
-                            </h3>
-                            {% if category.description %}
-                            <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ category.description|truncatewords:15 }}</p>
-                            {% endif %}
-                            <p class="text-sm text-gray-500">
-                                {{ category.test_bank_count }} {% trans "test bank" %}{{ category.test_bank_count|pluralize }}
-                            </p>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </section>
-                {% endif %}
-
-                <!-- Blog Posts Results -->
-                {% if results.blog_posts %}
-                <section class="mb-12">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                        </svg>
-                        {% trans "Blog Posts" %}
-                        <span class="ml-2 text-base font-normal text-gray-500">({{ results.blog_posts|length }})</span>
-                    </h2>
-                    <div class="space-y-6">
-                        {% for post in results.blog_posts %}
-                        <a href="{% url 'cms:blog_detail' slug=post.slug %}" 
-                           class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden group flex flex-col md:flex-row">
-                            {% if post.featured_image %}
-                            <div class="md:w-64 h-48 md:h-auto overflow-hidden flex-shrink-0">
-                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            </div>
-                            {% endif %}
-                            <div class="p-6 flex-1">
-                                <h3 class="text-xl font-semibold text-gray-900 mb-2 group-hover:text-brand-500 transition-colors">
-                                    {{ post.title }}
-                                </h3>
-                                {% if post.excerpt %}
-                                <p class="text-gray-600 mb-4 line-clamp-2">{{ post.excerpt|truncatewords:30 }}</p>
-                                {% endif %}
-                                <div class="flex items-center text-sm text-gray-500">
-                                    {% if post.author %}
-                                    <span class="mr-4">{{ post.author.get_full_name|default:post.author.username }}</span>
-                                    {% endif %}
-                                    {% if post.published_at %}
-                                    <span>{{ post.published_at|date:"M d, Y" }}</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </section>
-                {% endif %}
-
-                <!-- Forum Topics Results -->
-                {% if results.forum_topics %}
-                <section class="mb-12">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        {% trans "Forum Topics" %}
-                        <span class="ml-2 text-base font-normal text-gray-500">({{ results.forum_topics|length }})</span>
-                    </h2>
-                    <div class="space-y-4">
-                        {% for topic in results.forum_topics %}
-                        {% if topic.category %}
-                        <a href="{% url 'forum:topic_detail' category_slug=topic.category.slug topic_slug=topic.slug %}" 
-                           class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow p-6 block group">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-brand-500 transition-colors">
-                                        {{ topic.title }}
-                                    </h3>
-                                    <span class="inline-block px-3 py-1 text-xs font-medium bg-brand-500/10 text-brand-500 rounded-full mb-3">
-                                        {{ topic.category.name }}
-                                    </span>
-                                    <div class="flex items-center text-sm text-gray-500">
-                                        {% if topic.author %}
-                                        <span class="mr-4">{{ topic.author.get_full_name|default:topic.author.username }}</span>
-                                        {% endif %}
-                                        {% if topic.created_at %}
-                                        <span>{{ topic.created_at|date:"M d, Y" }}</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% if topic.is_pinned %}
-                                <svg class="w-5 h-5 text-yellow-500 ml-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M5.5 17.5a.5.5 0 01-1 0v-2.086l-.293.293a.5.5 0 01-.707-.707l1-1a.5.5 0 01.707 0l1 1a.5.5 0 01-.707.707L5.5 15.414V17.5zm9-2.086l-.293.293a.5.5 0 01-.707-.707l1-1a.5.5 0 01.707 0l1 1a.5.5 0 01-.707.707L14.5 15.414V17.5a.5.5 0 01-1 0v-2.086zM3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                                </svg>
-                                {% endif %}
-                            </div>
-                        </a>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </section>
-                {% endif %}
+        {% if query and total_results > 0 %}
+            <!-- Test Banks Results — reuse the homepage card so users see the same
+                 difficulty stripe, organization eyebrow, rating, price, and CTA. -->
+            {% if results.test_banks %}
+            <section id="sec-test-banks" class="mb-12 scroll-mt-24">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                    <svg class="w-6 h-6 me-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {% trans "Test Banks" %}
+                    <span class="ms-2 text-base font-normal text-gray-500 dark:text-gray-400">({{ results.test_banks|length }})</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for test_bank in results.test_banks %}
+                        {% include 'includes/_testbank_card.html' with test_bank=test_bank %}
+                    {% endfor %}
+                </div>
+            </section>
             {% endif %}
+
+            <!-- Categories Results -->
+            {% if results.categories %}
+            <section id="sec-categories" class="mb-12 scroll-mt-24">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                    <svg class="w-6 h-6 me-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    {% trans "Categories" %}
+                    <span class="ms-2 text-base font-normal text-gray-500 dark:text-gray-400">({{ results.categories|length }})</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for category in results.categories %}
+                    <a href="{% url 'catalog:category_detail' category_slug=category.slug %}"
+                       class="bg-white dark:bg-dark-surface rounded-xl shadow-sm border border-gray-200 dark:border-dark-border hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden group p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-brand-500 transition-colors">
+                            {{ category.name }}
+                        </h3>
+                        {% if category.description %}
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{{ category.description|truncatewords:15 }}</p>
+                        {% endif %}
+                        <p class="text-sm text-gray-500 dark:text-gray-500">
+                            {% blocktrans count n=category.test_bank_count %}{{ n }} test bank{% plural %}{{ n }} test banks{% endblocktrans %}
+                        </p>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Blog Posts Results -->
+            {% if results.blog_posts %}
+            <section id="sec-blog" class="mb-12 scroll-mt-24">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                    <svg class="w-6 h-6 me-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                    {% trans "Blog Posts" %}
+                    <span class="ms-2 text-base font-normal text-gray-500 dark:text-gray-400">({{ results.blog_posts|length }})</span>
+                </h2>
+                <div class="space-y-6">
+                    {% for post in results.blog_posts %}
+                    <a href="{% url 'cms:blog_detail' slug=post.slug %}"
+                       class="bg-white dark:bg-dark-surface rounded-xl shadow-sm border border-gray-200 dark:border-dark-border hover:shadow-md transition-shadow overflow-hidden group flex flex-col md:flex-row">
+                        {% if post.featured_image %}
+                        <div class="md:w-64 h-48 md:h-auto overflow-hidden flex-shrink-0">
+                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                        {% endif %}
+                        <div class="p-6 flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-brand-500 transition-colors">
+                                {{ post.title }}
+                            </h3>
+                            {% if post.excerpt %}
+                            <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{{ post.excerpt|truncatewords:30 }}</p>
+                            {% endif %}
+                            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                {% if post.author %}
+                                <span class="me-4">{{ post.author.get_full_name|default:post.author.username }}</span>
+                                {% endif %}
+                                {% if post.published_at %}
+                                <span>{{ post.published_at|date:"M d, Y" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Forum Topics Results -->
+            {% if results.forum_topics %}
+            <section id="sec-forum" class="mb-12 scroll-mt-24">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                    <svg class="w-6 h-6 me-2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    {% trans "Forum Topics" %}
+                    <span class="ms-2 text-base font-normal text-gray-500 dark:text-gray-400">({{ results.forum_topics|length }})</span>
+                </h2>
+                <div class="space-y-4">
+                    {% for topic in results.forum_topics %}
+                    {% if topic.category %}
+                    <a href="{% url 'forum:topic_detail' category_slug=topic.category.slug topic_slug=topic.slug %}"
+                       class="bg-white dark:bg-dark-surface rounded-xl shadow-sm border border-gray-200 dark:border-dark-border hover:shadow-md transition-shadow p-6 block group">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-brand-500 transition-colors">
+                                    {{ topic.title }}
+                                </h3>
+                                <span class="inline-block px-3 py-1 text-xs font-medium bg-brand-500/10 text-brand-500 rounded-full mb-3">
+                                    {{ topic.category.name }}
+                                </span>
+                                <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                    {% if topic.author %}
+                                    <span class="me-4">{{ topic.author.get_full_name|default:topic.author.username }}</span>
+                                    {% endif %}
+                                    {% if topic.created_at %}
+                                    <span>{{ topic.created_at|date:"M d, Y" }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        {% endif %}
+
+        {% comment %}
+        Browse popular categories — surfaced both on the empty/no-query
+        landing and on the zero-result state so users always have a way
+        forward instead of dead-ending.
+        {% endcomment %}
+        {% if popular_categories and not results.test_banks %}
+        <section class="mt-2">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                {% trans "Popular categories" %}
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {% for category in popular_categories %}
+                <a href="{% url 'catalog:category_detail' category_slug=category.slug %}"
+                   class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-dark-border p-4 hover:border-brand-500 hover:shadow-sm transition-all group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-500 transition-colors line-clamp-2">
+                        {{ category.name }}
+                    </h3>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        {% blocktrans count n=category.test_bank_count %}{{ n }} test bank{% plural %}{{ n }} test banks{% endblocktrans %}
+                    </p>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
         {% endif %}
     </div>
 </div>
 {% endblock %}
-
