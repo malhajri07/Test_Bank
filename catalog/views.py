@@ -1074,13 +1074,18 @@ def search(request):
         })
     
     try:
-        # Search TestBanks
+        # Search TestBanks. Mirror the homepage policy: hide empty banks
+        # so search never surfaces a "0 questions" card alongside real
+        # results; that erodes trust in the search experience itself.
+        # Cap raised to 24 so power users with broad queries don't have
+        # legitimate matches silently truncated at 10.
         test_banks = TestBank.objects.filter(
             Q(title__icontains=query) | Q(description__icontains=query),
             is_active=True
         ).select_related('category', 'certification').annotate(
-            user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True))
-        ).order_by('-user_count', '-average_rating')[:10]
+            user_count=Count('user_accesses', filter=Q(user_accesses__is_active=True)),
+            active_question_count=Count('questions', filter=Q(questions__is_active=True), distinct=True),
+        ).filter(active_question_count__gt=0).order_by('-user_count', '-average_rating')[:24]
         results['test_banks'] = list(test_banks)
         
         # Search Categories
