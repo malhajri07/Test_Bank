@@ -119,32 +119,32 @@
 {% endif %}
 
 <script>
+// Below-fold swiper — only spin up Swiper once the section is near the
+// viewport so the homepage LCP and INP aren't taxed by JS work the user
+// can't see yet. Falls back to eager init when IntersectionObserver is
+// unavailable (older browsers, headless renderers).
 document.addEventListener('DOMContentLoaded', function() {
-    const testimonialsSwiper = new Swiper('.testimonials-swiper', {
+    const el = document.querySelector('.testimonials-swiper');
+    if (!el) return;
+    const init = () => new Swiper(el, {
         slidesPerView: 1,
         spaceBetween: 24,
         loop: true,
-        autoplay: {
-            delay: 5000,
-            disableOnInteraction: false,
-        },
-        navigation: {
-            nextEl: '.testimonials-next',
-            prevEl: '.testimonials-prev',
-        },
-        pagination: {
-            el: '.testimonials-pagination',
-            clickable: true,
-        },
+        autoplay: { delay: 5000, disableOnInteraction: false },
+        navigation: { nextEl: '.testimonials-next', prevEl: '.testimonials-prev' },
+        pagination: { el: '.testimonials-pagination', clickable: true },
         breakpoints: {
-            768: {
-                slidesPerView: 2,
-            },
-            1024: {
-                slidesPerView: 3,
-            },
+            768: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
         },
     });
+    if (!('IntersectionObserver' in window)) { init(); return; }
+    const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) { init(); obs.unobserve(e.target); }
+        });
+    }, { rootMargin: '200px' });
+    io.observe(el);
 });
 </script>
 

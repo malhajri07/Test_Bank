@@ -361,12 +361,16 @@
     </section>
 
     <script>
+    // Lazy-init category-rail swipers. There can be 6+ rails on the homepage
+    // and each Swiper instance does layout work; eagerly initialising every
+    // rail on DOMContentLoaded was a measurable INP hit. Wait until each
+    // rail is near the viewport via IntersectionObserver, then mount.
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.category-rail-swiper').forEach(function (el) {
+        const initRail = function (el) {
             // Arrows live in the section header now, not inside the swiper. Look
             // them up from the closest [data-rail] wrapper so each rail wires
             // its own buttons.
-            var rail = el.closest('[data-rail]') || el.parentElement;
+            const rail = el.closest('[data-rail]') || el.parentElement;
             new Swiper(el, {
                 slidesPerView: 1.1,
                 spaceBetween: 16,
@@ -387,7 +391,18 @@
                     1280: { slidesPerView: 4, spaceBetween: 24 },
                 },
             });
-        });
+        };
+        const rails = document.querySelectorAll('.category-rail-swiper');
+        if (!('IntersectionObserver' in window)) {
+            rails.forEach(initRail);
+            return;
+        }
+        const io = new IntersectionObserver(function (entries, obs) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { initRail(e.target); obs.unobserve(e.target); }
+            });
+        }, { rootMargin: '200px' });
+        rails.forEach(function (el) { io.observe(el); });
     });
     </script>
 
