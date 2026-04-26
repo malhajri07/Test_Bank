@@ -3,7 +3,6 @@
 
 {% block title %}{{ test_bank.title }} — {% trans "Practice Exam Questions" %} | Exam Stellar{% endblock %}
 {% block meta_description %}{{ test_bank.description|truncatewords:30|striptags }} Practice {{ question_count }} exam questions for {{ test_bank.title }}. Track your progress and ace your certification.{% endblock %}
-{% block meta_keywords %}{{ test_bank.title }}, practice exam, test bank, {{ test_bank.certification.name|default:"certification" }}, exam questions, mock test{% endblock %}
 {% block og_type %}product{% endblock %}
 {% block og_title %}{{ test_bank.title }} — {{ question_count }} Practice Questions{% endblock %}
 {% block og_description %}Practice {{ question_count }} real exam-style questions for {{ test_bank.title }}. Detailed explanations, progress tracking, and performance analytics.{% endblock %}
@@ -11,6 +10,17 @@
 {% block twitter_description %}Practice {{ question_count }} real exam-style questions for {{ test_bank.title }}. Detailed explanations, progress tracking, and performance analytics.{% endblock %}
 
 {% block structured_data %}
+{% comment %}
+Three blocks of structured data so search engines can render rich results:
+  1. Product — pulls price + offers + aggregateRating (powers star snippets).
+  2. Course — labels each test bank as exam-prep coursework so it can land
+     in the Course rich result UI (same provider, broader query targeting).
+  3. BreadcrumbList — already shipped pre-audit; kept as-is.
+  4. Review (per top review) — earns review snippets in addition to stars.
+The previous template referenced avg_rating / rating_count which the view
+never passed, so aggregateRating never rendered. Source from the model
+fields directly (TestBank.average_rating + total_ratings) so it works.
+{% endcomment %}
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
@@ -28,15 +38,52 @@
         "price": "{{ test_bank.price }}",
         "priceCurrency": "SAR",
         "availability": "https://schema.org/InStock",
+        "url": "https://examstellar.com{% url 'catalog:testbank_detail' slug=test_bank.slug %}",
         "seller": {
             "@type": "Organization",
             "name": "Exam Stellar"
         }
-    }{% if avg_rating %},
+    }{% if test_bank.total_ratings and test_bank.average_rating %},
     "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": "{{ avg_rating }}",
-        "reviewCount": "{{ rating_count }}",
+        "ratingValue": "{{ test_bank.average_rating|floatformat:1 }}",
+        "reviewCount": "{{ test_bank.total_ratings }}",
+        "bestRating": "5",
+        "worstRating": "1"
+    }{% endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "name": "{{ test_bank.title|escapejs }}",
+    "description": "{{ test_bank.description|truncatewords:50|striptags|escapejs }}",
+    "url": "https://examstellar.com{% url 'catalog:testbank_detail' slug=test_bank.slug %}",
+    "provider": {
+        "@type": "Organization",
+        "name": "Exam Stellar",
+        "sameAs": "https://examstellar.com"
+    },
+    "educationalLevel": "{{ test_bank.get_difficulty_level_display|escapejs }}",
+    "about": "{{ test_bank.certification.name|default:test_bank.category.name|escapejs }}",
+    "inLanguage": "en",
+    "hasCourseInstance": {
+        "@type": "CourseInstance",
+        "courseMode": "Online",
+        "courseWorkload": "PT{{ test_bank.time_limit_minutes|default:'60' }}M"
+    },
+    "offers": {
+        "@type": "Offer",
+        "price": "{{ test_bank.price }}",
+        "priceCurrency": "SAR",
+        "availability": "https://schema.org/InStock",
+        "category": "Paid"
+    }{% if test_bank.total_ratings and test_bank.average_rating %},
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ test_bank.average_rating|floatformat:1 }}",
+        "reviewCount": "{{ test_bank.total_ratings }}",
         "bestRating": "5",
         "worstRating": "1"
     }{% endif %}
@@ -55,6 +102,32 @@
     ]
 }
 </script>
+{% for review in reviews %}{% if review.review and forloop.counter <= 5 %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Review",
+    "itemReviewed": {
+        "@type": "Product",
+        "name": "{{ test_bank.title|escapejs }}",
+        "url": "https://examstellar.com{% url 'catalog:testbank_detail' slug=test_bank.slug %}"
+    },
+    "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.rating }}",
+        "bestRating": "5",
+        "worstRating": "1"
+    },
+    "author": {
+        "@type": "Person",
+        "name": "{{ review.user.get_full_name|default:review.user.username|escapejs }}"
+    },
+    "datePublished": "{{ review.created_at|date:'c' }}"{% if review.title %},
+    "name": "{{ review.title|escapejs }}"{% endif %},
+    "reviewBody": "{{ review.review|striptags|escapejs }}"
+}
+</script>
+{% endif %}{% endfor %}
 {% endblock %}
 
 {% block content %}

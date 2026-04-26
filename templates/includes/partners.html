@@ -99,12 +99,19 @@
     transition: opacity 0.2s, transform 0.2s, color 0.2s;
     text-decoration: none;
 }
-.partner-marquee__item:hover,
+.partner-marquee__item:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+    color: #5624d0;
+}
+/* Keyboard focus must remain visible — pair the hover treatment with a
+   distinct focus ring so keyboard users have an obvious affordance. */
 .partner-marquee__item:focus-visible {
     opacity: 1;
     transform: translateY(-1px);
     color: #5624d0;
-    outline: none;
+    outline: 2px solid #5624d0;
+    outline-offset: 2px;
 }
 .partner-marquee__item img {
     max-height: 2.5rem;
