@@ -13,46 +13,140 @@
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "{{ SITE_DOMAIN }}/#webpage",
+    "url": "{{ SITE_DOMAIN }}/",
+    "name": "{% trans 'Exam Stellar — Practice Exams for PMP, CompTIA, AWS, Microsoft & More' %}",
+    "description": "{% blocktrans with q=total_questions c=total_certifications %}Practice {{ q }}+ exam-style questions across {{ c }}+ certifications with detailed explanations on every answer.{% endblocktrans %}",
+    "inLanguage": "{{ USER_LANGUAGE_CODE|default:'en' }}",
+    "isPartOf": {"@id": "{{ SITE_DOMAIN }}/#website"},
+    "about": {"@id": "{{ SITE_DOMAIN }}/#organization"},
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "{{ SITE_DOMAIN }}{% static 'images/og-default.png' %}",
+        "width": 1200,
+        "height": 630
+    },
+    "datePublished": "2024-01-01",
+    "dateModified": "{% now 'c' %}",
+    "breadcrumb": {"@id": "{{ SITE_DOMAIN }}/#breadcrumb"}
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": "{{ SITE_DOMAIN }}/#breadcrumb",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "{% trans 'Home' %}",
+            "item": "{{ SITE_DOMAIN }}/"
+        }
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
     "@type": "FAQPage",
+    "@id": "{{ SITE_DOMAIN }}/#faq",
     "mainEntity": [
         {
             "@type": "Question",
             "name": "What is Exam Stellar?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Exam Stellar is an online exam preparation platform offering practice test banks for professional certifications including PMP, CompTIA, AWS, Microsoft, and more. It features thousands of exam-style questions with detailed analytics and progress tracking."
+                "text": "Exam Stellar is an online exam preparation platform that offers practice test banks for professional certifications including PMP, CompTIA, AWS, Azure, CISSP, Cisco CCNA/CCNP, and many more. Each test bank provides thousands of exam-style questions with detailed explanations, performance analytics, and progress tracking so you can identify weak areas and walk into the real exam with confidence."
             }
         },
         {
             "@type": "Question",
-            "name": "How many practice questions are available?",
+            "name": "How many practice questions are available on Exam Stellar?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Exam Stellar offers {{ total_questions }}+ practice questions across {{ total_certifications }}+ certifications, covering professional, vocational, and academic exams."
+                "text": "Exam Stellar currently offers {{ total_questions }}+ practice questions across {{ total_certifications }}+ certifications, covering IT, project management, cybersecurity, networking, cloud, business, healthcare, vocational, and academic exams. New banks are added every week."
             }
         },
         {
             "@type": "Question",
-            "name": "What certifications does Exam Stellar cover?",
+            "name": "Which certifications does Exam Stellar cover?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Exam Stellar covers a wide range of certifications including PMP, CompTIA (A+, Network+, Security+), Microsoft, business strategy, and vocational certifications. New exam banks are added regularly."
+                "text": "Exam Stellar covers PMP, CAPM, PMI-ACP, CompTIA (A+, Network+, Security+, CySA+, PenTest+, CASP+), AWS (CCP, SAA, DVA, SOA, MLS, ANS), Microsoft Azure (AZ-104, AZ-204, AZ-305, AZ-700), CISSP, CISM, CISA, CRISC, CC, SSCP, CCSP, CEH, CHFI, OSCP, Cisco CCNA, CCNP Enterprise, JNCIA-Junos, CCSK, ITIL 4, Six Sigma, and many more. Most certifications include three difficulty tiers (easy, medium, advanced)."
             }
         },
         {
             "@type": "Question",
-            "name": "What payment methods are accepted?",
+            "name": "Are Exam Stellar practice questions similar to the real exam?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Exam Stellar accepts Mada, Visa, Mastercard, American Express, STC Pay, Apple Pay, URPay, Tamara, and Tabby through the Paylink payment gateway."
+                "text": "Yes. Each test bank is built around the official exam blueprint and the question style your certification body actually uses — scenario-based stems for professional exams, code or command-line snippets for technical exams, and case-study format for management exams. Every answer includes a detailed explanation of why the correct option is right and why the distractors are wrong."
             }
         },
         {
             "@type": "Question",
-            "name": "Do I get a certificate after completing a practice exam?",
+            "name": "How is the difficulty tier organized?",
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Yes, you earn a completion certificate when you pass a practice exam with a score of 70% or higher. Certificates can be viewed from your dashboard."
+                "text": "Each certification has three test banks: Easy (foundation knowledge — definitions, concepts, terminology), Medium (applied scenarios and decision-making), and Advanced (multi-step problem solving with the kind of nuanced distractors that appear on the real exam). Easy explanations stay short and crisp; Advanced explanations go deep with the underlying reasoning."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What payment methods does Exam Stellar accept?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Exam Stellar accepts Mada, Visa, Mastercard, American Express, STC Pay, Apple Pay, urpay, Tamara, and Tabby through the Paylink payment gateway. Saudi Riyal (SAR) is the default currency; all transactions are PCI-DSS compliant and processed under TLS 1.2+."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Do I get a completion certificate after passing a practice exam?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. After you pass a practice exam with a score of 70% or higher, Exam Stellar issues a digital completion certificate viewable from your dashboard. The certificate is verifiable via a unique URL and can be shared on LinkedIn or downloaded as PDF."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Can I retake practice exams?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Once you purchase a test bank you can retake it unlimited times. Each session shuffles questions and answer order, so subsequent attempts test recall rather than memorization. Your latest score and historical attempts are tracked in your dashboard."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Do questions come with detailed explanations?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Every single question — across every difficulty tier — ships with an explanation. Easy questions get concise 100–200-character explanations focused on the core concept. Medium questions include the why behind the answer and short trade-offs. Advanced questions get 400–550-character explanations covering the reasoning, why the distractors are tempting but wrong, and any operational best-practice context."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is there a free trial or sample test bank?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Many certifications include a free Easy-tier preview test bank so you can evaluate question style and explanation depth before purchasing the Medium or Advanced bank. Look for the green Free badge on the certification page."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the refund policy?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Exam Stellar offers a refund-friendly policy. If a purchased test bank does not meet your expectations and you have not consumed more than 20% of its questions, contact info@examstellar.com within 14 days for a refund. Full terms are published on the Refund Policy page."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Does Exam Stellar work on mobile?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Exam Stellar is a responsive web application that works on any modern phone, tablet, or laptop. Practice sessions remember your progress, so you can start a session on your phone during a commute and finish it on your laptop later."
             }
         }
     ]
@@ -83,6 +177,7 @@
                     <div class="relative w-full h-full overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700">
                         {% if slide.background_image %}
                         <img src="{{ slide.background_image.url }}" alt=""
+                             {% if forloop.first %}fetchpriority="high" decoding="async"{% else %}loading="lazy" decoding="async"{% endif %}
                              class="absolute inset-0 w-full h-full object-cover object-center"
                              onerror="this.remove()" aria-hidden="true">
                         {% endif %}

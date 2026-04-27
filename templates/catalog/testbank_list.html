@@ -1,7 +1,53 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ category.name }} - {% trans "Exam Stellar" %}{% endblock %}
+{% block title %}{{ category.name }} - {% trans "Practice Exam Banks" %} | Exam Stellar{% endblock %}
+{% block meta_description %}{% blocktrans with c=category.name %}Practice exam banks for {{ c }} certifications. Exam-style questions with detailed explanations across easy, medium, and advanced difficulty tiers.{% endblocktrans %}{% endblock %}
+
+{% block structured_data %}
+{% if certification %}
+    {% url 'catalog:testbank_list_certification' category_slug=category.slug certification_slug=certification.slug as page_url %}
+{% else %}
+    {% url 'catalog:testbank_list' category_slug=category.slug as page_url %}
+{% endif %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": "{{ SITE_DOMAIN }}{{ page_url }}#collection",
+    "url": "{{ SITE_DOMAIN }}{{ page_url }}",
+    "name": "{{ category.name }} {% trans 'Practice Exam Banks' %}",
+    "description": "{{ category.description|default:category.name|striptags|truncatechars:200 }}",
+    "isPartOf": {"@id": "{{ SITE_DOMAIN }}/#website"},
+    "about": "{{ category.name|escapejs }}",
+    "inLanguage": "{{ USER_LANGUAGE_CODE|default:'en' }}",
+    "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "{% trans 'Home' %}", "item": "{{ SITE_DOMAIN }}/"},
+            {"@type": "ListItem", "position": 2, "name": "{% trans 'Categories' %}", "item": "{{ SITE_DOMAIN }}{% url 'catalog:category_list' %}"},
+            {"@type": "ListItem", "position": 3, "name": "{{ category.name|escapejs }}", "item": "{{ SITE_DOMAIN }}{{ page_url }}"}
+        ]
+    }
+    {% if test_banks %},
+    "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": {{ test_banks|length }},
+        "itemListElement": [
+        {% for tb in test_banks|slice:':30' %}
+            {
+                "@type": "ListItem",
+                "position": {{ forloop.counter }},
+                "url": "{{ SITE_DOMAIN }}{% url 'catalog:testbank_detail' slug=tb.slug %}",
+                "name": "{{ tb.title|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        ]
+    }
+    {% endif %}
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="page">
@@ -30,14 +76,14 @@
 <div class="bg-gradient-to-r from-[#e28f64] to-[#df804f] text-white relative overflow-hidden">
     {% if category.image %}
     <div class="absolute inset-0 opacity-20">
-        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
+        <img src="{{ category.image.url }}" alt="" aria-hidden="true" decoding="async" fetchpriority="high" class="w-full h-full object-cover">
     </div>
     {% endif %}
     <div class="page__inner py-12 md:py-16 relative z-10">
         <div class="flex items-center gap-6 flex-wrap">
             {% if category.image %}
             <div class="flex-shrink-0">
-                <img src="{{ category.image.url }}" alt="{{ category.name }}"
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" decoding="async" fetchpriority="high"
                     class="w-32 h-32 rounded-3xl object-cover shadow-2xl border-4 border-white/30">
             </div>
             {% endif %}
@@ -68,7 +114,7 @@
                 <!-- Test Bank Image - Udemy Style -->
                 {% if test_bank.image %}
                 <div class="h-40 bg-gray-200 relative overflow-hidden">
-                    <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }}" class="w-full h-full object-cover">
+                    <img src="{{ test_bank.image.url }}" alt="{{ test_bank.title }} cover" loading="lazy" decoding="async" class="w-full h-full object-cover">
                     <!-- Difficulty Label -->
                     <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded shadow-sm backdrop-blur-sm z-20
                         {% if test_bank.difficulty_level == 'easy' %}bg-green-100/90 text-green-700 border border-green-200

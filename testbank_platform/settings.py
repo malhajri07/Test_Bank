@@ -35,6 +35,22 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# Canonical site URL — used in sitemaps, robots.txt, JSON-LD, OpenGraph,
+# canonical <link> tags, and absolute-URL emails. Override per-environment
+# via the SITE_DOMAIN env var. NEVER include a trailing slash.
+SITE_DOMAIN = config('SITE_DOMAIN', default='https://www.examstellar.com').rstrip('/')
+
+# Search engine verification tokens (set via env to claim properties).
+# Leave empty in dev — base.html only renders meta tags when populated.
+GOOGLE_SITE_VERIFICATION = config('GOOGLE_SITE_VERIFICATION', default='')
+BING_SITE_VERIFICATION = config('BING_SITE_VERIFICATION', default='')
+YANDEX_SITE_VERIFICATION = config('YANDEX_SITE_VERIFICATION', default='')
+
+# IndexNow — push-based indexing for Bing, Yandex, Naver, Seznam, and
+# (eventually) Google. Generate a 32-char hex key and serve it from
+# /<key>.txt for ownership verification. See indexnow.py.
+INDEXNOW_KEY = config('INDEXNOW_KEY', default='')
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -103,6 +119,7 @@ TEMPLATES = [
                 "accounts.context_processors.user_language",
                 "cms.context_processors.cms_content",  # CMS content (announcements, pages)
                 "catalog.context_processors.categories",  # Categories for navigation
+                "catalog.context_processors.seo",  # SITE_DOMAIN + verification tokens
                 "payments.context_processors.cart",  # Cart count badge in nav
             ],
         },

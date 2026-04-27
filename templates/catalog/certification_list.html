@@ -1,7 +1,34 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ certification.name }} - {% trans "Exam Stellar" %}{% endblock %}
+{% block title %}{{ certification.name }} {% trans "Practice Exam" %} | Exam Stellar{% endblock %}
+{% block meta_description %}{% blocktrans with n=certification.name %}Practice {{ n }} exam-style questions with detailed explanations across easy, medium, and advanced difficulty tiers. Pass {{ n }} on the first try.{% endblocktrans %}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "@id": "{{ SITE_DOMAIN }}{{ request.path }}#course",
+    "url": "{{ SITE_DOMAIN }}{{ request.path }}",
+    "name": "{{ certification.name|escapejs }} {% trans 'Practice Exam' %}",
+    "description": "{% blocktrans with n=certification.name %}Practice {{ n }} exam questions across easy, medium, and advanced difficulty tiers with detailed explanations.{% endblocktrans %}",
+    "provider": {"@id": "{{ SITE_DOMAIN }}/#organization"},
+    "educationalLevel": "Professional certification",
+    "inLanguage": "{{ USER_LANGUAGE_CODE|default:'en' }}",
+    "about": "{{ certification.name|escapejs }}",
+    "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "{% trans 'Home' %}", "item": "{{ SITE_DOMAIN }}/"},
+            {"@type": "ListItem", "position": 2, "name": "{% trans 'Categories' %}", "item": "{{ SITE_DOMAIN }}{% url 'catalog:category_list' %}"},
+            {"@type": "ListItem", "position": 3, "name": "{{ certification.category.name|escapejs }}", "item": "{{ SITE_DOMAIN }}{% url 'catalog:category_detail' category_slug=certification.category.slug %}"},
+            {"@type": "ListItem", "position": 4, "name": "{{ certification.name|escapejs }}", "item": "{{ SITE_DOMAIN }}{{ request.path }}"}
+        ]
+    }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="page">

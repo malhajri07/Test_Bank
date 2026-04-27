@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Something went wrong" %} — Exam Stellar{% endblock %}
+{% block meta_description %}{% trans "An unexpected error occurred. Please try again, or visit the homepage to continue browsing certifications on Exam Stellar." %}{% endblock %}
+{% block robots %}noindex, follow{% endblock %}
+
+{% block content %}
+<main id="main-content" class="page min-h-[70vh] flex items-center">
+    <div class="page__inner max-w-3xl text-center py-16">
+        <p class="text-sm font-semibold uppercase tracking-wider text-rose-500 mb-4">{% trans "Error 500" %}</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-4">
+            {% trans "Something went wrong on our end." %}
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-xl mx-auto">
+            {% trans "Our team has been automatically notified and we're looking into it. In the meantime, here's what you can do:" %}
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-3">
+            <a href="{% url 'catalog:index' %}"
+               class="inline-flex items-center justify-center rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-3 shadow-sm transition-colors">
+                {% trans "Go to homepage" %}
+            </a>
+            <a href="{% url 'catalog:contact' %}"
+               class="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface hover:bg-gray-50 dark:hover:bg-dark-surface-hover text-gray-900 dark:text-gray-100 font-semibold px-6 py-3 transition-colors">
+                {% trans "Contact support" %}
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

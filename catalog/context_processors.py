@@ -4,9 +4,25 @@ Context processors for catalog app.
 Makes catalog data available globally across all templates.
 """
 
+from django.conf import settings
 from django.db.models import Count, Prefetch, Q
 
 from .models import Category, Certification, TestBank
+
+
+def seo(request):
+    """SEO globals: canonical site URL and search-engine verification tokens.
+
+    Exposed in every template so meta tags, OpenGraph URLs, and JSON-LD
+    'url' fields can be built from a single source of truth (SITE_DOMAIN).
+    Avoids hard-coding 'examstellar.com' in templates.
+    """
+    return {
+        'SITE_DOMAIN': getattr(settings, 'SITE_DOMAIN', 'https://www.examstellar.com').rstrip('/'),
+        'GOOGLE_SITE_VERIFICATION': getattr(settings, 'GOOGLE_SITE_VERIFICATION', ''),
+        'BING_SITE_VERIFICATION': getattr(settings, 'BING_SITE_VERIFICATION', ''),
+        'YANDEX_SITE_VERIFICATION': getattr(settings, 'YANDEX_SITE_VERIFICATION', ''),
+    }
 
 
 def categories(request):

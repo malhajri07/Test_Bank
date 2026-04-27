@@ -184,6 +184,7 @@ discover the underlying content.
                         {% if post.featured_image %}
                         <div class="md:w-64 h-48 md:h-auto overflow-hidden flex-shrink-0">
                             <img src="{{ post.featured_image.url }}" alt="{{ post.title }}"
+                                 loading="lazy" decoding="async"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         </div>
                         {% endif %}

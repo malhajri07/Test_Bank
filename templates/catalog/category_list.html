@@ -13,11 +13,14 @@
     "@type": "CollectionPage",
     "name": "Certification Exam Banks",
     "description": "Browse all certification exam preparation test banks on Exam Stellar.",
-    "url": "https://examstellar.com{% url 'catalog:category_list' %}",
-    "isPartOf": {
-        "@type": "WebSite",
-        "name": "Exam Stellar",
-        "url": "https://examstellar.com"
+    "url": "{{ SITE_DOMAIN }}{% url 'catalog:category_list' %}",
+    "isPartOf": {"@id": "{{ SITE_DOMAIN }}/#website"},
+    "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "{% trans 'Home' %}", "item": "{{ SITE_DOMAIN }}/"},
+            {"@type": "ListItem", "position": 2, "name": "{% trans 'Categories' %}", "item": "{{ SITE_DOMAIN }}{% url 'catalog:category_list' %}"}
+        ]
     }
 }
 </script>

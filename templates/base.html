@@ -13,9 +13,21 @@
     <!-- SEO -->
     <title>{% block title %}{% trans "Exam Stellar — Practice Exams & Certification Test Banks" %}{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}{% trans "Ace your certification exams with Exam Stellar. Practice with thousands of real exam-style questions for PMP, CompTIA, Microsoft, and more. Track progress, get certified." %}{% endblock %}">
-    <link rel="canonical" href="{% block canonical_url %}https://examstellar.com{{ request.path }}{% endblock %}">
-    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}{{ SITE_DOMAIN }}{{ request.path }}{% endblock %}">
+    <meta name="robots" content="{% block robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
     <meta name="author" content="Exam Stellar">
+    <meta name="publisher" content="Exam Stellar">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    {# Search engine ownership verification — only emitted when token is set in env. #}
+    {% if GOOGLE_SITE_VERIFICATION %}<meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}">{% endif %}
+    {% if BING_SITE_VERIFICATION %}<meta name="msvalidate.01" content="{{ BING_SITE_VERIFICATION }}">{% endif %}
+    {% if YANDEX_SITE_VERIFICATION %}<meta name="yandex-verification" content="{{ YANDEX_SITE_VERIFICATION }}">{% endif %}
+
+    {# Performance: open early connections to assets we always load. #}
+    <link rel="preconnect" href="https://storage.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://storage.googleapis.com">
 
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
@@ -26,32 +38,49 @@
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:title" content="{% block og_title %}{% trans "Exam Stellar — Practice Exams & Certification Test Banks" %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{% trans "Practice with thousands of real exam-style questions. Track your progress. Ace your certifications." %}{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}https://examstellar.com{{ request.path }}{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}https://examstellar.com{% static 'images/og-default.png' %}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ SITE_DOMAIN }}{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ SITE_DOMAIN }}{% static 'images/og-default.png' %}{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{% block og_image_alt %}{% trans "Exam Stellar — practice exams for professional certifications" %}{% endblock %}">
     <meta property="og:locale" content="{{ USER_LANGUAGE_CODE|default:'en' }}">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@examstellar">
     <meta name="twitter:title" content="{% block twitter_title %}{% trans "Exam Stellar — Practice Exams & Certification Test Banks" %}{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}{% trans "Practice with thousands of real exam-style questions. Track your progress. Ace your certifications." %}{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}https://examstellar.com{% static 'images/og-default.png' %}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ SITE_DOMAIN }}{% static 'images/og-default.png' %}{% endblock %}">
+    <meta name="twitter:image:alt" content="{% block twitter_image_alt %}{% trans "Exam Stellar — practice exams for professional certifications" %}{% endblock %}">
 
     <!-- Structured Data: Organization -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "Organization",
+        "@type": "EducationalOrganization",
+        "@id": "{{ SITE_DOMAIN }}/#organization",
         "name": "Exam Stellar",
-        "url": "https://examstellar.com",
-        "logo": "https://examstellar.com{% static 'images/og-default.png' %}",
+        "alternateName": "Exam Stellar — Certification Practice Exams",
+        "url": "{{ SITE_DOMAIN }}/",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "{{ SITE_DOMAIN }}{% static 'images/og-default.png' %}",
+            "width": 1200,
+            "height": 630
+        },
         "description": "{% trans 'Professional exam preparation platform with thousands of practice questions for certification exams.' %}",
-        "contactPoint": {
+        "contactPoint": [{
             "@type": "ContactPoint",
             "contactType": "customer service",
             "email": "info@examstellar.com",
-            "url": "https://examstellar.com/contact/"
-        },
-        "sameAs": []
+            "availableLanguage": ["English", "Arabic"],
+            "url": "{{ SITE_DOMAIN }}/contact/"
+        }],
+        "sameAs": [
+            "https://www.linkedin.com/company/examstellar",
+            "https://twitter.com/examstellar",
+            "https://www.facebook.com/examstellar"
+        ]
     }
     </script>
 
@@ -60,11 +89,17 @@
     {
         "@context": "https://schema.org",
         "@type": "WebSite",
+        "@id": "{{ SITE_DOMAIN }}/#website",
         "name": "Exam Stellar",
-        "url": "https://examstellar.com",
+        "url": "{{ SITE_DOMAIN }}/",
+        "inLanguage": "{{ USER_LANGUAGE_CODE|default:'en' }}",
+        "publisher": {"@id": "{{ SITE_DOMAIN }}/#organization"},
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://examstellar.com/search/?q={search_term_string}",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "{{ SITE_DOMAIN }}/search/?q={search_term_string}"
+            },
             "query-input": "required name=search_term_string"
         }
     }

@@ -1,7 +1,30 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Blog" %} - {% trans "Exam Stellar" %}{% endblock %}
+{% block title %}{% trans "Blog — Certification Insights, Exam Tips, Industry Trends" %} | Exam Stellar{% endblock %}
+{% block meta_description %}{% trans "Read the Exam Stellar blog for certification deep-dives, exam-prep playbooks, and industry trend analysis across IT, security, networking, cloud, project management, and more." %}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": "{{ SITE_DOMAIN }}{% url 'cms:blog_list' %}#blog",
+    "url": "{{ SITE_DOMAIN }}{% url 'cms:blog_list' %}",
+    "name": "{% trans 'Exam Stellar Blog' %}",
+    "description": "{% trans 'Certification deep-dives, exam-prep playbooks, and industry trend analysis.' %}",
+    "publisher": {"@id": "{{ SITE_DOMAIN }}/#organization"},
+    "inLanguage": "{{ USER_LANGUAGE_CODE|default:'en' }}",
+    "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "{% trans 'Home' %}", "item": "{{ SITE_DOMAIN }}/"},
+            {"@type": "ListItem", "position": 2, "name": "{% trans 'Blog' %}", "item": "{{ SITE_DOMAIN }}{% url 'cms:blog_list' %}"}
+        ]
+    }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <!-- Featured Posts -->

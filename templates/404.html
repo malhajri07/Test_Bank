@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Page not found" %} — Exam Stellar{% endblock %}
+{% block meta_description %}{% trans "The page you were looking for doesn't exist on Exam Stellar. Browse popular certification practice exams or use search to find what you need." %}{% endblock %}
+{% block robots %}noindex, follow{% endblock %}
+
+{% block content %}
+<main id="main-content" class="page min-h-[70vh] flex items-center">
+    <div class="page__inner max-w-3xl text-center py-16">
+        <p class="text-sm font-semibold uppercase tracking-wider text-brand-500 mb-4">{% trans "Error 404" %}</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-4">
+            {% trans "We couldn't find that page." %}
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-xl mx-auto">
+            {% trans "The link may be outdated or the page may have moved. Try one of these instead:" %}
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-3 mb-12">
+            <a href="{% url 'catalog:index' %}"
+               class="inline-flex items-center justify-center rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-3 shadow-sm transition-colors">
+                {% trans "Go to homepage" %}
+            </a>
+            <a href="{% url 'catalog:category_list' %}"
+               class="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface hover:bg-gray-50 dark:hover:bg-dark-surface-hover text-gray-900 dark:text-gray-100 font-semibold px-6 py-3 transition-colors">
+                {% trans "Browse all categories" %}
+            </a>
+            <a href="{% url 'catalog:contact' %}"
+               class="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-surface-hover font-medium px-6 py-3 transition-colors">
+                {% trans "Contact support" %}
+            </a>
+        </div>
+
+        {% if categories %}
+        <div class="text-start">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 text-center">
+                {% trans "Popular categories" %}
+            </h2>
+            <ul class="flex flex-wrap items-center justify-center gap-2">
+                {% for cat in categories|slice:":10" %}
+                <li>
+                    <a href="{% url 'catalog:category_detail' category_slug=cat.slug %}"
+                       class="inline-flex items-center rounded-full border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-surface px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:border-brand-500 hover:text-brand-500 transition-colors">
+                        {{ cat.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

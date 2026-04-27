@@ -87,6 +87,23 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
+# Canonical site URL — used in sitemaps, robots.txt, JSON-LD, OpenGraph,
+# canonical <link> tags. Production should always serve www. so canonicals
+# never split between apex and www. (apex 301-redirects to www. via
+# Cloud Run domain mapping.)
+SITE_DOMAIN = os.environ.get('SITE_DOMAIN', 'https://www.examstellar.com').rstrip('/')
+
+# Search engine verification tokens — set as env vars on the Cloud Run
+# service to claim Search Console / Bing Webmaster ownership.
+GOOGLE_SITE_VERIFICATION = os.environ.get('GOOGLE_SITE_VERIFICATION', '')
+BING_SITE_VERIFICATION = os.environ.get('BING_SITE_VERIFICATION', '')
+YANDEX_SITE_VERIFICATION = os.environ.get('YANDEX_SITE_VERIFICATION', '')
+
+# IndexNow key — generate a 32-char hex string and serve at /<key>.txt
+# for ownership verification. The push function uses this to notify
+# search engines on testbank publish/update.
+INDEXNOW_KEY = os.environ.get('INDEXNOW_KEY', '')
+
 # Logging Configuration for Cloud Logging
 LOGGING = {
     'version': 1,

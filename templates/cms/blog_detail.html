@@ -2,6 +2,61 @@
 {% load i18n sanitize_tags %}
 
 {% block title %}{{ post.meta_title|default:post.title }} - {% trans "Blog" %} - {% trans "Exam Stellar" %}{% endblock %}
+{% block meta_description %}{{ post.meta_description|default:post.excerpt|default:post.title|truncatechars:200 }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ post.meta_title|default:post.title }}{% endblock %}
+{% block og_description %}{{ post.meta_description|default:post.excerpt|default:post.title|truncatechars:200 }}{% endblock %}
+{% block og_image %}{% if post.featured_image %}{{ SITE_DOMAIN }}{{ post.featured_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if post.featured_image %}{{ SITE_DOMAIN }}{{ post.featured_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": "{{ SITE_DOMAIN }}{{ post.get_absolute_url }}#article",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "{{ SITE_DOMAIN }}{{ post.get_absolute_url }}"
+    },
+    "headline": "{{ post.title|escapejs }}",
+    "description": "{{ post.meta_description|default:post.excerpt|default:post.title|truncatechars:200|escapejs }}",
+    {% if post.featured_image %}"image": {
+        "@type": "ImageObject",
+        "url": "{{ SITE_DOMAIN }}{{ post.featured_image.url }}"
+    },{% endif %}
+    "author": {
+        "@type": "Person",
+        "name": "{{ post.author.get_full_name|default:post.author.username|default:'Exam Stellar Editorial'|escapejs }}",
+        "url": "{{ SITE_DOMAIN }}/about/"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Exam Stellar",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "{{ SITE_DOMAIN }}/static/images/og-default.png"
+        }
+    },
+    "datePublished": "{{ post.published_at|date:'c' }}",
+    "dateModified": "{{ post.updated_at|date:'c' }}",
+    "inLanguage": "{{ USER_LANGUAGE_CODE|default:'en' }}",
+    "articleSection": "Certifications",
+    "wordCount": {{ post.content|wordcount|default:0 }}
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "{% trans 'Home' %}", "item": "{{ SITE_DOMAIN }}/"},
+        {"@type": "ListItem", "position": 2, "name": "{% trans 'Blog' %}", "item": "{{ SITE_DOMAIN }}{% url 'cms:blog_list' %}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ post.title|escapejs }}", "item": "{{ SITE_DOMAIN }}{{ post.get_absolute_url }}"}
+    ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <!-- Blog Post Header -->
@@ -21,7 +76,7 @@
         
         {% if post.featured_image %}
         <div class="mb-8 rounded-xl overflow-hidden">
-            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-96 object-cover" loading="lazy">
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-96 object-cover" fetchpriority="high" decoding="async">
         </div>
         {% endif %}
         

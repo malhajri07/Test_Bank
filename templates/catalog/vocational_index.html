@@ -10,12 +10,33 @@
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://examstellar.com/"},
-        {"@type": "ListItem", "position": 2, "name": "Browse", "item": "https://examstellar.com{% url 'catalog:category_list' %}"},
-        {"@type": "ListItem", "position": 3, "name": "{{ category.name|escapejs }}"}
-    ]
+    "@type": "CollectionPage",
+    "@id": "{{ SITE_DOMAIN }}{{ request.path }}#collection",
+    "url": "{{ SITE_DOMAIN }}{{ request.path }}",
+    "name": "{{ category.name|escapejs }} {% trans 'Practice Exams' %}",
+    "description": "{{ category.description|default:category.name|striptags|truncatechars:200 }}",
+    "isPartOf": {"@id": "{{ SITE_DOMAIN }}/#website"},
+    "about": "{{ category.name|escapejs }}",
+    "inLanguage": "{{ USER_LANGUAGE_CODE|default:'en' }}",
+    "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "{% trans 'Home' %}", "item": "{{ SITE_DOMAIN }}/"},
+            {"@type": "ListItem", "position": 2, "name": "{% trans 'Browse' %}", "item": "{{ SITE_DOMAIN }}{% url 'catalog:category_list' %}"},
+            {"@type": "ListItem", "position": 3, "name": "{{ category.name|escapejs }}", "item": "{{ SITE_DOMAIN }}{{ request.path }}"}
+        ]
+    }
+    {% if certification_groups %},
+    "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": {{ certification_groups|length }},
+        "itemListElement": [
+        {% for g in certification_groups|slice:':30' %}
+            {"@type": "ListItem", "position": {{ forloop.counter }}, "name": "{{ g.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        ]
+    }
+    {% endif %}
 }
 </script>
 {% endblock %}
@@ -32,7 +53,7 @@
             <div class="flex items-start gap-6 flex-wrap">
                 {% if category.image %}
                 <div class="flex-shrink-0 hidden md:block">
-                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-20 h-20 rounded-xl object-cover shadow-sm border border-gray-100">
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy" decoding="async" class="w-20 h-20 rounded-xl object-cover shadow-sm border border-gray-100">
                 </div>
                 {% endif %}
 
