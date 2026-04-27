@@ -62,7 +62,7 @@ class CategorySitemap(Sitemap):
 
     def items(self):
         from catalog.models import Category
-        return Category.objects.all().order_by('order', 'name')
+        return Category.objects.all().order_by('name')
 
     def location(self, obj):
         return reverse('catalog:category_detail', kwargs={'category_slug': obj.slug})
