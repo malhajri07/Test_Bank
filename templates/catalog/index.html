@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n cms_tags %}
+{% load i18n cms_tags static %}
 
 {% block title %}{% trans "Exam Stellar — Practice Exams for PMP, CompTIA, AWS, Microsoft & More" %}{% endblock %}
 {% block meta_description %}{% blocktrans with q=total_questions c=total_certifications %}Practice {{ q }}+ exam-style questions across {{ c }}+ certifications (PMP, CompTIA, AWS, Azure, CISSP, and more). Detailed explanations on every answer, real exam simulations, instant analytics.{% endblocktrans %}{% endblock %}
